@@ -1,0 +1,13 @@
+{
+  "dependencies": {
+    "@capacitor/app": "8.0.0",
+    "@capacitor/core": "8.0.1",
+    "@capacitor/haptics": "8.0.0",
+    "@capacitor/ios": "8.0.1",
+    "@capacitor/keyboard": "8.0.0",
+    "@capacitor/status-bar": "8.0.0"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "8.0.1"
+  }
+}
