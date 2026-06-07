@@ -79,6 +79,21 @@ import { catchError, of } from 'rxjs';
       <div class="status-cards">
         <h3 class="section-title">Resumo</h3>
 
+        <ion-card *ngIf="isAdmin" class="status-card status-card-pending" (click)="goToPendingApprovals()">
+          <ion-card-content>
+            <div class="status-icon pending-icon">
+              <ion-icon name="alert-circle-outline"></ion-icon>
+            </div>
+            <div class="status-info">
+              <span class="status-value">{{ pendingApprovals }}</span>
+              <span class="status-label">
+                {{ pendingApprovals === 1 ? 'Reserva aguarda aprovação' : 'Reservas aguardam aprovação' }}
+              </span>
+            </div>
+            <ion-icon name="chevron-forward-outline" class="chevron"></ion-icon>
+          </ion-card-content>
+        </ion-card>
+
         <ion-card class="status-card" (click)="goToDeliveries()">
           <ion-card-content>
             <div class="status-icon delivery-icon">
@@ -214,6 +229,18 @@ import { catchError, of } from 'rxjs';
       background: var(--ion-color-secondary);
     }
 
+    .status-icon.pending-icon {
+      background: var(--ion-color-warning);
+    }
+
+    .status-card.status-card-pending {
+      border-left: 4px solid var(--ion-color-warning);
+    }
+
+    .status-card.status-card-pending .status-value {
+      color: var(--ion-color-warning-shade);
+    }
+
     .status-icon ion-icon {
       font-size: 24px;
       color: white;
@@ -284,6 +311,7 @@ export class HomeTabPage implements OnInit {
 
   pendingDeliveries = 0;
   activeReservations = 0;
+  pendingApprovals = 0;
 
   ngOnInit(): void {
     this.refreshUserState();
@@ -331,8 +359,17 @@ export class HomeTabPage implements OnInit {
         catchError(() => of([]))
       ).subscribe(reservations => {
         this.activeReservations = reservations.filter((r: any) => r.status === 'APPROVED').length;
+        if (this.isAdmin) {
+          this.pendingApprovals = reservations.filter((r: any) => r.status === 'PENDING').length;
+        }
       });
     }
+  }
+
+  goToPendingApprovals(): void {
+    this.router.navigate(['/tabs/reservations'], {
+      queryParams: { view: 'all', status: 'PENDING' }
+    });
   }
 
   openNewReservation(): void {
