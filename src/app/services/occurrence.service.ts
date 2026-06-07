@@ -11,6 +11,25 @@ export class OccurrenceService {
   private baseUrl = this.apiConfig.API_URL;
 
   create(payload: OccurrenceCreateRequestDTO): Observable<OccurrenceResponseDTO> {
-    return this.http.post<OccurrenceResponseDTO>(`${this.baseUrl}/occurrences`, payload);
+    return this.http.post<OccurrenceResponseDTO>(`${this.baseUrl}/occurrences/create`, payload);
+  }
+
+  getAll(): Observable<OccurrenceResponseDTO[]> {
+    return this.http.get<OccurrenceResponseDTO[]>(`${this.baseUrl}/occurrences/findAll`);
+  }
+
+  /**
+   * Backend has a bug: the controller declares /find/{uuid} but reads @RequestParam,
+   * so it actually consumes ?uuid=... — we pass it as a query param.
+   */
+  getById(uuid: string): Observable<OccurrenceResponseDTO> {
+    return this.http.get<OccurrenceResponseDTO>(
+      `${this.baseUrl}/occurrences/find/${uuid}`,
+      { params: { uuid } }
+    );
+  }
+
+  delete(uuid: string): Observable<void> {
+    return this.http.delete<void>(`${this.baseUrl}/occurrences/delete/${uuid}`);
   }
 }

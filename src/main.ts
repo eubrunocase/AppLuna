@@ -1,17 +1,20 @@
 import { bootstrapApplication } from '@angular/platform-browser';
-import { RouteReuseStrategy, provideRouter, withPreloading, PreloadAllModules } from '@angular/router';
+import { RouteReuseStrategy, provideRouter, Router, withPreloading, PreloadAllModules } from '@angular/router';
 import { IonicRouteStrategy, provideIonicAngular } from '@ionic/angular/standalone';
 import { provideHttpClient, withInterceptors, HttpInterceptorFn, HttpErrorResponse } from '@angular/common/http';
 import { provideServiceWorker } from '@angular/service-worker';
-import { isDevMode } from '@angular/core';
+import { inject, isDevMode } from '@angular/core';
 import { throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 
 import { routes } from './app/app.routes';
 import { AppComponent } from './app/app.component';
 
+const AUTH_TOKEN_KEY = 'auth_token';
+const AUTH_USER_KEY = 'auth_user';
+
 const authInterceptorFn: HttpInterceptorFn = (req, next) => {
-  const token = localStorage.getItem('auth_token');
+  const token = localStorage.getItem(AUTH_TOKEN_KEY);
 
   if (token) {
     const cloned = req.clone({
@@ -24,6 +27,8 @@ const authInterceptorFn: HttpInterceptorFn = (req, next) => {
 };
 
 const errorInterceptorFn: HttpInterceptorFn = (req, next) => {
+  const router = inject(Router);
+
   return next(req).pipe(
     catchError((error: HttpErrorResponse) => {
       let errorMessage = 'Ocorreu um erro';
@@ -38,9 +43,17 @@ const errorInterceptorFn: HttpInterceptorFn = (req, next) => {
           errorMessage = error.error?.message || 'Dados inválidos';
         }
       } else if (error.status === 401) {
-        errorMessage = 'Email ou senha incorretos.';
+        const isLoginRequest = req.url.includes('/auth/login');
+        if (isLoginRequest) {
+          errorMessage = 'Email ou senha incorretos.';
+        } else {
+          errorMessage = 'Sessão expirada. Faça login novamente.';
+          localStorage.removeItem(AUTH_TOKEN_KEY);
+          localStorage.removeItem(AUTH_USER_KEY);
+          router.navigate(['/login']);
+        }
       } else if (error.status === 403) {
-        errorMessage = 'Acesso negado.';
+        errorMessage = 'Você não tem permissão para esta ação.';
       } else if (error.status === 404) {
         errorMessage = 'Recurso não encontrado.';
       } else if (error.status === 409) {

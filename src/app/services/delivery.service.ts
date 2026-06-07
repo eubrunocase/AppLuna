@@ -18,8 +18,16 @@ export class DeliveryService {
     return this.http.get<ResponseDeliveryDTO[]>(`${this.baseUrl}/delivery/findAll`);
   }
 
-  confirmReceipt(id: string, pickedUpBy: string): Observable<ResponseDeliveryDTO> {
-    const url = `${this.baseUrl}/delivery/${id}/confirm-receipt?pickedUpBy=${encodeURIComponent(pickedUpBy)}`;
-    return this.http.patch<ResponseDeliveryDTO>(url, {});
+  findById(id: string): Observable<ResponseDeliveryDTO> {
+    return this.http.get<ResponseDeliveryDTO>(`${this.baseUrl}/delivery/find/${id}`);
+  }
+
+  update(id: string, payload: RequestDeliveryDTO): Observable<ResponseDeliveryDTO> {
+    return this.http.put<ResponseDeliveryDTO>(`${this.baseUrl}/delivery/update/${id}`, payload);
+  }
+
+  confirmReceipt(id: string, pickedUpBy?: string): Observable<ResponseDeliveryDTO> {
+    const query = pickedUpBy ? `?pickedUpBy=${encodeURIComponent(pickedUpBy)}` : '';
+    return this.http.put<ResponseDeliveryDTO>(`${this.baseUrl}/delivery/${id}/confirm-receipt${query}`, {});
   }
 }

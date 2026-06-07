@@ -222,7 +222,8 @@ export class UsersPage implements OnInit {
       message: user.email,
       inputs: [
         { name: 'name', type: 'text', placeholder: 'Nome completo', value: user.name },
-        { name: 'apartment', type: 'text', placeholder: 'Apartamento', value: user.apartment }
+        { name: 'apartment', type: 'text', placeholder: 'Apartamento', value: user.apartment },
+        { name: 'password', type: 'password', placeholder: 'Nova senha (deixe em branco para manter)' }
       ],
       buttons: [
         { text: 'Cancelar', role: 'cancel' },
@@ -230,7 +231,7 @@ export class UsersPage implements OnInit {
           text: 'Salvar',
           handler: (data) => {
             if (data.name && data.apartment) {
-              this.updateUser(user.id, data);
+              this.updateUser(user, data);
               return true;
             }
             return false;
@@ -255,13 +256,13 @@ export class UsersPage implements OnInit {
     });
   }
 
-  private updateUser(id: string, data: any): void {
-    this.userService.update(id, {
+  private updateUser(user: ResponseUserDTO, data: any): void {
+    this.userService.update(user.id, {
       name: data.name,
       apartment: data.apartment,
-      email: '',
-      password: '',
-      role: ''
+      email: user.email,
+      password: data.password || '',
+      role: user.role
     }).pipe(
       catchError(() => of(null))
     ).subscribe(() => {

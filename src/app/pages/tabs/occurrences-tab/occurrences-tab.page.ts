@@ -3,14 +3,11 @@ import { IonicModule } from '@ionic/angular';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { UiService } from '../../../shared/services/ui.service';
+import { OccurrenceService } from '../../../services/occurrence.service';
+import { OccurrenceResponseDTO } from '../../../core/models';
 import { catchError, finalize, of } from 'rxjs';
 
-interface Occurrence {
-  id: string;
-  description: string;
-  incidentDate: string;
-  createdAt: string;
-}
+type Occurrence = OccurrenceResponseDTO;
 
 @Component({
   selector: 'app-occurrences-tab',
@@ -236,6 +233,7 @@ interface Occurrence {
 export class OccurrencesTabPage implements OnInit {
   private uiService = inject(UiService);
   private router = inject(Router);
+  private occurrenceService = inject(OccurrenceService);
 
   occurrences: Occurrence[] = [];
   isLoading = false;
@@ -244,12 +242,18 @@ export class OccurrencesTabPage implements OnInit {
     this.loadOccurrences();
   }
 
+  ionViewWillEnter(): void {
+    this.loadOccurrences();
+  }
+
   loadOccurrences(): void {
     this.isLoading = true;
-    setTimeout(() => {
-      this.occurrences = [];
-      this.isLoading = false;
-    }, 1000);
+    this.occurrenceService.getAll().pipe(
+      catchError(() => of([])),
+      finalize(() => this.isLoading = false)
+    ).subscribe(list => {
+      this.occurrences = list;
+    });
   }
 
   formatDate(dateStr: string): string {

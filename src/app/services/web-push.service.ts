@@ -24,27 +24,42 @@ export class WebPushService {
   }
 
   subscribe(): Observable<boolean> {
-    return this.getPublicKey().pipe(
-      switchMap(publicKey =>
-        from(this.swPush.requestSubscription({
-          serverPublicKey: publicKey
-        }))
-      ),
-      switchMap(subscription => {
-        const request: PushSubscriptionRequestDTO = {
-          endpoint: subscription.endpoint,
-          keys: {
-            p256dh: this.arrayBufferToBase64(subscription.getKey('p256dh')!),
-            auth: this.arrayBufferToBase64(subscription.getKey('auth')!)
-          }
-        };
-        return this.http.post(this.SUBSCRIBE_URL, request).pipe(
-          map(() => true),
+    return from(this.ensurePermission()).pipe(
+      switchMap(granted => {
+        if (!granted) {
+          return of(false);
+        }
+        return this.getPublicKey().pipe(
+          switchMap(publicKey =>
+            from(this.swPush.requestSubscription({
+              serverPublicKey: publicKey
+            }))
+          ),
+          switchMap(subscription => {
+            const request: PushSubscriptionRequestDTO = {
+              endpoint: subscription.endpoint,
+              keys: {
+                p256dh: this.arrayBufferToBase64(subscription.getKey('p256dh')!),
+                auth: this.arrayBufferToBase64(subscription.getKey('auth')!)
+              }
+            };
+            return this.http.post(this.SUBSCRIBE_URL, request).pipe(
+              map(() => true),
+              catchError(() => of(false))
+            );
+          }),
           catchError(() => of(false))
         );
-      }),
-      catchError(() => of(false))
+      })
     );
+  }
+
+  private async ensurePermission(): Promise<boolean> {
+    if (typeof Notification === 'undefined') return false;
+    if (Notification.permission === 'granted') return true;
+    if (Notification.permission === 'denied') return false;
+    const result = await Notification.requestPermission();
+    return result === 'granted';
   }
 
   unsubscribe(): Observable<boolean> {

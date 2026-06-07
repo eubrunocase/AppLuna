@@ -35,8 +35,8 @@ export class ReservationService {
     return this.http.get<ReservationResponseDTO[]>(`${this.baseUrl}/reservation/findByUser/${userId}`);
   }
 
-  update(id: string, date: string): Observable<ReservationResponseDTO> {
-    return this.http.put<ReservationResponseDTO>(`${this.baseUrl}/reservation/${id}`, { date }).pipe(
+  update(id: string, payload: { user: string; date: string; space: number }): Observable<ReservationResponseDTO> {
+    return this.http.put<ReservationResponseDTO>(`${this.baseUrl}/reservation/${id}`, payload).pipe(
       tap(() => this.reservationUpdatedSource.next())
     );
   }

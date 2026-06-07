@@ -18,11 +18,23 @@ export class UserService {
     return this.http.get<ResponseUserDTO[]>(`${this.baseUrl}/users`);
   }
 
+  getById(id: string): Observable<ResponseUserDTO> {
+    return this.http.get<ResponseUserDTO>(`${this.baseUrl}/users/${id}`);
+  }
+
+  getMe(): Observable<ResponseUserDTO> {
+    return this.http.get<ResponseUserDTO>(`${this.baseUrl}/users/me`);
+  }
+
   create(payload: RequestUserDTO): Observable<ResponseUserDTO> {
     return this.http.post<ResponseUserDTO>(`${this.baseUrl}/users/create`, payload);
   }
 
   update(id: string, payload: RequestUserDTO): Observable<ResponseUserDTO> {
     return this.http.put<ResponseUserDTO>(`${this.baseUrl}/users/update/${id}`, payload);
+  }
+
+  delete(id: string): Observable<void> {
+    return this.http.delete<void>(`${this.baseUrl}/users/delete/${id}`);
   }
 }

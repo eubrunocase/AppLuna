@@ -62,7 +62,7 @@ import { catchError, finalize, of, Subscription } from 'rxjs';
           <ion-card-content>
             <div class="reservation-info">
               <p><strong>Espaço:</strong> {{ getSpaceTypeLabel(reservation.space.type) }}</p>
-              <p><strong>Solicitante:</strong> {{ reservation.user.name }} ({{ reservation.user.apartment }})</p>
+              <p><strong>Solicitante:</strong> {{ reservation.user.name }}</p>
               <p class="date"><strong>Criado em:</strong> {{ formatDateTime(reservation.createdAt) }}</p>
             </div>
             

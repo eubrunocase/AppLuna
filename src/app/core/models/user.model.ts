@@ -23,7 +23,7 @@ export interface RequestUserDTO {
   role: string;
 }
 
-export interface UserReservationInfo {
+export interface ReservationSummary {
   id: string;
   date: string;
   spaceType: string;
@@ -35,5 +35,8 @@ export interface ResponseUserDTO {
   apartment: string;
   email: string;
   role: string;
-  reservations: UserReservationInfo[];
+  reservation: ReservationSummary[];
 }
+
+/** Backward-compat alias — old code referenced `UserReservationInfo`. */
+export type UserReservationInfo = ReservationSummary;

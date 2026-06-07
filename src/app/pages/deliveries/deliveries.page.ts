@@ -62,7 +62,7 @@ import { catchError, finalize, of } from 'rxjs';
           
           <ion-card-content>
             <div class="delivery-info">
-              <p><strong>Destinatário:</strong> {{ getUserName(delivery.userId) }}</p>
+              <p><strong>Destinatário:</strong> {{ getUserName(delivery.user) }}</p>
               <p *ngIf="delivery.discrimination"><strong>Descrição:</strong> {{ delivery.discrimination }}</p>
               <p *ngIf="delivery.otherRecipient"><strong>Recebedor:</strong> {{ delivery.otherRecipient }}</p>
               <p class="date"><strong>Recebido em:</strong> {{ formatDate(delivery.createdAt) }}</p>
@@ -272,7 +272,7 @@ export class DeliveriesPage implements OnInit {
       header: 'Nova Entrega',
       inputs: [
         {
-          name: 'userId',
+          name: 'user',
           type: 'text',
           placeholder: 'ID do Morador'
         },
@@ -292,7 +292,7 @@ export class DeliveriesPage implements OnInit {
         {
           text: 'Registrar',
           handler: (data) => {
-            if (data.userId) {
+            if (data.user) {
               this.createDelivery(data);
               return true;
             }
@@ -306,7 +306,7 @@ export class DeliveriesPage implements OnInit {
 
   private createDelivery(data: any): void {
     this.deliveryService.create({
-      userId: data.userId,
+      user: data.user,
       protocolNumber: data.protocolNumber || null,
       discrimination: data.discrimination || null
     }).pipe(

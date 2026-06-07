@@ -68,7 +68,7 @@ import { catchError, finalize, of } from 'rxjs';
               <h3>{{ getSpaceTypeLabel(reservation.space.type) }}</h3>
               <p class="resident" *ngIf="isAdmin && viewMode === 'all'">
                 <ion-icon name="person-outline" class="icon-inline"></ion-icon>
-                {{ reservation.user.name }} · Ap. {{ reservation.user.apartment }}
+                {{ reservation.user.name }}
               </p>
               <p class="time">
                 <ion-icon name="time-outline" class="icon-inline"></ion-icon>

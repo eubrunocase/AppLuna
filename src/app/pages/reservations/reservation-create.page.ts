@@ -1,20 +1,28 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
 import { IonicModule } from '@ionic/angular';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { ReservationService } from '../../services/reservation.service';
+import { SpaceService } from '../../services/space.service';
 import { UiService } from '../../shared/services/ui.service';
 import { catchError, of } from 'rxjs';
 
 interface SpaceOption {
-  id: 1 | 2;
+  id: number;
   name: string;
   description: string;
   icon: string;
   color: string;
   iconColor: string;
 }
+
+const SPACE_VISUALS: Record<string, Omit<SpaceOption, 'id'>> = {
+  'SALAO_FESTAS': { name: 'Salão de Festas', description: 'Para eventos', icon: 'people-outline', color: '#e3f2fd', iconColor: '#1976d2' },
+  'CHURRASQUEIRA': { name: 'Churrasqueira', description: 'Para confraternizações', icon: 'flame-outline', color: '#fff3e0', iconColor: '#f57c00' },
+  'ACADEMIA': { name: 'Academia', description: 'Treinos e exercícios', icon: 'barbell-outline', color: '#e8f5e9', iconColor: '#388e3c' },
+  'CAMPO_FUTEBOL': { name: 'Campo de Futebol', description: 'Jogos e esportes', icon: 'football-outline', color: '#f3e5f5', iconColor: '#6a1b9a' }
+};
 
 @Component({
   selector: 'app-reservation-create',
@@ -271,28 +279,47 @@ interface SpaceOption {
   standalone: true,
   imports: [IonicModule, CommonModule, FormsModule]
 })
-export class ReservationCreatePage {
+export class ReservationCreatePage implements OnInit {
   private reservationService = inject(ReservationService);
+  private spaceService = inject(SpaceService);
   private router = inject(Router);
   private uiService = inject(UiService);
 
-  spaces: SpaceOption[] = [
-    { id: 1, name: 'Salão de Festas', description: 'Para eventos', icon: 'people-outline', color: '#e3f2fd', iconColor: '#1976d2' },
-    { id: 2, name: 'Churrasqueira', description: 'Para confraternizações', icon: 'flame-outline', color: '#fff3e0', iconColor: '#f57c00' }
-  ];
+  spaces: SpaceOption[] = [];
 
-  selectedSpaceId: 1 | 2 | null = null;
+  selectedSpaceId: number | null = null;
   selectedDate: string = '';
   isSubmitting = false;
   isCheckingAvailability = false;
   showAvailabilityResult: boolean | null = null;
   showDatePicker = false;
 
+  ngOnInit(): void {
+    this.loadSpaces();
+  }
+
+  private loadSpaces(): void {
+    this.spaceService.getAll().pipe(
+      catchError(() => of([]))
+    ).subscribe(spaces => {
+      this.spaces = spaces.map(s => {
+        const visuals = SPACE_VISUALS[String(s.type)] ?? {
+          name: String(s.type),
+          description: '',
+          icon: 'cube-outline',
+          color: '#eeeeee',
+          iconColor: '#555555'
+        };
+        return { id: s.id, ...visuals };
+      });
+    });
+  }
+
   get minDate(): string {
     return new Date().toISOString().split('T')[0];
   }
 
-  selectSpace(id: 1 | 2): void {
+  selectSpace(id: number): void {
     this.selectedSpaceId = id;
     if (this.selectedDate) {
       this.checkAvailability();
@@ -344,9 +371,9 @@ export class ReservationCreatePage {
 
     const space = Number(this.selectedSpaceId);
 
-    this.reservationService.create({ 
+    this.reservationService.create({
       space,
-      date: this.selectedDate 
+      date: this.selectedDate
     }).pipe(
       catchError(error => {
         this.uiService.showError(error.error?.message || 'Erro ao criar reserva');
