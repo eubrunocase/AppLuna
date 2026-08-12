@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, tap, BehaviorSubject, switchMap, of } from 'rxjs';
-import { AuthenticationDTO, UserRoles, ResponseUserDTO } from '../core/models';
+import { Observable, tap, BehaviorSubject, switchMap, of, map } from 'rxjs';
+import { AuthenticationDTO, UserRoles, ResponseUserDTO, TokenDTO, RefreshRequestDTO, RefreshResponseDTO, LogoutRequestDTO } from '../core/models';
 import { TokenStorageService } from '../core/storage/token-storage.service';
 import { ApiConfigService } from '../core/api-config.service';
 import { Router } from '@angular/router';
@@ -19,22 +19,55 @@ export class AuthService {
   private isAuthenticatedSubject = new BehaviorSubject<boolean>(this.tokenStorage.isAuthenticated());
   isAuthenticated$ = this.isAuthenticatedSubject.asObservable();
 
-  constructor() {
-    this.restoreUserFromToken();
-  }
-
   login(payload: AuthenticationDTO): Observable<ResponseUserDTO | null> {
-    return this.http.post(`${this.baseUrl}/auth/login`, payload, {
-      responseType: 'text'
-    }).pipe(
-      tap((token: string) => {
-        this.tokenStorage.saveToken(token);
+    return this.http.post<TokenDTO>(`${this.baseUrl}/auth/login`, payload).pipe(
+      tap((tokens: TokenDTO) => {
+        this.tokenStorage.saveTokens(tokens.accessToken, tokens.refreshToken);
         this.tokenStorage.clearUser();
         this.isAuthenticatedSubject.next(true);
       }),
-      switchMap(() => this.fetchCurrentUser()),
-      catchError(() => of(null))
+      switchMap(() => this.fetchCurrentUser())
     );
+  }
+
+  /**
+   * Troca o refresh token por um novo par de tokens (rotação no backend).
+   * Em falha (expirado/reutilizado) limpa a sessão local e redireciona ao login.
+   */
+  refreshToken(): Observable<boolean> {
+    const refreshToken = this.tokenStorage.getRefreshToken();
+    if (!refreshToken) return of(false);
+
+    const body: RefreshRequestDTO = { refreshToken };
+    return this.http.post<RefreshResponseDTO>(`${this.baseUrl}/auth/refresh`, body).pipe(
+      tap((tokens: RefreshResponseDTO) => {
+        this.tokenStorage.saveTokens(tokens.accessToken, tokens.refreshToken);
+        this.isAuthenticatedSubject.next(true);
+      }),
+      map(() => true),
+      catchError(() => {
+        this.forceLogout();
+        return of(false);
+      })
+    );
+  }
+
+  /** Revoga a sessão no backend (best-effort) e limpa localmente. */
+  logout(): void {
+    const refreshToken = this.tokenStorage.getRefreshToken();
+    const body: LogoutRequestDTO = { refreshToken };
+
+    this.http.post<void>(`${this.baseUrl}/auth/logout`, body, { responseType: 'text' as 'json' }).pipe(
+      catchError(() => of(null)),
+      tap(() => this.forceLogout())
+    ).subscribe();
+  }
+
+  /** Limpa a sessão local e redireciona para o login sem chamar a API. */
+  forceLogout(): void {
+    this.tokenStorage.clearTokens();
+    this.isAuthenticatedSubject.next(false);
+    this.router.navigate(['/login']);
   }
 
   /**
@@ -54,29 +87,6 @@ export class AuthService {
       }),
       catchError(() => of(null))
     );
-  }
-
-  private restoreUserFromToken(): void {
-    if (!this.tokenStorage.isAuthenticated()) return;
-
-    const tokenRole = this.tokenStorage.getRoleFromToken();
-    if (!tokenRole) return;
-
-    const currentUser = this.tokenStorage.getUser();
-    const currentRole = this.tokenStorage.normalizeRole(currentUser?.role);
-    const normalizedTokenRole = this.tokenStorage.normalizeRole(tokenRole);
-
-    if (currentUser?.role && currentRole === normalizedTokenRole) return;
-
-    // Role divergiu (ex: token renovado com role diferente) — limpa e força re-login
-    this.tokenStorage.clearToken();
-    this.isAuthenticatedSubject.next(false);
-  }
-
-  logout(): void {
-    this.tokenStorage.clearToken();
-    this.isAuthenticatedSubject.next(false);
-    this.router.navigate(['/login']);
   }
 
   getCurrentUser(): { id: string; name: string; email: string; role: string; apartment: string } | null {

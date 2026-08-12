@@ -277,7 +277,7 @@ export class LoginPage {
 
     this.authService.login({ email, password }).pipe(
       catchError(error => {
-        const message = error.error?.message || 'Credenciais inválidas';
+        const message = error?.message || 'Credenciais inválidas';
         this.uiService.showError(message);
         return of(null);
       }),

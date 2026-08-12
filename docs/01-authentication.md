@@ -1,5 +1,10 @@
 # Authentication
 
+> **DEPRECATED — outdated contract.** The backend now returns an access + refresh
+> token pair (JSON DTO), and the frontend implements silent refresh via interceptor.
+> See [06-authentication-jwt-refactor.md](./06-authentication-jwt-refactor.md) for
+> the current flow.
+
 ## Login
 
 ```

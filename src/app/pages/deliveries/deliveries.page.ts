@@ -1,12 +1,13 @@
 import { Component, inject, OnInit } from '@angular/core';
 import { IonicModule } from '@ionic/angular';
 import { CommonModule } from '@angular/common';
-import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, FormsModule } from '@angular/forms';
+import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
 import { DeliveryService } from '../../services/delivery.service';
 import { UserService } from '../../services/user.service';
 import { ResponseDeliveryDTO, UserSummaryDTO, DeliveryStatus, UserRoles } from '../../core/models';
 import { AuthService } from '../../services/auth.service';
-import { AlertController, ModalController } from '@ionic/angular';
+import { AlertController } from '@ionic/angular';
 import { catchError, finalize, of } from 'rxjs';
 
 @Component({
@@ -153,13 +154,14 @@ import { catchError, finalize, of } from 'rxjs';
     }
   `],
   standalone: true,
-  imports: [IonicModule, CommonModule, ReactiveFormsModule, FormsModule]
+  imports: [IonicModule, CommonModule, FormsModule]
 })
 export class DeliveriesPage implements OnInit {
   private deliveryService = inject(DeliveryService);
   private userService = inject(UserService);
   private authService = inject(AuthService);
   private alertController = inject(AlertController);
+  private router = inject(Router);
 
   deliveries: ResponseDeliveryDTO[] = [];
   filteredDeliveries: ResponseDeliveryDTO[] = [];
@@ -267,52 +269,7 @@ export class DeliveriesPage implements OnInit {
     });
   }
 
-  async openCreateModal(): Promise<void> {
-    const alert = await this.alertController.create({
-      header: 'Nova Entrega',
-      inputs: [
-        {
-          name: 'user',
-          type: 'text',
-          placeholder: 'ID do Morador'
-        },
-        {
-          name: 'protocolNumber',
-          type: 'text',
-          placeholder: 'Número do Protocolo (opcional)'
-        },
-        {
-          name: 'discrimination',
-          type: 'text',
-          placeholder: 'Descrição (opcional)'
-        }
-      ],
-      buttons: [
-        { text: 'Cancelar', role: 'cancel' },
-        {
-          text: 'Registrar',
-          handler: (data) => {
-            if (data.user) {
-              this.createDelivery(data);
-              return true;
-            }
-            return false;
-          }
-        }
-      ]
-    });
-    await alert.present();
-  }
-
-  private createDelivery(data: any): void {
-    this.deliveryService.create({
-      user: data.user,
-      protocolNumber: data.protocolNumber || null,
-      discrimination: data.discrimination || null
-    }).pipe(
-      catchError(() => of(null))
-    ).subscribe(() => {
-      this.loadData();
-    });
+  openCreateModal(): void {
+    this.router.navigate(['/deliveries/new']);
   }
 }

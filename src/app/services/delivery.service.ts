@@ -26,6 +26,10 @@ export class DeliveryService {
     return this.http.put<ResponseDeliveryDTO>(`${this.baseUrl}/delivery/update/${id}`, payload);
   }
 
+  findByUser(userId: string): Observable<ResponseDeliveryDTO[]> {
+    return this.http.get<ResponseDeliveryDTO[]>(`${this.baseUrl}/delivery/findByUser/${userId}`);
+  }
+
   confirmReceipt(id: string, pickedUpBy?: string): Observable<ResponseDeliveryDTO> {
     const query = pickedUpBy ? `?pickedUpBy=${encodeURIComponent(pickedUpBy)}` : '';
     return this.http.put<ResponseDeliveryDTO>(`${this.baseUrl}/delivery/${id}/confirm-receipt${query}`, {});

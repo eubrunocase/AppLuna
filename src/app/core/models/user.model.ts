@@ -3,8 +3,23 @@ export interface AuthenticationDTO {
   password: string;
 }
 
-export interface LoginResponseDTO {
-  token: string;
+export interface TokenDTO {
+  accessToken: string;
+  refreshToken: string;
+  expiresIn: number;
+  tokenType: string;
+}
+
+export type LoginResponseDTO = TokenDTO;
+
+export type RefreshResponseDTO = TokenDTO;
+
+export interface RefreshRequestDTO {
+  refreshToken: string;
+}
+
+export interface LogoutRequestDTO {
+  refreshToken?: string | null;
 }
 
 export interface UserSummaryDTO {

@@ -72,3 +72,5 @@ Thumbs.db
 /node_modules
 /luna-link/src/environments
 /luna-link/node_modules
+.claude
+opencode.json

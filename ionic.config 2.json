@@ -1,7 +1,0 @@
-{
-  "name": "luna-link",
-  "integrations": {
-    "capacitor": {}
-  },
-  "type": "angular-standalone"
-}

@@ -56,6 +56,11 @@ export const routes: Routes = [
     canActivate: [authGuard]
   },
   {
+    path: 'deliveries/new',
+    loadComponent: () => import('./pages/deliveries/delivery-create.page').then(m => m.DeliveryCreatePage),
+    canActivate: [roleGuard([UserRoles.ADMIN_ROLE, UserRoles.EMPLOYEE])]
+  },
+  {
     path: 'occurrences',
     loadComponent: () => import('./pages/occurrences/occurrences.page').then(m => m.OccurrencesPage),
     canActivate: [roleGuard([UserRoles.ADMIN_ROLE, UserRoles.RESIDENT_ROLE])]

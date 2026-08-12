@@ -9,24 +9,41 @@ interface JwtPayloadClaims {
   authority?: string[] | string;
   scope?: string[] | string;
   scopes?: string[] | string;
+  exp?: number;
   [key: string]: unknown;
 }
 
 @Injectable({ providedIn: 'root' })
 export class TokenStorageService {
-  private readonly TOKEN_KEY = 'auth_token';
+  private readonly REFRESH_TOKEN_KEY = 'auth_refresh_token';
   private readonly USER_KEY = 'auth_user';
 
-  saveToken(token: string): void {
-    localStorage.setItem(this.TOKEN_KEY, token);
+  private accessToken: string | null = null;
+
+  saveAccessToken(token: string): void {
+    this.accessToken = token;
   }
 
-  getToken(): string | null {
-    return localStorage.getItem(this.TOKEN_KEY);
+  getAccessToken(): string | null {
+    return this.accessToken;
   }
 
-  clearToken(): void {
-    localStorage.removeItem(this.TOKEN_KEY);
+  saveRefreshToken(token: string): void {
+    localStorage.setItem(this.REFRESH_TOKEN_KEY, token);
+  }
+
+  getRefreshToken(): string | null {
+    return localStorage.getItem(this.REFRESH_TOKEN_KEY);
+  }
+
+  saveTokens(accessToken: string, refreshToken: string): void {
+    this.saveAccessToken(accessToken);
+    this.saveRefreshToken(refreshToken);
+  }
+
+  clearTokens(): void {
+    this.accessToken = null;
+    localStorage.removeItem(this.REFRESH_TOKEN_KEY);
     localStorage.removeItem(this.USER_KEY);
   }
 
@@ -88,8 +105,19 @@ export class TokenStorageService {
     }
   }
 
+  isAccessTokenExpired(bufferSeconds = 60): boolean {
+    const token = this.getAccessToken();
+    if (!token) return true;
+
+    const payload = this.decodeTokenPayload(token) as JwtPayloadClaims | null;
+    if (!payload?.exp || typeof payload.exp !== 'number') return true;
+
+    const expiresAtMs = payload.exp * 1000;
+    return expiresAtMs - bufferSeconds * 1000 <= Date.now();
+  }
+
   getRoleFromToken(token?: string | null): string | null {
-    const payload = this.decodeTokenPayload(token ?? this.getToken());
+    const payload = this.decodeTokenPayload(token ?? this.getAccessToken());
     if (!payload) return null;
 
     const candidates: unknown[] = [
@@ -110,7 +138,7 @@ export class TokenStorageService {
   }
 
   getSubjectFromToken(token?: string | null): string | null {
-    const payload = this.decodeTokenPayload(token ?? this.getToken()) as JwtPayloadClaims | null;
+    const payload = this.decodeTokenPayload(token ?? this.getAccessToken()) as JwtPayloadClaims | null;
     if (!payload?.sub || typeof payload.sub !== 'string') return null;
 
     const sub = payload.sub.trim();
@@ -157,6 +185,6 @@ export class TokenStorageService {
   }
 
   isAuthenticated(): boolean {
-    return !!this.getToken();
+    return !!this.getAccessToken() || !!this.getRefreshToken();
   }
 }

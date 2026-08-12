@@ -25,6 +25,7 @@
 | [03-data-models.md](./03-data-models.md) | TypeScript-ready types for all entities |
 | [04-error-handling.md](./04-error-handling.md) | Error formats, status codes, validation errors |
 | [05-realtime.md](./05-realtime.md) | WebSocket (STOMP) and Web Push Notifications |
+| [06-authentication-jwt-refactor.md](./06-authentication-jwt-refactor.md) | New access + refresh token flow and frontend implementation |
 
 ---
 
@@ -48,7 +49,9 @@ When the backend is running locally:
 
 The backend allows requests from:
 - `http://localhost:8100`
-- `capacitor://localhost`
 - `http://localhost`
+- `http://localhost:4200`
+
+This app is a PWA; Capacitor/native mobile was removed, so `capacitor://localhost` is no longer allowed.
 
 If your dev server runs on a different port, the backend CORS config will need to be updated.

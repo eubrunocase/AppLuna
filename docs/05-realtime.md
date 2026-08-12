@@ -162,8 +162,6 @@ if (subscription) {
 }
 ```
 
-### Ionic/Capacitor Notes
+### PWA Notes
 
-Push notifications on Capacitor (mobile) use a different flow — the VAPID push here is browser-native (PWA). For native mobile, consider using Capacitor's `@capacitor/push-notifications` plugin alongside or instead of this.
-
-The CORS config already allows `capacitor://localhost`, indicating this app targets Capacitor.
+Push notifications use the browser-native VAPID/Web Push flow. The app is a PWA — Capacitor/native mobile was removed. If native push is ever needed, evaluate a PWA-compatible approach or a native runtime separately.

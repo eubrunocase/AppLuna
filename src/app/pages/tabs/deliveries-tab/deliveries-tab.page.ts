@@ -2,10 +2,11 @@ import { Component, inject, OnInit } from '@angular/core';
 import { IonicModule } from '@ionic/angular';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
 import { DeliveryService } from '../../../services/delivery.service';
-import { UserService } from '../../../services/user.service';
-import { ResponseDeliveryDTO, DeliveryStatus } from '../../../core/models';
+import { AuthService } from '../../../services/auth.service';
 import { UiService } from '../../../shared/services/ui.service';
+import { ResponseDeliveryDTO, DeliveryStatus } from '../../../core/models';
 import { catchError, finalize, of } from 'rxjs';
 
 @Component({
@@ -49,7 +50,7 @@ import { catchError, finalize, of } from 'rxjs';
             <div class="delivery-icon" [class.pending]="delivery.status === 'PENDING'">
               <ion-icon name="cube-outline"></ion-icon>
             </div>
-            
+
             <div class="delivery-info">
               <h3>{{ delivery.discrimination || 'Encomenda' }}</h3>
               <p *ngIf="delivery.protocolNumber" class="with-icon">
@@ -64,8 +65,18 @@ import { catchError, finalize, of } from 'rxjs';
                 <ion-icon name="checkmark-circle-outline" class="icon-inline"></ion-icon>
                 Retirado por {{ delivery.pickedUpBy }}
               </p>
+
+              <ion-button
+                *ngIf="canConfirm && delivery.status === 'PENDING'"
+                size="small"
+                color="success"
+                class="confirm-btn"
+                (click)="confirmReceipt(delivery)">
+                <ion-icon slot="start" name="checkmark-done-outline"></ion-icon>
+                Marcar como recebida
+              </ion-button>
             </div>
-            
+
             <ion-chip [class]="'chip-' + getStatusClass(delivery.status)">
               {{ getStatusLabel(delivery.status) }}
             </ion-chip>
@@ -78,13 +89,17 @@ import { catchError, finalize, of } from 'rxjs';
         <p class="empty-title">Nenhuma entrega</p>
         <p class="empty-message">Suas encomendas aparecerão aqui</p>
       </div>
+
+      <ion-fab vertical="bottom" horizontal="end" slot="fixed" *ngIf="canCreate">
+        <ion-fab-button (click)="openCreate()">
+          <ion-icon name="add"></ion-icon>
+        </ion-fab-button>
+      </ion-fab>
     </ion-content>
   `,
   styles: [`
-    .skeleton-list {
-      padding: 0;
-    }
-    
+    .skeleton-list { padding: 0; }
+
     .skeleton-card {
       background: rgba(255, 255, 255, 0.12);
       border: 1px solid rgba(255, 255, 255, 0.22);
@@ -92,17 +107,15 @@ import { catchError, finalize, of } from 'rxjs';
       padding: 16px;
       margin-bottom: 12px;
     }
-    
-    .delivery-card {
-      margin-bottom: 12px;
-    }
-    
+
+    .delivery-card { margin-bottom: 12px; }
+
     .delivery-card ion-card-content {
       display: flex;
       align-items: flex-start;
       padding: 16px;
     }
-    
+
     .delivery-icon {
       width: 48px;
       height: 48px;
@@ -114,32 +127,24 @@ import { catchError, finalize, of } from 'rxjs';
       margin-right: 16px;
       flex-shrink: 0;
     }
-    
-    .delivery-icon.pending {
-      background: var(--ion-color-warning);
-    }
-    
-    .delivery-icon ion-icon {
-      font-size: 24px;
-      color: white;
-    }
-    
-    .delivery-icon.pending ion-icon {
-      color: #000;
-    }
-    
+
+    .delivery-icon.pending { background: var(--ion-color-warning); }
+
+    .delivery-icon ion-icon { font-size: 24px; color: white; }
+    .delivery-icon.pending ion-icon { color: #000; }
+
     .delivery-info {
       flex: 1;
       min-width: 0;
     }
-    
+
     .delivery-info h3 {
       margin: 0 0 4px 0;
       font-size: 16px;
       font-weight: 600;
       color: #fff8f0;
     }
-    
+
     .delivery-info p {
       margin: 0 0 2px 0;
       font-size: 13px;
@@ -148,35 +153,34 @@ import { catchError, finalize, of } from 'rxjs';
       align-items: center;
       gap: 4px;
     }
-    
-    .delivery-info p.with-icon {
-      color: #fff8f0;
-    }
-    
+
+    .delivery-info p.with-icon { color: #fff8f0; }
+
     .icon-inline {
       font-size: 14px;
       color: rgba(255, 248, 240, 0.82);
       flex-shrink: 0;
     }
-    
-    .delivery-info p.with-icon .icon-inline {
-      color: var(--ion-color-primary);
-    }
-    
+
+    .delivery-info p.with-icon .icon-inline { color: var(--ion-color-primary); }
+
     .delivery-info .picked-up {
       color: var(--ion-color-success);
       font-weight: 500;
     }
-    
-    ion-chip {
-      flex-shrink: 0;
+
+    .confirm-btn {
+      margin-top: 10px;
+      --border-radius: 8px;
     }
-    
+
+    ion-chip { flex-shrink: 0; }
+
     .chip-PENDING {
       --background: var(--ion-color-warning);
       --color: #000;
     }
-    
+
     .chip-DELIVERED {
       --background: var(--ion-color-success);
       --color: #fff;
@@ -187,21 +191,37 @@ import { catchError, finalize, of } from 'rxjs';
 })
 export class DeliveriesTabPage implements OnInit {
   private deliveryService = inject(DeliveryService);
+  private authService = inject(AuthService);
   private uiService = inject(UiService);
+  private router = inject(Router);
 
   deliveries: ResponseDeliveryDTO[] = [];
   filteredDeliveries: ResponseDeliveryDTO[] = [];
   isLoading = false;
   statusFilter: 'ALL' | 'PENDING' | 'DELIVERED' = 'ALL';
+  canConfirm = false;
+  canCreate = false;
+
+  private currentUserId: string | null = null;
 
   ngOnInit(): void {
+    const user = this.authService.getCurrentUser();
+    this.currentUserId = user?.id ?? null;
+    this.canConfirm = this.authService.isResident();
+    this.canCreate = this.authService.isAdmin() || this.authService.isEmployee();
+    this.loadDeliveries();
+  }
+
+  ionViewWillEnter(): void {
     this.loadDeliveries();
   }
 
   loadDeliveries(): void {
+    if (!this.currentUserId) return;
+
     this.isLoading = true;
-    
-    this.deliveryService.findAll().pipe(
+
+    this.deliveryService.findByUser(this.currentUserId).pipe(
       catchError(() => of([])),
       finalize(() => this.isLoading = false)
     ).subscribe(deliveries => {
@@ -223,6 +243,36 @@ export class DeliveriesTabPage implements OnInit {
     }
   }
 
+  async confirmReceipt(delivery: ResponseDeliveryDTO): Promise<void> {
+    const confirmed = await this.uiService.showConfirm(
+      'Confirmar Recebimento',
+      'Deseja marcar esta encomenda como recebida?',
+      'Sim, recebi',
+      'Cancelar'
+    );
+
+    if (!confirmed) return;
+
+    const currentUser = this.authService.getCurrentUser();
+    const pickedUpBy = currentUser?.name ?? 'Morador';
+
+    this.deliveryService.confirmReceipt(delivery.id, pickedUpBy).pipe(
+      catchError(() => {
+        this.uiService.showError('Erro ao confirmar recebimento');
+        return of(null);
+      })
+    ).subscribe(async result => {
+      if (result) {
+        await this.uiService.showSuccess('Encomenda marcada como recebida!');
+        this.loadDeliveries();
+      }
+    });
+  }
+
+  openCreate(): void {
+    this.router.navigate(['/deliveries/new']);
+  }
+
   getStatusLabel(status: DeliveryStatus): string {
     return status === DeliveryStatus.DELIVERED ? 'Retirada' : 'Pendente';
   }
@@ -234,7 +284,7 @@ export class DeliveriesTabPage implements OnInit {
   formatDate(dateStr: string): string {
     if (!dateStr) return '';
     const date = new Date(dateStr);
-    return date.toLocaleDateString('pt-BR') + ' às ' + 
+    return date.toLocaleDateString('pt-BR') + ' às ' +
            date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
   }
 }
