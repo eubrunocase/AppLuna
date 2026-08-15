@@ -4,6 +4,7 @@ import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { OccurrenceService } from '../../services/occurrence.service';
 import { AlertController, ToastController } from '@ionic/angular';
+import { toLocalDateTimeString } from '../../shared/utils/date.utils';
 import { catchError, finalize, of } from 'rxjs';
 
 @Component({
@@ -172,7 +173,7 @@ export class OccurrencesPage {
 
     this.occurrenceService.create({
       description,
-      incidentDate: new Date(incidentDate).toISOString()
+      incidentDate: toLocalDateTimeString(incidentDate)
     }).pipe(
       catchError(error => {
         this.showError(error.error?.validationErrors?.incidentDate || 'Erro ao registrar');

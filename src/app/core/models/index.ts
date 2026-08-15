@@ -5,4 +5,5 @@ export * from './delivery.model';
 export * from './equipment-reservation.model';
 export * from './occurrence.model';
 export * from './push.model';
+export * from './notification.model';
 export * from './error.model';

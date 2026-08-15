@@ -18,6 +18,9 @@
  * BROWSER POLYFILLS
  */
 
+// sockjs-client (usado pelo WebSocket/STOMP) espera a variável Node.js "global" no navegador.
+(window as any).global = window;
+
 /**
  * By default, zone.js will patch all possible macroTask and DomEvents
  * user can disable parts of macroTask/DomEvents patch by setting following flags

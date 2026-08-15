@@ -5,6 +5,7 @@ import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angula
 import { Router } from '@angular/router';
 import { OccurrenceService } from '../../services/occurrence.service';
 import { UiService } from '../../shared/services/ui.service';
+import { toLocalDateTimeString, nowLocalDateTimeString } from '../../shared/utils/date.utils';
 import { catchError, of } from 'rxjs';
 
 @Component({
@@ -35,7 +36,7 @@ import { catchError, of } from 'rxjs';
           <button type="button" class="date-button" (click)="openDatePicker()">
             <ion-icon name="calendar-outline" class="calendar-icon"></ion-icon>
             <span *ngIf="selectedIncidentDate" class="date-label">{{ formatDate(selectedIncidentDate) }}</span>
-            <span *ngIf="!selectedIncidentDate" class="date-placeholder">Selecione a data</span>
+            <span *ngIf="!selectedIncidentDate" class="date-placeholder">Selecione a data e hora</span>
             <ion-icon name="chevron-down" class="chevron-icon"></ion-icon>
           </button>
           <p class="field-hint">Não é permitido registrar ocorrências futuras</p>
@@ -75,11 +76,11 @@ import { catchError, of } from 'rxjs';
       <ng-template>
         <ion-content>
           <ion-datetime
-            presentation="date"
-            [max]="maxDate"
+            presentation="date-time"
+            [max]="maxDateTime"
             [value]="selectedIncidentDate"
             (ionChange)="onDateChange($event)">
-            <div slot="title" class="datetime-title">Selecione a Data</div>
+            <div slot="title" class="datetime-title">Selecione a Data e Hora</div>
           </ion-datetime>
         </ion-content>
       </ng-template>
@@ -225,8 +226,8 @@ export class OccurrenceCreatePage {
   selectedIncidentDate = '';
   showDatePicker = false;
 
-  get maxDate(): string {
-    return new Date().toISOString().split('T')[0];
+  get maxDateTime(): string {
+    return nowLocalDateTimeString();
   }
 
   openDatePicker(): void {
@@ -236,8 +237,7 @@ export class OccurrenceCreatePage {
   onDateChange(event: any): void {
     const value = event.detail.value;
     if (value) {
-      const date = new Date(value);
-      this.selectedIncidentDate = date.toISOString().split('T')[0];
+      this.selectedIncidentDate = toLocalDateTimeString(value);
       this.form.patchValue({ incidentDate: this.selectedIncidentDate });
       this.form.get('incidentDate')?.markAsTouched();
       this.showDatePicker = false;
@@ -246,7 +246,7 @@ export class OccurrenceCreatePage {
 
   formatDate(dateStr: string): string {
     const date = new Date(dateStr);
-    return date.toLocaleDateString('pt-BR');
+    return date.toLocaleString('pt-BR');
   }
 
   onSubmit(): void {
