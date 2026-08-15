@@ -1,10 +1,10 @@
-import { Component, inject, OnInit } from '@angular/core';
-import { IonicModule } from '@ionic/angular';
+import { Component, inject, OnDestroy, OnInit } from '@angular/core';
+import { IonicModule, ToastController } from '@ionic/angular';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ReservationService } from '../../services/reservation.service';
-import { MonthlyReservationReportDTO } from '../../core/models';
-import { catchError, finalize, of } from 'rxjs';
+import { MonthlyReservationReportDTO, ReportExportStatus, ReportFormat } from '../../core/models';
+import { EMPTY, Subscription, catchError, finalize, interval, of, startWith, switchMap, takeWhile } from 'rxjs';
 
 @Component({
   selector: 'app-reports',
@@ -43,6 +43,29 @@ import { catchError, finalize, of } from 'rxjs';
               </ion-input>
             </ion-item>
           </ion-list>
+        </ion-card-content>
+      </ion-card>
+
+      <ion-card class="export-card">
+        <ion-card-content>
+          <ion-label class="export-title">Exportar relatório</ion-label>
+          <div class="export-actions">
+            <ion-button color="secondary" expand="block" [disabled]="isExporting || isLoading"
+              (click)="exportReport(ReportFormat.PDF)">
+              <ion-icon name="document-outline" slot="start"></ion-icon>
+              PDF
+            </ion-button>
+            <ion-button color="secondary" expand="block" [disabled]="isExporting || isLoading"
+              (click)="exportReport(ReportFormat.DOCX)">
+              <ion-icon name="document-text-outline" slot="start"></ion-icon>
+              DOCX
+            </ion-button>
+          </div>
+          <div *ngIf="isExporting" class="export-status">
+            <ion-spinner name="crescent" color="secondary"></ion-spinner>
+            <p>Gerando relatório, aguarde...</p>
+          </div>
+          <p *ngIf="exportError" class="export-error">{{ exportError }}</p>
         </ion-card-content>
       </ion-card>
 
@@ -148,16 +171,68 @@ import { catchError, finalize, of } from 'rxjs';
       font-size: 64px;
       margin-bottom: 16px;
     }
+
+    .export-card {
+      margin-bottom: 16px;
+      border-radius: 12px;
+    }
+
+    .export-title {
+      font-size: 14px;
+      font-weight: 600;
+      display: block;
+      margin-bottom: 12px;
+    }
+
+    .export-actions {
+      display: flex;
+      gap: 8px;
+    }
+
+    .export-actions ion-button {
+      flex: 1;
+      margin: 0;
+    }
+
+    .export-status {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 0 4px;
+      color: rgba(255, 248, 240, 0.82);
+    }
+
+    .export-status p {
+      margin: 0;
+      font-size: 13px;
+    }
+
+    .export-error {
+      color: #ff6b6b;
+      font-size: 13px;
+      margin: 8px 0 0;
+    }
   `],
   standalone: true,
   imports: [IonicModule, CommonModule, FormsModule]
 })
-export class ReportsPage implements OnInit {
+export class ReportsPage implements OnInit, OnDestroy {
   private reservationService = inject(ReservationService);
+  private toastController = inject(ToastController);
 
   report: MonthlyReservationReportDTO[] = [];
   isLoading = false;
   initialLoad = true;
+
+  isExporting = false;
+  exportError = '';
+
+  readonly ReportFormat = ReportFormat;
+
+  private exportSub: Subscription | undefined;
+  private readonly exportPollIntervalMs = 1500;
+  private readonly exportTimeoutMs = 5 * 60 * 1000;
 
   selectedMonth = new Date().getMonth() + 1;
   selectedYear = new Date().getFullYear();
@@ -188,6 +263,10 @@ export class ReportsPage implements OnInit {
     this.loadReport();
   }
 
+  ngOnDestroy(): void {
+    this.exportSub?.unsubscribe();
+  }
+
   loadReport(): void {
     this.isLoading = true;
     this.initialLoad = false;
@@ -198,6 +277,87 @@ export class ReportsPage implements OnInit {
     ).subscribe(report => {
       this.report = report;
     });
+  }
+
+  exportReport(format: ReportFormat): void {
+    if (this.isExporting || this.isLoading) {
+      return;
+    }
+
+    this.isExporting = true;
+    this.exportError = '';
+
+    this.exportSub = this.reservationService
+      .createMonthlyReportExport(this.selectedMonth, this.selectedYear, format)
+      .pipe(
+        switchMap(job => this.pollUntilReady(job, format)),
+        finalize(() => this.isExporting = false)
+      )
+      .subscribe({
+        next: blob => this.downloadReport(blob, format),
+        error: (err: unknown) => {
+          this.exportError = this.extractErrorMessage(err);
+          void this.presentToast(this.exportError, 'danger');
+        }
+      });
+  }
+
+  private pollUntilReady(job: { jobId: string; status: ReportExportStatus },
+                         format: ReportFormat) {
+    const startedAt = Date.now();
+    return interval(this.exportPollIntervalMs).pipe(
+      startWith(0),
+      switchMap(() => this.reservationService.getMonthlyReportExportStatus(job.jobId)),
+      takeWhile(
+        current => current.status === ReportExportStatus.PROCESSING
+          && Date.now() - startedAt < this.exportTimeoutMs,
+        true
+      ),
+      switchMap(current => {
+        if (Date.now() - startedAt >= this.exportTimeoutMs) {
+          throw new Error('Tempo de geração do relatório excedido.');
+        }
+        if (current.status === ReportExportStatus.ERROR) {
+          throw new Error(current.errorMessage || 'Falha ao gerar o relatório.');
+        }
+        if (current.status === ReportExportStatus.READY) {
+          return this.reservationService.downloadMonthlyReportExport(current.jobId);
+        }
+        return EMPTY;
+      })
+    );
+  }
+
+  private downloadReport(blob: Blob, format: ReportFormat): void {
+    const fileName = `relatorio-reservas-${this.padMonth(this.selectedMonth)}-${this.selectedYear}.${format.toLowerCase()}`;
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = fileName;
+    link.click();
+    URL.revokeObjectURL(url);
+    void this.presentToast('Relatório exportado com sucesso.', 'success');
+  }
+
+  private extractErrorMessage(err: unknown): string {
+    if (err instanceof Error) {
+      return err.message;
+    }
+    return 'Não foi possível exportar o relatório.';
+  }
+
+  private padMonth(month: number): string {
+    return month.toString().padStart(2, '0');
+  }
+
+  private async presentToast(message: string, color: 'success' | 'danger'): Promise<void> {
+    const toast = await this.toastController.create({
+      message,
+      duration: 3000,
+      color,
+      position: 'bottom'
+    });
+    await toast.present();
   }
 
   getSpaceTypeLabel(type: string): string {

@@ -2,9 +2,11 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, Subject, tap } from 'rxjs';
 import {
+  MonthlyReservationReportDTO,
+  ReportExportJobResponse,
+  ReportFormat,
   ReservationCreateDTO,
-  ReservationResponseDTO,
-  MonthlyReservationReportDTO
+  ReservationResponseDTO
 } from '../core/models';
 import { ApiConfigService } from '../core/api-config.service';
 
@@ -67,5 +69,24 @@ export class ReservationService {
     return this.http.get<MonthlyReservationReportDTO[]>(
       `${this.baseUrl}/reservation/report/monthly?month=${month}&year=${year}`
     );
+  }
+
+  createMonthlyReportExport(month: number, year: number, format: ReportFormat): Observable<ReportExportJobResponse> {
+    return this.http.post<ReportExportJobResponse>(
+      `${this.baseUrl}/reservation/report/monthly/export?month=${month}&year=${year}&format=${format}`,
+      {}
+    );
+  }
+
+  getMonthlyReportExportStatus(jobId: string): Observable<ReportExportJobResponse> {
+    return this.http.get<ReportExportJobResponse>(
+      `${this.baseUrl}/reservation/report/monthly/export/${jobId}/status`
+    );
+  }
+
+  downloadMonthlyReportExport(jobId: string): Observable<Blob> {
+    return this.http.get(`${this.baseUrl}/reservation/report/monthly/export/${jobId}`, {
+      responseType: 'blob'
+    });
   }
 }

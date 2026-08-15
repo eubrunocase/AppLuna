@@ -1,4 +1,4 @@
-import { ReservationStatus, SpaceType } from './enums';
+import { ReportExportStatus, ReservationStatus, SpaceType } from './enums';
 
 /**
  * IMPORTANT: backend JSON keys are `date` + `space` (not `spaceId`).
@@ -49,6 +49,12 @@ export interface MonthlyReservationReportDTO {
   apartment: string;
   date: string;
   spaceType: SpaceType | string;
+}
+
+export interface ReportExportJobResponse {
+  jobId: string;
+  status: ReportExportStatus;
+  errorMessage?: string | null;
 }
 
 export interface AvailabilityResponseDTO {

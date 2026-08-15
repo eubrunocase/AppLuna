@@ -30,3 +30,14 @@ export enum EquipmentReservationStatus {
   RETURNED = 'RETURNED',
   CANCELED = 'CANCELED'
 }
+
+export enum ReportExportStatus {
+  PROCESSING = 'PROCESSING',
+  READY = 'READY',
+  ERROR = 'ERROR'
+}
+
+export enum ReportFormat {
+  PDF = 'PDF',
+  DOCX = 'DOCX'
+}
