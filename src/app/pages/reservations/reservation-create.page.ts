@@ -24,6 +24,14 @@ const SPACE_VISUALS: Record<string, Omit<SpaceOption, 'id'>> = {
   'CAMPO_FUTEBOL': { name: 'Campo de Futebol', description: 'Jogos e esportes', icon: 'football-outline', color: '#f3e5f5', iconColor: '#6a1b9a' }
 };
 
+const TV_OPTION: Omit<SpaceOption, 'id'> = {
+  name: 'Televisão',
+  description: 'Uso comunitário gratuito',
+  icon: 'tv-outline',
+  color: '#ffe0b2',
+  iconColor: '#ff7a00'
+};
+
 @Component({
   selector: 'app-reservation-create',
   template: `
@@ -55,6 +63,17 @@ const SPACE_VISUALS: Record<string, Omit<SpaceOption, 'id'>> = {
                 <span class="space-description">{{ space.description }}</span>
               </button>
             }
+
+            <button 
+              type="button"
+              class="space-button"
+              (click)="openTVReservation()">
+              <div class="space-icon" [style.background]="tvOption.color">
+                <ion-icon [name]="tvOption.icon" [style.color]="tvOption.iconColor"></ion-icon>
+              </div>
+              <span class="space-name">{{ tvOption.name }}</span>
+              <span class="space-description">{{ tvOption.description }}</span>
+            </button>
           </div>
         </div>
 
@@ -286,6 +305,7 @@ export class ReservationCreatePage implements OnInit {
   private uiService = inject(UiService);
 
   spaces: SpaceOption[] = [];
+  tvOption = TV_OPTION;
 
   selectedSpaceId: number | null = null;
   selectedDate: string = '';
@@ -324,6 +344,10 @@ export class ReservationCreatePage implements OnInit {
     if (this.selectedDate) {
       this.checkAvailability();
     }
+  }
+
+  openTVReservation(): void {
+    this.router.navigate(['/equipment-reservations/new']);
   }
 
   openDatePicker(): void {

@@ -71,6 +71,11 @@ export const routes: Routes = [
     canActivate: [roleGuard([UserRoles.ADMIN_ROLE, UserRoles.EMPLOYEE])]
   },
   {
+    path: 'equipment-reservations/new',
+    loadComponent: () => import('./pages/equipment-reservations/equipment-reservation-create.page').then(m => m.EquipmentReservationCreatePage),
+    canActivate: [roleGuard([UserRoles.ADMIN_ROLE, UserRoles.RESIDENT_ROLE])]
+  },
+  {
     path: 'users',
     loadComponent: () => import('./pages/users/users.page').then(m => m.UsersPage),
     canActivate: [adminGuard]

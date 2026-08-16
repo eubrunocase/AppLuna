@@ -4,10 +4,33 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ReservationService } from '../../../services/reservation.service';
-import { ReservationResponseDTO, ReservationStatus } from '../../../core/models';
+import { EquipmentReservationService } from '../../../services/equipment-reservation.service';
+import { ReservationResponseDTO, EquipmentReservationResponseDTO, ReservationStatus } from '../../../core/models';
 import { AuthService } from '../../../services/auth.service';
 import { UiService } from '../../../shared/services/ui.service';
-import { catchError, finalize, of } from 'rxjs';
+import { catchError, combineLatest, finalize, of } from 'rxjs';
+
+type ReservationKind = 'space' | 'equipment';
+
+type TypeFilter = 'ALL' | 'SALAO_FESTAS' | 'CHURRASQUEIRA' | 'ACADEMIA' | 'CAMPO_FUTEBOL' | 'TELEVISAO';
+type StatusFilter = 'ALL' | 'PENDING' | 'APPROVED' | 'CONFIRMED' | 'IN_USE' | 'RETURNED' | 'CANCELED';
+
+interface UnifiedReservation {
+  kind: ReservationKind;
+  type: string;
+  id: string;
+  date: string;
+  status: string;
+  createdAt?: string;
+  spaceType?: string;
+  user?: { id: string; name: string; email: string };
+  equipmentName?: string;
+  startTime?: string;
+  endTime?: string;
+  pickedUpAt?: string | null;
+  returnedAt?: string | null;
+  canceledAt?: string | null;
+}
 
 @Component({
   selector: 'app-reservations-tab',
@@ -31,16 +54,54 @@ import { catchError, finalize, of } from 'rxjs';
         </div>
       </ion-toolbar>
       <ion-toolbar>
+        <ion-segment [(ngModel)]="typeFilter" (ionChange)="onTypeFilterChange()">
+          <ion-segment-button value="ALL">
+            <ion-label>Todas</ion-label>
+          </ion-segment-button>
+          <ion-segment-button value="SALAO_FESTAS">
+            <ion-label>Salão</ion-label>
+          </ion-segment-button>
+          <ion-segment-button value="CHURRASQUEIRA">
+            <ion-label>Churrasqueira</ion-label>
+          </ion-segment-button>
+          <ion-segment-button value="ACADEMIA">
+            <ion-label>Academia</ion-label>
+          </ion-segment-button>
+          <ion-segment-button value="CAMPO_FUTEBOL">
+            <ion-label>Campo</ion-label>
+          </ion-segment-button>
+          <ion-segment-button value="TELEVISAO">
+            <ion-label>Televisão</ion-label>
+          </ion-segment-button>
+        </ion-segment>
+      </ion-toolbar>
+      <ion-toolbar>
         <ion-segment [(ngModel)]="statusFilter" (ionChange)="filterByStatus()">
           <ion-segment-button value="ALL">
             <ion-label>Todas</ion-label>
           </ion-segment-button>
-          <ion-segment-button value="PENDING">
-            <ion-label>Pendentes</ion-label>
-          </ion-segment-button>
-          <ion-segment-button value="APPROVED">
-            <ion-label>Aprovadas</ion-label>
-          </ion-segment-button>
+          <ng-container *ngIf="isEquipmentFilter">
+            <ion-segment-button value="CONFIRMED">
+              <ion-label>Confirmadas</ion-label>
+            </ion-segment-button>
+            <ion-segment-button value="IN_USE">
+              <ion-label>Em uso</ion-label>
+            </ion-segment-button>
+            <ion-segment-button value="RETURNED">
+              <ion-label>Devolvidas</ion-label>
+            </ion-segment-button>
+            <ion-segment-button value="CANCELED">
+              <ion-label>Canceladas</ion-label>
+            </ion-segment-button>
+          </ng-container>
+          <ng-container *ngIf="!isEquipmentFilter">
+            <ion-segment-button value="PENDING">
+              <ion-label>Pendentes</ion-label>
+            </ion-segment-button>
+            <ion-segment-button value="APPROVED">
+              <ion-label>Aprovadas</ion-label>
+            </ion-segment-button>
+          </ng-container>
         </ion-segment>
       </ion-toolbar>
       <ion-toolbar *ngIf="isAdmin">
@@ -73,7 +134,7 @@ import { catchError, finalize, of } from 'rxjs';
       <ion-list *ngIf="!isLoading && filteredReservations.length > 0">
         <ion-card *ngFor="let reservation of filteredReservations"
                   class="reservation-card"
-                  [class.pending-highlight]="isAdmin && viewMode === 'all' && reservation.status === 'PENDING'">
+                  [class.pending-highlight]="reservation.kind === 'space' && isAdmin && viewMode === 'all' && reservation.status === 'PENDING'">
           <ion-card-content>
             <div class="card-row">
               <div class="date-badge">
@@ -82,14 +143,22 @@ import { catchError, finalize, of } from 'rxjs';
               </div>
 
               <div class="reservation-info">
-                <h3>{{ getSpaceTypeLabel(reservation.space.type) }}</h3>
-                <p class="resident" *ngIf="isAdmin && viewMode === 'all'">
+                <h3 *ngIf="reservation.kind === 'space'">{{ getSpaceTypeLabel(reservation.spaceType!) }}</h3>
+                <h3 *ngIf="reservation.kind === 'equipment'">
+                  <ion-icon name="tv-outline" class="icon-inline"></ion-icon>
+                  {{ reservation.equipmentName }}
+                </h3>
+                <p class="resident" *ngIf="isAdmin && viewMode === 'all' && reservation.kind === 'space'">
                   <ion-icon name="person-outline" class="icon-inline"></ion-icon>
-                  {{ reservation.user.name }}
+                  {{ reservation.user?.name }}
                 </p>
-                <p class="time">
+                <p class="time" *ngIf="reservation.kind === 'space'">
                   <ion-icon name="time-outline" class="icon-inline"></ion-icon>
-                  Solicitado em {{ formatDate(reservation.createdAt) }}
+                  Solicitado em {{ formatDate(reservation.createdAt!) }}
+                </p>
+                <p class="time" *ngIf="reservation.kind === 'equipment'">
+                  <ion-icon name="time-outline" class="icon-inline"></ion-icon>
+                  {{ reservation.startTime }} - {{ reservation.endTime }}
                 </p>
               </div>
 
@@ -98,7 +167,13 @@ import { catchError, finalize, of } from 'rxjs';
               </ion-chip>
             </div>
 
-            <div *ngIf="isAdmin && viewMode === 'all' && reservation.status === 'PENDING'"
+            <div class="equipment-dates" *ngIf="reservation.kind === 'equipment'">
+              <p *ngIf="reservation.pickedUpAt" class="date"><strong>Retirado em:</strong> {{ formatDateTime(reservation.pickedUpAt!) }}</p>
+              <p *ngIf="reservation.returnedAt" class="date"><strong>Devolvido em:</strong> {{ formatDateTime(reservation.returnedAt!) }}</p>
+              <p *ngIf="reservation.canceledAt" class="date"><strong>Cancelado em:</strong> {{ formatDateTime(reservation.canceledAt!) }}</p>
+            </div>
+
+            <div *ngIf="reservation.kind === 'space' && isAdmin && viewMode === 'all' && reservation.status === 'PENDING'"
                  class="admin-actions">
               <ion-button
                 expand="block"
@@ -122,7 +197,7 @@ import { catchError, finalize, of } from 'rxjs';
               </ion-button>
             </div>
 
-            <div *ngIf="isAdmin && viewMode === 'all' && reservation.status === 'APPROVED'"
+            <div *ngIf="reservation.kind === 'space' && isAdmin && viewMode === 'all' && reservation.status === 'APPROVED'"
                  class="admin-actions admin-actions-secondary">
               <ion-button
                 expand="block"
@@ -130,9 +205,25 @@ import { catchError, finalize, of } from 'rxjs';
                 fill="outline"
                 size="small"
                 [disabled]="processingId === reservation.id"
-                (click)="cancelReservation(reservation)">
+                (click)="cancelSpaceReservation(reservation)">
                 <ion-icon slot="start" name="ban-outline"></ion-icon>
                 Cancelar Reserva
+              </ion-button>
+            </div>
+
+            <div *ngIf="reservation.kind === 'equipment' && reservation.status === 'CONFIRMED'"
+                 class="admin-actions">
+              <ion-button
+                expand="block"
+                color="danger"
+                fill="outline"
+                [disabled]="processingId === reservation.id"
+                (click)="cancelEquipmentReservation(reservation)">
+                <ion-spinner *ngIf="processingId === reservation.id" name="dots"></ion-spinner>
+                <ng-container *ngIf="processingId !== reservation.id">
+                  <ion-icon slot="start" name="ban-outline"></ion-icon>
+                  Cancelar Reserva
+                </ng-container>
               </ion-button>
             </div>
           </ion-card-content>
@@ -205,6 +296,12 @@ import { catchError, finalize, of } from 'rxjs';
       margin-top: 8px;
     }
 
+    .equipment-dates p.date {
+      margin: 6px 0 0 0;
+      font-size: 12px;
+      color: var(--ion-color-medium);
+    }
+
     .pending-banner-content {
       display: flex;
       align-items: center;
@@ -263,6 +360,9 @@ import { catchError, finalize, of } from 'rxjs';
       font-size: 16px;
       font-weight: 600;
       color: #fff8f0;
+      display: flex;
+      align-items: center;
+      gap: 4px;
     }
 
     .reservation-info .time,
@@ -299,8 +399,23 @@ import { catchError, finalize, of } from 'rxjs';
       --color: #fff;
     }
 
-    .chip-REJECTED, .chip-CANCELLED {
+    .chip-REJECTED, .chip-CANCELLED, .chip-CANCELED {
       --background: var(--ion-color-danger);
+      --color: #fff;
+    }
+
+    .chip-CONFIRMED {
+      --background: var(--ion-color-primary);
+      --color: #fff;
+    }
+
+    .chip-IN_USE {
+      --background: var(--ion-color-warning);
+      --color: #000;
+    }
+
+    .chip-RETURNED {
+      --background: var(--ion-color-success);
       --color: #fff;
     }
   `],
@@ -309,6 +424,7 @@ import { catchError, finalize, of } from 'rxjs';
 })
 export class ReservationsTabPage implements OnInit {
   private reservationService = inject(ReservationService);
+  private equipmentService = inject(EquipmentReservationService);
   private authService = inject(AuthService);
   private router = inject(Router);
   private route = inject(ActivatedRoute);
@@ -316,11 +432,14 @@ export class ReservationsTabPage implements OnInit {
   private alertController = inject(AlertController);
 
   reservations: ReservationResponseDTO[] = [];
-  filteredReservations: ReservationResponseDTO[] = [];
+  equipmentReservations: EquipmentReservationResponseDTO[] = [];
+  allReservations: UnifiedReservation[] = [];
+  filteredReservations: UnifiedReservation[] = [];
   isLoading = false;
   isAdmin = false;
   viewMode: 'mine' | 'all' = 'mine';
-  statusFilter: 'ALL' | 'PENDING' | 'APPROVED' = 'ALL';
+  typeFilter: TypeFilter = 'ALL';
+  statusFilter: StatusFilter = 'ALL';
   /** id da reserva em ação no momento (bloqueia botões dela). */
   processingId: string | null = null;
 
@@ -330,6 +449,10 @@ export class ReservationsTabPage implements OnInit {
     'ACADEMIA': 'Academia',
     'CAMPO_FUTEBOL': 'Campo de Futebol'
   };
+
+  get isEquipmentFilter(): boolean {
+    return this.typeFilter === 'TELEVISAO';
+  }
 
   ngOnInit(): void {
     this.isAdmin = this.authService.isAdmin();
@@ -351,7 +474,7 @@ export class ReservationsTabPage implements OnInit {
     }
     const status = params.get('status');
     if (status === 'PENDING' || status === 'APPROVED' || status === 'ALL') {
-      this.statusFilter = status as 'ALL' | 'PENDING' | 'APPROVED';
+      this.statusFilter = status as StatusFilter;
     }
   }
 
@@ -364,17 +487,60 @@ export class ReservationsTabPage implements OnInit {
       return;
     }
 
-    const reservations$ = (this.isAdmin && this.viewMode === 'all')
+    const isAllMode = this.isAdmin && this.viewMode === 'all';
+    const spaces$ = (isAllMode
       ? this.reservationService.getAll()
-      : this.reservationService.getByUser(currentUser.id);
+      : this.reservationService.getByUser(currentUser.id)
+    ).pipe(catchError(() => of([] as ReservationResponseDTO[])));
+    const equipment$ = (isAllMode
+      ? this.equipmentService.list()
+      : this.equipmentService.listMine()
+    ).pipe(catchError(() => of([] as EquipmentReservationResponseDTO[])));
 
-    reservations$.pipe(
-      catchError(() => of([])),
+    combineLatest([spaces$, equipment$]).pipe(
       finalize(() => this.isLoading = false)
-    ).subscribe(reservations => {
-      this.reservations = reservations;
+    ).subscribe(([spaces, equipment]) => {
+      this.reservations = spaces;
+      this.equipmentReservations = equipment;
+      this.allReservations = this.mergeReservations(spaces, equipment);
       this.filterByStatus();
     });
+  }
+
+  private mergeReservations(spaces: ReservationResponseDTO[], equipment: EquipmentReservationResponseDTO[]): UnifiedReservation[] {
+    const spaceItems: UnifiedReservation[] = spaces.map(r => ({
+      kind: 'space',
+      type: String(r.space.type),
+      id: r.id,
+      date: r.date,
+      status: String(r.status),
+      createdAt: r.createdAt,
+      spaceType: String(r.space.type),
+      user: r.user
+    }));
+
+    const equipmentItems: UnifiedReservation[] = equipment.map(r => ({
+      kind: 'equipment',
+      type: 'TELEVISAO',
+      id: r.id,
+      date: r.date,
+      status: String(r.status),
+      createdAt: r.createdAt,
+      equipmentName: r.equipmentName,
+      startTime: r.startTime,
+      endTime: r.endTime,
+      pickedUpAt: r.pickedUpAt,
+      returnedAt: r.returnedAt,
+      canceledAt: r.canceledAt
+    }));
+
+    return [...spaceItems, ...equipmentItems]
+      .sort((a, b) => b.date.localeCompare(a.date) || (b.createdAt ?? '').localeCompare(a.createdAt ?? ''));
+  }
+
+  onTypeFilterChange(): void {
+    this.statusFilter = 'ALL';
+    this.filterByStatus();
   }
 
   onViewModeChange(): void {
@@ -387,11 +553,11 @@ export class ReservationsTabPage implements OnInit {
   }
 
   filterByStatus(): void {
-    if (this.statusFilter === 'ALL') {
-      this.filteredReservations = [...this.reservations];
-    } else {
-      this.filteredReservations = this.reservations.filter(r => r.status === this.statusFilter);
-    }
+    this.filteredReservations = this.allReservations.filter(r => {
+      const typeOk = this.typeFilter === 'ALL' || r.type === this.typeFilter;
+      const statusOk = this.statusFilter === 'ALL' || r.status === this.statusFilter;
+      return typeOk && statusOk;
+    });
   }
 
   get pendingCount(): number {
@@ -403,7 +569,7 @@ export class ReservationsTabPage implements OnInit {
     this.filterByStatus();
   }
 
-  approveReservation(reservation: ReservationResponseDTO): void {
+  approveReservation(reservation: UnifiedReservation): void {
     if (this.processingId) return;
     this.processingId = reservation.id;
     this.reservationService.approve(reservation.id).pipe(
@@ -414,17 +580,17 @@ export class ReservationsTabPage implements OnInit {
       finalize(() => this.processingId = null)
     ).subscribe(updated => {
       if (updated) {
-        this.applyLocalUpdate(updated);
+        this.loadReservations();
         this.uiService.showSuccess(`Reserva de ${updated.user.name} aprovada.`);
       }
     });
   }
 
-  async rejectReservation(reservation: ReservationResponseDTO): Promise<void> {
+  async rejectReservation(reservation: UnifiedReservation): Promise<void> {
     if (this.processingId) return;
     const alert = await this.alertController.create({
       header: 'Rejeitar reserva',
-      message: `Confirma a rejeição da reserva de <strong>${reservation.user.name}</strong> em ${this.formatDate(reservation.date)} (${this.getSpaceTypeLabel(reservation.space.type)})?`,
+      message: `Confirma a rejeição da reserva de <strong>${reservation.user?.name}</strong> em ${this.formatDate(reservation.date)} (${this.getSpaceTypeLabel(reservation.spaceType!)})?`,
       buttons: [
         { text: 'Voltar', role: 'cancel' },
         {
@@ -437,7 +603,7 @@ export class ReservationsTabPage implements OnInit {
     await alert.present();
   }
 
-  private doReject(reservation: ReservationResponseDTO): void {
+  private doReject(reservation: UnifiedReservation): void {
     this.processingId = reservation.id;
     this.reservationService.reject(reservation.id).pipe(
       catchError(error => {
@@ -447,30 +613,30 @@ export class ReservationsTabPage implements OnInit {
       finalize(() => this.processingId = null)
     ).subscribe(updated => {
       if (updated) {
-        this.applyLocalUpdate(updated);
+        this.loadReservations();
         this.uiService.showSuccess(`Reserva de ${updated.user.name} rejeitada.`);
       }
     });
   }
 
-  async cancelReservation(reservation: ReservationResponseDTO): Promise<void> {
+  async cancelSpaceReservation(reservation: UnifiedReservation): Promise<void> {
     if (this.processingId) return;
     const alert = await this.alertController.create({
       header: 'Cancelar reserva aprovada',
-      message: `Tem certeza que deseja cancelar a reserva de <strong>${reservation.user.name}</strong>? O morador será notificado.`,
+      message: `Tem certeza que deseja cancelar a reserva de <strong>${reservation.user?.name}</strong>? O morador será notificado.`,
       buttons: [
         { text: 'Voltar', role: 'cancel' },
         {
           text: 'Cancelar reserva',
           role: 'destructive',
-          handler: () => this.doCancel(reservation)
+          handler: () => this.doCancelSpace(reservation)
         }
       ]
     });
     await alert.present();
   }
 
-  private doCancel(reservation: ReservationResponseDTO): void {
+  private doCancelSpace(reservation: UnifiedReservation): void {
     this.processingId = reservation.id;
     this.reservationService.delete(reservation.id).pipe(
       catchError(error => {
@@ -480,16 +646,43 @@ export class ReservationsTabPage implements OnInit {
       finalize(() => this.processingId = null)
     ).subscribe(result => {
       if (result !== null) {
-        // backend só devolve 204 — refazemos o load para refletir o status CANCELLED.
         this.loadReservations();
         this.uiService.showSuccess(`Reserva cancelada.`);
       }
     });
   }
 
-  private applyLocalUpdate(updated: ReservationResponseDTO): void {
-    this.reservations = this.reservations.map(r => r.id === updated.id ? updated : r);
-    this.filterByStatus();
+  async cancelEquipmentReservation(reservation: UnifiedReservation): Promise<void> {
+    if (this.processingId) return;
+    const alert = await this.alertController.create({
+      header: 'Cancelar reserva da TV',
+      message: `Deseja realmente cancelar a reserva da televisão para ${this.formatDate(reservation.date)} (${reservation.startTime} - ${reservation.endTime})?`,
+      buttons: [
+        { text: 'Voltar', role: 'cancel' },
+        {
+          text: 'Cancelar reserva',
+          role: 'destructive',
+          handler: () => this.doCancelEquipment(reservation)
+        }
+      ]
+    });
+    await alert.present();
+  }
+
+  private doCancelEquipment(reservation: UnifiedReservation): void {
+    this.processingId = reservation.id;
+    this.equipmentService.cancel(reservation.id).pipe(
+      catchError(error => {
+        this.uiService.showError(error?.error?.message || error?.message || 'Não foi possível cancelar a reserva.');
+        return of(null);
+      }),
+      finalize(() => this.processingId = null)
+    ).subscribe(result => {
+      if (result) {
+        this.loadReservations();
+        this.uiService.showSuccess('Reserva da TV cancelada.');
+      }
+    });
   }
 
   getDay(dateStr: string): string {
@@ -508,17 +701,21 @@ export class ReservationsTabPage implements OnInit {
     return this.spaceTypes[type] || type;
   }
 
-  getStatusLabel(status: ReservationStatus): string {
-    const labels: Record<ReservationStatus, string> = {
+  getStatusLabel(status: string): string {
+    const labels: Record<string, string> = {
       [ReservationStatus.PENDING]: 'Pendente',
       [ReservationStatus.APPROVED]: 'Aprovada',
       [ReservationStatus.REJECTED]: 'Rejeitada',
-      [ReservationStatus.CANCELLED]: 'Cancelada'
+      [ReservationStatus.CANCELLED]: 'Cancelada',
+      CONFIRMED: 'Confirmado',
+      IN_USE: 'Em Uso',
+      RETURNED: 'Devolvido',
+      CANCELED: 'Cancelado'
     };
     return labels[status] || status;
   }
 
-  getStatusClass(status: ReservationStatus): string {
+  getStatusClass(status: string): string {
     return status.toLowerCase();
   }
 
@@ -526,6 +723,12 @@ export class ReservationsTabPage implements OnInit {
     if (!dateStr) return '';
     const date = new Date(dateStr);
     return date.toLocaleDateString('pt-BR');
+  }
+
+  formatDateTime(dateStr: string): string {
+    if (!dateStr) return '';
+    const date = new Date(dateStr);
+    return date.toLocaleString('pt-BR');
   }
 
   openNewReservation(): void {

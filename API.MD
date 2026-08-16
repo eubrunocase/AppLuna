@@ -266,9 +266,10 @@ export interface ValidationErrorDTO extends StandardErrorDTO {
 | Método | Endpoint | Acesso | Body | Retorno |
 | :--- | :--- | :--- | :--- | :--- |
 | `POST` | `/lunaLink/equipment-reservation` | Auth | `EquipmentReservationRequestDTO`| `201` `EquipmentReservationResponseDTO` |
-| `GET` | `/lunaLink/equipment-reservation?date=YYYY-MM-DD&status=IN_USE` | Admin | - | `200` `EquipmentReservationResponseDTO[]` |
-| `PATCH` | `/lunaLink/equipment-reservation/{id}/handover` | Admin | - | `200` `EquipmentReservationResponseDTO` (status: IN_USE) |
-| `PATCH` | `/lunaLink/equipment-reservation/{id}/return` | Admin | - | `200` `EquipmentReservationResponseDTO` (status: RETURNED) |
+| `GET` | `/lunaLink/equipment-reservation/mine` | Auth | - | `200` `EquipmentReservationResponseDTO[]` (do usuário logado) |
+| `GET` | `/lunaLink/equipment-reservation?date=YYYY-MM-DD&status=IN_USE` | Admin/Employee | - | `200` `EquipmentReservationResponseDTO[]` |
+| `PATCH` | `/lunaLink/equipment-reservation/{id}/handover` | Admin/Employee | - | `200` `EquipmentReservationResponseDTO` (status: IN_USE) |
+| `PATCH` | `/lunaLink/equipment-reservation/{id}/return` | Admin/Employee | - | `200` `EquipmentReservationResponseDTO` (status: RETURNED) |
 
 ### 🚨 Ocorrências
 | Método | Endpoint | Acesso | Body | Retorno |

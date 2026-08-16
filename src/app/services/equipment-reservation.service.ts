@@ -24,11 +24,19 @@ export class EquipmentReservationService {
     return this.http.get<EquipmentReservationResponseDTO[]>(`${this.baseUrl}/equipment-reservation${query}`);
   }
 
+  listMine(): Observable<EquipmentReservationResponseDTO[]> {
+    return this.http.get<EquipmentReservationResponseDTO[]>(`${this.baseUrl}/equipment-reservation/mine`);
+  }
+
   handover(id: string): Observable<EquipmentReservationResponseDTO> {
     return this.http.patch<EquipmentReservationResponseDTO>(`${this.baseUrl}/equipment-reservation/${id}/handover`, {});
   }
 
   returnItem(id: string): Observable<EquipmentReservationResponseDTO> {
     return this.http.patch<EquipmentReservationResponseDTO>(`${this.baseUrl}/equipment-reservation/${id}/return`, {});
+  }
+
+  cancel(id: string): Observable<EquipmentReservationResponseDTO> {
+    return this.http.patch<EquipmentReservationResponseDTO>(`${this.baseUrl}/equipment-reservation/${id}/cancel`, {});
   }
 }

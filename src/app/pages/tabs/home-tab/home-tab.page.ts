@@ -39,6 +39,13 @@ import { catchError, of } from 'rxjs';
             </ion-card-content>
           </ion-card>
 
+          <ion-card *ngIf="canReserveEquipment" class="quick-card" (click)="openTVReservation()">
+            <ion-card-content>
+              <ion-icon name="tv-outline" style="color: var(--ion-color-primary);"></ion-icon>
+              <span>Reservar TV</span>
+            </ion-card-content>
+          </ion-card>
+
           <ion-card *ngIf="canCreateOccurrence" class="quick-card" (click)="openNewOccurrence()">
             <ion-card-content>
               <ion-icon name="warning-outline" style="color: var(--ion-color-danger);"></ion-icon>
@@ -307,6 +314,7 @@ export class HomeTabPage implements OnInit {
   canCreateOccurrence = false;
   canManageDeliveries = false;
   canManageEquipment = false;
+  canReserveEquipment = false;
   canSeeReservationsSummary = false;
 
   pendingDeliveries = 0;
@@ -336,6 +344,7 @@ export class HomeTabPage implements OnInit {
     this.canCreateOccurrence = this.isAdmin || this.isResident;
     this.canManageDeliveries = this.isAdmin || this.isEmployee;
     this.canManageEquipment = this.isAdmin || this.isEmployee;
+    this.canReserveEquipment = this.isAdmin || this.isResident;
     this.canSeeReservationsSummary = this.isAdmin || this.isResident;
 
     this.loadStats();
@@ -394,6 +403,10 @@ export class HomeTabPage implements OnInit {
 
   openEquipmentFlow(): void {
     this.router.navigate(['/equipment-reservations']);
+  }
+
+  openTVReservation(): void {
+    this.router.navigate(['/equipment-reservations/new']);
   }
 
   openUsers(): void {

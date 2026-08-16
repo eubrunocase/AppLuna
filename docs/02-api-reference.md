@@ -282,17 +282,22 @@ Create an equipment reservation for the logged-in user.
 
 ### PATCH /lunaLink/equipment-reservation/{id}/handover
 Hand over equipment to user (sets to `IN_USE`).  
-**Auth:** `ADMIN_ROLE`  
+**Auth:** `ADMIN_ROLE`, `EMPLOYEE`  
 **Response:** `EquipmentReservationResponseDTO`
 
 ### PATCH /lunaLink/equipment-reservation/{id}/return
 Mark equipment as returned (sets to `RETURNED`).  
-**Auth:** `ADMIN_ROLE`  
+**Auth:** `ADMIN_ROLE`, `EMPLOYEE`  
 **Response:** `EquipmentReservationResponseDTO`
+
+### GET /lunaLink/equipment-reservation/mine
+List the logged-in user's own equipment reservations.  
+**Auth:** Any authenticated user  
+**Response:** `EquipmentReservationResponseDTO[]`
 
 ### GET /lunaLink/equipment-reservation
 List equipment reservations with optional filters.  
-**Auth:** `ADMIN_ROLE`  
+**Auth:** `ADMIN_ROLE`, `EMPLOYEE`  
 **Query Params (optional):** `date=yyyy-MM-dd`, `status=CONFIRMED|IN_USE|RETURNED|CANCELED`  
 **Response:** `EquipmentReservationResponseDTO[]`
 

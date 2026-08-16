@@ -51,9 +51,11 @@ import { catchError, finalize, of } from 'rxjs';
               <p><strong>Data:</strong> {{ formatDate(reservation.date) }}</p>
               <p><strong>Horário:</strong> {{ reservation.startTime }} - {{ reservation.endTime }}</p>
               <p class="date"><strong>Criado em:</strong> {{ formatDateTime(reservation.createdAt) }}</p>
+              <p *ngIf="reservation.pickedUpAt" class="date"><strong>Retirado em:</strong> {{ formatDateTime(reservation.pickedUpAt) }}</p>
+              <p *ngIf="reservation.returnedAt" class="date"><strong>Devolvido em:</strong> {{ formatDateTime(reservation.returnedAt) }}</p>
             </div>
             
-            <div *ngIf="isAdmin" class="action-buttons">
+            <div *ngIf="canManage" class="action-buttons">
               <ng-container [ngSwitch]="reservation.status">
                 <ion-button 
                   *ngSwitchCase="'CONFIRMED'"
@@ -146,10 +148,10 @@ export class EquipmentReservationsPage implements OnInit {
 
   reservations: EquipmentReservationResponseDTO[] = [];
   isLoading = false;
-  isAdmin = false;
+  canManage = false;
 
   ngOnInit(): void {
-    this.isAdmin = this.authService.isAdmin();
+    this.canManage = this.authService.isAdmin() || this.authService.isEmployee();
     this.loadReservations();
   }
 

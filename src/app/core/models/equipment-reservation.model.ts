@@ -19,4 +19,5 @@ export interface EquipmentReservationResponseDTO {
   createdAt: string;
   pickedUpAt?: string | null;
   returnedAt?: string | null;
+  canceledAt?: string | null;
 }
