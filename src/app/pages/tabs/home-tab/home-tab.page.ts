@@ -1,11 +1,11 @@
 import { Component, DestroyRef, afterNextRender, inject, OnInit, viewChild, ElementRef } from '@angular/core';
-import { IonicModule } from '@ionic/angular';
-import { CommonModule } from '@angular/common';
+import { IonContent } from '@ionic/angular/standalone';
 import { Router } from '@angular/router';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import {
   lucideCalendar,
   lucideClipboardList,
+  lucideInfo,
   lucideLogOut,
   lucideMoonStar,
   lucidePackage,
@@ -18,12 +18,18 @@ import { DeliveryService } from '../../../services/delivery.service';
 import { UiService } from '../../../shared/services/ui.service';
 import { catchError, of } from 'rxjs';
 
+interface HomeQuickAction {
+  id: string;
+  label: string;
+  iconSrc: string;
+}
+
 @Component({
   selector: 'app-home-tab',
   templateUrl: './home-tab.page.html',
   styleUrl: './home-tab.page.scss',
   standalone: true,
-  imports: [IonicModule, CommonModule, NgIcon, HlmButtonImports, HlmCardImports],
+  imports: [IonContent, NgIcon, HlmButtonImports, HlmCardImports],
   providers: [
     provideIcons({
       lucideMoonStar,
@@ -31,6 +37,7 @@ import { catchError, of } from 'rxjs';
       lucidePackage,
       lucideCalendar,
       lucideLogOut,
+      lucideInfo,
     }),
   ],
 })
@@ -61,6 +68,8 @@ export class HomeTabPage implements OnInit {
   pendingDeliveries = 0;
   activeReservations = 0;
   pendingApprovals = 0;
+
+  quickActions: HomeQuickAction[] = [];
 
   get userRoleLabel(): string {
     if (this.isAdmin) return 'Administrador';
@@ -102,6 +111,32 @@ export class HomeTabPage implements OnInit {
     );
     if (confirmed) {
       this.authService.logout();
+    }
+  }
+
+  runQuickAction(id: string): void {
+    switch (id) {
+      case 'reservation':
+        this.openNewReservation();
+        break;
+      case 'tv':
+        this.openTVReservation();
+        break;
+      case 'occurrence':
+        this.openNewOccurrence();
+        break;
+      case 'delivery':
+        this.openDeliveriesManagement();
+        break;
+      case 'equipment':
+        this.openEquipmentFlow();
+        break;
+      case 'users':
+        this.openUsers();
+        break;
+      case 'reports':
+        this.openReports();
+        break;
     }
   }
 
@@ -182,7 +217,59 @@ export class HomeTabPage implements OnInit {
     this.canReserveEquipment = this.isAdmin || this.isResident;
     this.canSeeReservationsSummary = this.isAdmin || this.isResident;
 
+    this.buildQuickActions();
     this.loadStats();
+  }
+
+  private buildQuickActions(): void {
+    const actions: Array<HomeQuickAction & { visible: boolean }> = [
+      {
+        id: 'reservation',
+        label: 'Nova Reserva',
+        iconSrc: 'assets/icons/quick-access/new-schedule.svg',
+        visible: this.canCreateReservation,
+      },
+      {
+        id: 'tv',
+        label: 'Reservar TV',
+        iconSrc: 'assets/icons/quick-access/monitor.svg',
+        visible: this.canReserveEquipment,
+      },
+      {
+        id: 'occurrence',
+        label: 'Reportar Ocorrência',
+        iconSrc: 'assets/icons/quick-access/alerta.svg',
+        visible: this.canCreateOccurrence,
+      },
+      {
+        id: 'delivery',
+        label: 'Registrar Entrega',
+        iconSrc: 'assets/icons/quick-access/encomendas.svg',
+        visible: this.canManageDeliveries,
+      },
+      {
+        id: 'equipment',
+        label: 'Equipamentos',
+        iconSrc: 'assets/icons/quick-access/equipamentos.svg',
+        visible: this.canManageEquipment,
+      },
+      {
+        id: 'users',
+        label: 'Usuários',
+        iconSrc: 'assets/icons/quick-access/usuario.svg',
+        visible: this.isAdmin,
+      },
+      {
+        id: 'reports',
+        label: 'Relatórios',
+        iconSrc: 'assets/icons/quick-access/relatorios.svg',
+        visible: this.isAdmin,
+      },
+    ];
+
+    this.quickActions = actions
+      .filter(action => action.visible)
+      .map(({ visible: _visible, ...action }) => action);
   }
 
   private loadStats(): void {

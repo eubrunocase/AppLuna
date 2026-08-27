@@ -1,0 +1,16 @@
+:host {
+  ion-tab-button {
+    .tab-bar-icon {
+      width: 1.5rem;
+      height: 1.5rem;
+      font-size: 1.5rem;
+      color: var(--ion-tab-bar-color);
+      transition: color 0.2s ease, transform 0.2s ease;
+    }
+
+    &.tab-selected .tab-bar-icon {
+      color: var(--ion-tab-bar-color-selected);
+      transform: scale(1.06);
+    }
+  }
+}

@@ -237,7 +237,9 @@ ion-tab-bar {
     --padding-top: 4px;
     --padding-bottom: 4px;
     
-    ion-icon {
+    ion-icon,
+    ng-icon.tab-bar-icon,
+    .tab-bar-icon {
       font-size: 24px;
     }
     

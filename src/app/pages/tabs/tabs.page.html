@@ -1,0 +1,27 @@
+<ion-tabs>
+  <ion-tab-bar slot="bottom">
+    <ion-tab-button tab="home" href="/tabs/home">
+      <ng-icon name="lucideHome" class="tab-bar-icon" />
+      <ion-label>Início</ion-label>
+    </ion-tab-button>
+
+    @if (canSeeReservations) {
+      <ion-tab-button tab="reservations" href="/tabs/reservations">
+        <ng-icon name="lucideCalendar" class="tab-bar-icon" />
+        <ion-label>Reservas</ion-label>
+      </ion-tab-button>
+    }
+
+    <ion-tab-button tab="deliveries" href="/tabs/deliveries">
+      <ng-icon name="lucidePackage" class="tab-bar-icon" />
+      <ion-label>Entregas</ion-label>
+    </ion-tab-button>
+
+    @if (canSeeOccurrences) {
+      <ion-tab-button tab="occurrences" href="/tabs/occurrences">
+        <ng-icon name="lucideTriangleAlert" class="tab-bar-icon" />
+        <ion-label>Ocorrências</ion-label>
+      </ion-tab-button>
+    }
+  </ion-tab-bar>
+</ion-tabs>

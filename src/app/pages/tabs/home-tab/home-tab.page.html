@@ -1,6 +1,6 @@
 <ion-content [fullscreen]="true" class="home-content">
   <div class="home-shell">
-    <header class="home-header">
+    <header class="home-header home-enter">
       <div class="home-header__toolbar">
         <div class="home-hero__intro">
           <div class="home-hero__logo" aria-hidden="true">
@@ -33,7 +33,7 @@
 
     <div
       #statsGrid
-      class="home-stats"
+      class="home-stats home-enter home-enter--stats"
       role="region"
       aria-label="Resumo rápido"
       [style.--stat-cols]="statColumns"
@@ -42,7 +42,7 @@
         <button type="button" hlmCard size="sm" class="stat-card" (click)="goToPendingApprovals()">
           <div hlmCardContent class="stat-card__inner">
             <div class="stat-card__top">
-              <span class="stat-card__icon stat-card__icon--approval">
+              <span class="stat-card__icon">
                 <ng-icon name="lucideClipboardList" />
               </span>
               <span class="stat-card__value">{{ pendingApprovals }}</span>
@@ -55,7 +55,7 @@
       <button type="button" hlmCard size="sm" class="stat-card" (click)="goToDeliveries()">
         <div hlmCardContent class="stat-card__inner">
           <div class="stat-card__top">
-            <span class="stat-card__icon stat-card__icon--delivery">
+            <span class="stat-card__icon">
               <ng-icon name="lucidePackage" />
             </span>
             <span class="stat-card__value">{{ pendingDeliveries }}</span>
@@ -68,7 +68,7 @@
         <button type="button" hlmCard size="sm" class="stat-card" (click)="goToReservations()">
           <div hlmCardContent class="stat-card__inner">
             <div class="stat-card__top">
-              <span class="stat-card__icon stat-card__icon--reservation">
+              <span class="stat-card__icon">
                 <ng-icon name="lucideCalendar" />
               </span>
               <span class="stat-card__value">{{ activeReservations }}</span>
@@ -80,69 +80,55 @@
     </div>
 
     <div class="home-body">
-      <div class="quick-access">
-        <h3 class="section-title">Acesso Rápido</h3>
-        <div class="quick-grid">
-          <ion-card *ngIf="canCreateReservation" class="quick-card" (click)="openNewReservation()">
-            <ion-card-content>
-              <ion-icon name="add-circle-outline" class="quick-card__icon quick-card__icon--primary"></ion-icon>
-              <span>Nova Reserva</span>
-            </ion-card-content>
-          </ion-card>
-
-          <ion-card *ngIf="canReserveEquipment" class="quick-card" (click)="openTVReservation()">
-            <ion-card-content>
-              <ion-icon name="tv-outline" class="quick-card__icon quick-card__icon--primary"></ion-icon>
-              <span>Reservar TV</span>
-            </ion-card-content>
-          </ion-card>
-
-          <ion-card *ngIf="canCreateOccurrence" class="quick-card" (click)="openNewOccurrence()">
-            <ion-card-content>
-              <ion-icon name="warning-outline" class="quick-card__icon quick-card__icon--danger"></ion-icon>
-              <span>Reportar Ocorrência</span>
-            </ion-card-content>
-          </ion-card>
-
-          <ion-card *ngIf="canManageDeliveries" class="quick-card" (click)="openDeliveriesManagement()">
-            <ion-card-content>
-              <ion-icon name="cube-outline" class="quick-card__icon quick-card__icon--success"></ion-icon>
-              <span>Registrar Entrega</span>
-            </ion-card-content>
-          </ion-card>
-
-          <ion-card *ngIf="canManageEquipment" class="quick-card" (click)="openEquipmentFlow()">
-            <ion-card-content>
-              <ion-icon name="construct-outline" class="quick-card__icon quick-card__icon--warning"></ion-icon>
-              <span>Equipamentos</span>
-            </ion-card-content>
-          </ion-card>
-
-          <ion-card *ngIf="isAdmin" class="quick-card" (click)="openUsers()">
-            <ion-card-content>
-              <ion-icon name="people-outline" class="quick-card__icon quick-card__icon--danger"></ion-icon>
-              <span>Usuários</span>
-            </ion-card-content>
-          </ion-card>
-
-          <ion-card *ngIf="isAdmin" class="quick-card" (click)="openReports()">
-            <ion-card-content>
-              <ion-icon name="bar-chart-outline" class="quick-card__icon quick-card__icon--medium"></ion-icon>
-              <span>Relatórios</span>
-            </ion-card-content>
-          </ion-card>
+      <section class="home-section home-enter home-enter--section-1" aria-labelledby="quick-access-title">
+        <div class="home-section__header">
+          <h2 id="quick-access-title" class="home-section__title">Acesso Rápido</h2>
+          <p class="home-section__subtitle">Atalhos para as ações mais usadas</p>
         </div>
-      </div>
 
-      <div class="info-section">
-        <h3 class="section-title">Avisos</h3>
-        <ion-card>
-          <ion-card-content>
-            <ion-icon name="information-circle-outline" class="info-icon"></ion-icon>
-            <p>Mantenha suas informações atualizadas na página de gerenciamento.</p>
-          </ion-card-content>
-        </ion-card>
-      </div>
+        <div class="quick-grid">
+          @for (action of quickActions; track action.id) {
+            <button
+              type="button"
+              hlmCard
+              size="sm"
+              class="quick-card"
+              (click)="runQuickAction(action.id)"
+            >
+              <div class="quick-card__inner">
+                <span class="quick-card__label">{{ action.label }}</span>
+                <img
+                  class="quick-card__image"
+                  [src]="action.iconSrc"
+                  [alt]=""
+                  aria-hidden="true"
+                />
+              </div>
+            </button>
+          }
+        </div>
+      </section>
+
+      <section class="home-section home-enter home-enter--section-2" aria-labelledby="notices-title">
+        <div class="home-section__header">
+          <h2 id="notices-title" class="home-section__title">Avisos</h2>
+          <p class="home-section__subtitle">Informações importantes do condomínio</p>
+        </div>
+
+        <div hlmCard size="sm" class="notice-card">
+          <div hlmCardContent class="notice-card__inner">
+            <span class="notice-card__icon">
+              <ng-icon name="lucideInfo" />
+            </span>
+            <div class="notice-card__content">
+              <p class="notice-card__title">Mantenha seus dados atualizados</p>
+              <p class="notice-card__message">
+                Revise suas informações na área de gerenciamento para receber avisos e entregas corretamente.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
     </div>
   </div>
 </ion-content>
