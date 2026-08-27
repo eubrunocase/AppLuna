@@ -15,35 +15,50 @@ interface JwtPayloadClaims {
 
 @Injectable({ providedIn: 'root' })
 export class TokenStorageService {
-  private readonly REFRESH_TOKEN_KEY = 'auth_refresh_token';
+  private readonly ACCESS_COOKIE = 'auth_access_token';
+  private readonly REFRESH_COOKIE = 'auth_refresh_token';
   private readonly USER_KEY = 'auth_user';
+  private readonly LEGACY_REFRESH_KEY = 'auth_refresh_token';
 
-  private accessToken: string | null = null;
+  private readonly ACCESS_MAX_AGE_SECONDS = 2 * 60 * 60;
+  private readonly REFRESH_MAX_AGE_SECONDS = 30 * 24 * 60 * 60;
 
-  saveAccessToken(token: string): void {
-    this.accessToken = token;
+  saveAccessToken(token: string, expiresInSeconds?: number): void {
+    const maxAge = expiresInSeconds ?? this.getTokenTtlSeconds(token) ?? this.ACCESS_MAX_AGE_SECONDS;
+    this.setCookie(this.ACCESS_COOKIE, token, maxAge);
   }
 
   getAccessToken(): string | null {
-    return this.accessToken;
+    return this.getCookie(this.ACCESS_COOKIE);
   }
 
   saveRefreshToken(token: string): void {
-    localStorage.setItem(this.REFRESH_TOKEN_KEY, token);
+    this.setCookie(this.REFRESH_COOKIE, token, this.REFRESH_MAX_AGE_SECONDS);
+    localStorage.removeItem(this.LEGACY_REFRESH_KEY);
   }
 
   getRefreshToken(): string | null {
-    return localStorage.getItem(this.REFRESH_TOKEN_KEY);
+    const fromCookie = this.getCookie(this.REFRESH_COOKIE);
+    if (fromCookie) return fromCookie;
+
+    const legacy = localStorage.getItem(this.LEGACY_REFRESH_KEY);
+    if (legacy) {
+      this.saveRefreshToken(legacy);
+      return legacy;
+    }
+
+    return null;
   }
 
-  saveTokens(accessToken: string, refreshToken: string): void {
-    this.saveAccessToken(accessToken);
+  saveTokens(accessToken: string, refreshToken: string, accessExpiresIn?: number): void {
+    this.saveAccessToken(accessToken, accessExpiresIn);
     this.saveRefreshToken(refreshToken);
   }
 
   clearTokens(): void {
-    this.accessToken = null;
-    localStorage.removeItem(this.REFRESH_TOKEN_KEY);
+    this.deleteCookie(this.ACCESS_COOKIE);
+    this.deleteCookie(this.REFRESH_COOKIE);
+    localStorage.removeItem(this.LEGACY_REFRESH_KEY);
     localStorage.removeItem(this.USER_KEY);
   }
 
@@ -145,6 +160,53 @@ export class TokenStorageService {
     return sub || null;
   }
 
+  isAuthenticated(): boolean {
+    return !!this.getAccessToken() || !!this.getRefreshToken();
+  }
+
+  private getTokenTtlSeconds(token: string): number | null {
+    const payload = this.decodeTokenPayload(token) as JwtPayloadClaims | null;
+    if (!payload?.exp || typeof payload.exp !== 'number') return null;
+
+    const ttl = Math.floor(payload.exp - Date.now() / 1000);
+    return ttl > 0 ? ttl : 0;
+  }
+
+  private setCookie(name: string, value: string, maxAgeSeconds: number): void {
+    if (typeof document === 'undefined') return;
+
+    const parts = [
+      `${name}=${encodeURIComponent(value)}`,
+      'Path=/',
+      `Max-Age=${Math.max(0, Math.floor(maxAgeSeconds))}`,
+      'SameSite=Lax',
+    ];
+
+    if (typeof location !== 'undefined' && location.protocol === 'https:') {
+      parts.push('Secure');
+    }
+
+    document.cookie = parts.join('; ');
+  }
+
+  private getCookie(name: string): string | null {
+    if (typeof document === 'undefined') return null;
+
+    const prefix = `${name}=`;
+    for (const part of document.cookie.split(';')) {
+      const cookie = part.trim();
+      if (cookie.startsWith(prefix)) {
+        return decodeURIComponent(cookie.slice(prefix.length));
+      }
+    }
+
+    return null;
+  }
+
+  private deleteCookie(name: string): void {
+    this.setCookie(name, '', 0);
+  }
+
   private extractRole(candidate: unknown): string | null {
     if (!candidate) return null;
 
@@ -182,9 +244,5 @@ export class TokenStorageService {
     }
 
     return null;
-  }
-
-  isAuthenticated(): boolean {
-    return !!this.getAccessToken() || !!this.getRefreshToken();
   }
 }

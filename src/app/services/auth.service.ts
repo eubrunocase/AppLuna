@@ -22,7 +22,7 @@ export class AuthService {
   login(payload: AuthenticationDTO): Observable<ResponseUserDTO | null> {
     return this.http.post<TokenDTO>(`${this.baseUrl}/auth/login`, payload).pipe(
       tap((tokens: TokenDTO) => {
-        this.tokenStorage.saveTokens(tokens.accessToken, tokens.refreshToken);
+        this.tokenStorage.saveTokens(tokens.accessToken, tokens.refreshToken, tokens.expiresIn);
         this.tokenStorage.clearUser();
         this.isAuthenticatedSubject.next(true);
       }),
@@ -41,7 +41,7 @@ export class AuthService {
     const body: RefreshRequestDTO = { refreshToken };
     return this.http.post<RefreshResponseDTO>(`${this.baseUrl}/auth/refresh`, body).pipe(
       tap((tokens: RefreshResponseDTO) => {
-        this.tokenStorage.saveTokens(tokens.accessToken, tokens.refreshToken);
+        this.tokenStorage.saveTokens(tokens.accessToken, tokens.refreshToken, tokens.expiresIn);
         this.isAuthenticatedSubject.next(true);
       }),
       map(() => true),

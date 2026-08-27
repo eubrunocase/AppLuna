@@ -3,7 +3,7 @@ import { inject } from '@angular/core';
 import { TokenStorageService } from '../storage/token-storage.service';
 import { UserRoles } from '../models';
 
-export const authGuard: CanActivateFn = (route, state) => {
+export const authGuard: CanActivateFn = () => {
   const tokenStorage = inject(TokenStorageService);
   const router = inject(Router);
 
@@ -11,8 +11,18 @@ export const authGuard: CanActivateFn = (route, state) => {
     return true;
   }
 
-  router.navigate(['/login']);
-  return false;
+  return router.createUrlTree(['/login']);
+};
+
+export const guestGuard: CanActivateFn = () => {
+  const tokenStorage = inject(TokenStorageService);
+  const router = inject(Router);
+
+  if (tokenStorage.isAuthenticated()) {
+    return router.createUrlTree(['/tabs/home']);
+  }
+
+  return true;
 };
 
 export const roleGuard = (allowedRoles: string[]): CanActivateFn => () => {
