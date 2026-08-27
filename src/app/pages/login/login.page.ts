@@ -70,10 +70,12 @@ import { UiService } from '../../shared/services/ui.service';
           <div #loginCard class="form-wrap">
             <hlm-card class="login-card">
               <div class="card-brand">
-                <h1 class="brand-name">
-                  <ng-icon name="lucideMoonStar" class="brand-icon" aria-hidden="true" />
-                  LunaLink
-                </h1>
+                <ng-icon name="lucideMoonStar" class="brand-icon" aria-hidden="true" />
+                <h1 class="welcome-title">Bem vindo</h1>
+                <p class="welcome-subtitle">
+                  Faça o login para acesso ao
+                  <span class="welcome-brand">Lunalink</span>
+                </p>
               </div>
 
               <div hlmCardContent>
@@ -95,7 +97,7 @@ import { UiService } from '../../shared/services/ui.service';
                         />
                       </div>
                       @if (showError('email')) {
-                        <hlm-field-error [forceShow]="true">
+                        <hlm-field-error class="login-field-error" [forceShow]="true">
                           {{ getErrorMessage('email') }}
                         </hlm-field-error>
                       }
@@ -120,7 +122,7 @@ import { UiService } from '../../shared/services/ui.service';
                           type="button"
                           variant="ghost"
                           size="icon-sm"
-                          class="password-toggle"
+                          class="password-toggle text-brand-terracotta"
                           (click)="togglePassword()"
                           [attr.aria-label]="showPassword ? 'Ocultar senha' : 'Mostrar senha'"
                         >
@@ -128,7 +130,7 @@ import { UiService } from '../../shared/services/ui.service';
                         </button>
                       </div>
                       @if (showError('password')) {
-                        <hlm-field-error [forceShow]="true">
+                        <hlm-field-error class="login-field-error" [forceShow]="true">
                           {{ getErrorMessage('password') }}
                         </hlm-field-error>
                       }
@@ -258,31 +260,44 @@ import { UiService } from '../../shared/services/ui.service';
 
     .card-brand {
       display: flex;
-      justify-content: center;
+      flex-direction: column;
       align-items: center;
-      padding: 1.75rem 1.5rem 0;
+      text-align: center;
+      padding: 1.5rem 1.5rem 0;
       margin-bottom: 16px;
     }
 
-    .brand-name {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.12rem;
+    .brand-icon {
+      font-size: 2.65rem;
+      width: 1em;
+      height: 1em;
+      color: #c05c46;
+      margin-bottom: 0.7rem;
+    }
+
+    .welcome-title {
       margin: 0;
-      font-family: var(--font-logo);
-      font-weight: 800;
-      font-style: normal;
-      font-size: clamp(2.5rem, 8.5vw, 3.15rem);
-      letter-spacing: -0.03em;
-      line-height: 0.9;
+      font-size: 1.5rem;
+      font-weight: 700;
+      line-height: 1.2;
       color: #c05c46;
     }
 
-    .brand-icon {
-      flex-shrink: 0;
-      font-size: 0.82em;
-      width: 0.82em;
-      height: 0.82em;
+    .welcome-subtitle {
+      margin: 0.4rem 0 0;
+      font-size: 0.95rem;
+      font-weight: 400;
+      line-height: 1.45;
+      color: var(--foreground);
+    }
+
+    .welcome-brand {
+      color: #c05c46;
+      font-weight: 600;
+    }
+
+    .login-field-error {
+      color: #dc2626 !important;
     }
 
     .input-with-icon {
@@ -296,7 +311,7 @@ import { UiService } from '../../shared/services/ui.service';
       left: 0.85rem;
       z-index: 1;
       font-size: 1.05rem;
-      color: var(--muted-foreground);
+      color: #c05c46;
       pointer-events: none;
     }
 
@@ -316,7 +331,11 @@ import { UiService } from '../../shared/services/ui.service';
       position: absolute;
       right: 0.35rem;
       z-index: 2;
-      color: var(--muted-foreground);
+      color: #c05c46 !important;
+    }
+
+    .password-toggle ng-icon {
+      color: #c05c46 !important;
     }
 
     .login-submit {
