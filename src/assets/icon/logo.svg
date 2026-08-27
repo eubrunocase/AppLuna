@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="LunaLink">
+  <rect width="512" height="512" rx="112" fill="#C05C46"/>
+  <rect x="80" y="80" width="352" height="352" rx="96" fill="#FFFFFF"/>
+  <g fill="none" stroke="#C05C46" stroke-width="26" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M292 148a100 100 0 1 0 72 161.6A81.6 81.6 0 1 1 292 148z"/>
+    <path d="M330 182l8.8 18.4 20 .2.2 20 15.2 13.6-7.2 18.4-18.4-9.6-18.4 9.6-7.2-18.4 15.2-13.6.2-20 20-.2z"/>
+  </g>
+</svg>

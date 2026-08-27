@@ -1,9 +1,11 @@
 {
-  "name": "app",
-  "short_name": "app",
+  "name": "LunaLink 🌙",
+  "short_name": "LunaLink",
   "display": "standalone",
   "scope": "./",
   "start_url": "./",
+  "theme_color": "#C05C46",
+  "background_color": "#F9F6EE",
   "icons": [
     {
       "src": "icons/icon-72x72.png",

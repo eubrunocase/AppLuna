@@ -1,98 +1,105 @@
 /* LunaLink Design System - Variables */
-/* Paleta de cores baseada no design-guide.md */
+/* Brand: #C05C46 · #E3A847 · #F9F6EE + complementary tones */
 
-/* ============================================================================= */
-/* PALETA DE CORES PRINCIPAL */
-/* ============================================================================= */
-
-/* Cor Principal (Laranja Escuro/Terra) */
 :root {
-  --ion-color-primary: #bf3b03;
-  --ion-color-primary-rgb: 191, 59, 3;
-  --ion-color-primary-contrast: #ffffff;
-  --ion-color-primary-contrast-rgb: 255, 255, 255;
-  --ion-color-primary-shade: #a83302;
-  --ion-color-primary-tint: #c64f1e;
+  /* Primary — terracotta #C05C46 */
+  --ion-color-primary: #c05c46;
+  --ion-color-primary-rgb: 192, 92, 70;
+  --ion-color-primary-contrast: #f9f6ee;
+  --ion-color-primary-contrast-rgb: 249, 246, 238;
+  --ion-color-primary-shade: #9d4b39;
+  --ion-color-primary-tint: #d28a7a;
 
-  /* Cor Secundária (Laranja Vibrante) */
-  --ion-color-secondary: #ff6a00;
-  --ion-color-secondary-rgb: 255, 106, 0;
-  --ion-color-secondary-contrast: #ffffff;
-  --ion-color-secondary-contrast-rgb: 255, 255, 255;
-  --ion-color-secondary-shade: #e05e00;
-  --ion-color-secondary-tint: #ff7a1a;
+  /* Secondary — gold #E3A847 */
+  --ion-color-secondary: #e3a847;
+  --ion-color-secondary-rgb: 227, 168, 71;
+  --ion-color-secondary-contrast: #361a14;
+  --ion-color-secondary-contrast-rgb: 54, 26, 20;
+  --ion-color-secondary-shade: #c18f3c;
+  --ion-color-secondary-tint: #eabe75;
 
-  /* Cor Terciária (Pêssego/Laranja Claro) */
-  --ion-color-tertiary: #ffa748;
-  --ion-color-tertiary-rgb: 255, 167, 72;
-  --ion-color-tertiary-contrast: #000000;
-  --ion-color-tertiary-contrast-rgb: 0, 0, 0;
-  --ion-color-tertiary-shade: #e0933e;
-  --ion-color-tertiary-tint: #ffb05a;
+  /* Tertiary — peach complement */
+  --ion-color-tertiary: #e2b087;
+  --ion-color-tertiary-rgb: 226, 176, 135;
+  --ion-color-tertiary-contrast: #361a14;
+  --ion-color-tertiary-contrast-rgb: 54, 26, 20;
+  --ion-color-tertiary-shade: #c79b77;
+  --ion-color-tertiary-tint: #e8c09b;
 
-  /* Sucesso (Verde para Aprovado) */
-  --ion-color-success: #2dd36f;
-  --ion-color-success-rgb: 45, 211, 111;
+  /* Success */
+  --ion-color-success: #3d8b5f;
+  --ion-color-success-rgb: 61, 139, 95;
   --ion-color-success-contrast: #ffffff;
   --ion-color-success-contrast-rgb: 255, 255, 255;
-  --ion-color-success-shade: #28ba60;
-  --ion-color-success-tint: #42d87d;
+  --ion-color-success-shade: #367a54;
+  --ion-color-success-tint: #50976f;
 
-  /* Alerta/Warning (Amarelo Ouro para Aguardando) */
-  --ion-color-warning: #ffde7f;
-  --ion-color-warning-rgb: 255, 222, 127;
-  --ion-color-warning-contrast: #000000;
-  --ion-color-warning-contrast-rgb: 0, 0, 0;
-  --ion-color-warning-shade: #e0c36f;
-  --ion-color-warning-tint: #ffe18c;
+  /* Warning — soft gold wash / gold */
+  --ion-color-warning: #e3a847;
+  --ion-color-warning-rgb: 227, 168, 71;
+  --ion-color-warning-contrast: #361a14;
+  --ion-color-warning-contrast-rgb: 54, 26, 20;
+  --ion-color-warning-shade: #c18f3c;
+  --ion-color-warning-tint: #eabe75;
 
-  /* Perigo (Bordô/Vermelho Escuro) */
-  --ion-color-danger: #820000;
-  --ion-color-danger-rgb: 130, 0, 0;
-  --ion-color-danger-contrast: #ffffff;
-  --ion-color-danger-contrast-rgb: 255, 255, 255;
-  --ion-color-danger-shade: #720000;
-  --ion-color-danger-tint: #8f1a1a;
+  /* Danger — deep terracotta */
+  --ion-color-danger: #7d3c2e;
+  --ion-color-danger-rgb: 125, 60, 46;
+  --ion-color-danger-contrast: #f9f6ee;
+  --ion-color-danger-contrast-rgb: 249, 246, 238;
+  --ion-color-danger-shade: #6e3529;
+  --ion-color-danger-tint: #8a5043;
 
-  /* Cor Média (Medium) */
-  --ion-color-medium: #92949c;
-  --ion-color-medium-rgb: 146, 148, 156;
+  /* Medium — muted terracotta brown */
+  --ion-color-medium: #8a6a5f;
+  --ion-color-medium-rgb: 138, 106, 95;
   --ion-color-medium-contrast: #ffffff;
   --ion-color-medium-contrast-rgb: 255, 255, 255;
-  --ion-color-medium-shade: #808289;
-  --ion-color-medium-tint: #9d9fa6;
+  --ion-color-medium-shade: #795e54;
+  --ion-color-medium-tint: #96796f;
 
-  /* Cor Leve (Light) */
-  --ion-color-light: #f4f5f8;
-  --ion-color-light-rgb: 244, 245, 248;
-  --ion-color-light-contrast: #000000;
-  --ion-color-light-contrast-rgb: 0, 0, 0;
-  --ion-color-light-shade: #d7d8da;
-  --ion-color-light-tint: #f5f6f9;
+  /* Light — cream */
+  --ion-color-light: #f9f6ee;
+  --ion-color-light-rgb: 249, 246, 238;
+  --ion-color-light-contrast: #361a14;
+  --ion-color-light-contrast-rgb: 54, 26, 20;
+  --ion-color-light-shade: #dbd8d1;
+  --ion-color-light-tint: #faf7f0;
 
-  /* Fundos e Background */
-  --ion-background-color: #0f0907;
-  --ion-background-color-rgb: 15, 9, 7;
+  /* Dark — warm brown */
+  --ion-color-dark: #361a14;
+  --ion-color-dark-rgb: 54, 26, 20;
+  --ion-color-dark-contrast: #f9f6ee;
+  --ion-color-dark-contrast-rgb: 249, 246, 238;
+  --ion-color-dark-shade: #301712;
+  --ion-color-dark-tint: #4a312c;
 
-  --ion-text-color: #fff8f0;
-  --ion-text-color-rgb: 255, 248, 240;
+  /* Surfaces */
+  --ion-background-color: #f9f6ee;
+  --ion-background-color-rgb: 249, 246, 238;
 
-  --ion-toolbar-background: rgba(20, 11, 8, 0.72);
-  --ion-toolbar-color: #fff8f0;
+  --ion-text-color: #361a14;
+  --ion-text-color-rgb: 54, 26, 20;
 
-  --ion-tab-bar-background: rgba(20, 11, 8, 0.74);
-  --ion-tab-bar-color: rgba(255, 246, 235, 0.75);
-  --ion-tab-bar-color-selected: #ff9f4f;
+  --ion-toolbar-background: #f9f6ee;
+  --ion-toolbar-color: #361a14;
+  --ion-toolbar-border-color: #f2e4da;
 
-  --ion-card-background: rgba(255, 255, 255, 0.12);
+  --ion-tab-bar-background: #ffffff;
+  --ion-tab-bar-color: #8a6a5f;
+  --ion-tab-bar-color-selected: #c05c46;
+  --ion-tab-bar-border-color: #f2e4da;
 
-  /* Items e Listas */
-  --ion-item-background: rgba(255, 255, 255, 0.16);
-  --ion-item-border-color: rgba(255, 255, 255, 0.24);
+  --ion-card-background: #ffffff;
 
-  /* Placeholders e Inputs */
-  --ion-placeholder-color: rgba(255, 250, 245, 0.78);
+  --ion-item-background: #ffffff;
+  --ion-item-border-color: #f2e4da;
 
-  /* Toolbar */
-  --ion-font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --ion-placeholder-color: #8a6a5f;
+
+  --luna-soft-terracotta: #f2e4da;
+  --luna-soft-gold: #f6edda;
+  --luna-peach: #e2b087;
+
+  --ion-font-family: "Inter", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }

@@ -18,15 +18,18 @@
 @import "@ionic/angular/css/text-alignment.css";
 @import "@ionic/angular/css/text-transformation.css";
 @import "@ionic/angular/css/flex-utils.css";
-@import '@ionic/angular/css/palettes/dark.system.css';
-
 // =============================================================================
 // TIPOGRAFIA
 // =============================================================================
 
+html, body, ion-app {
+  font-family: "Inter", var(--ion-font-family);
+}
+
 h1, h2, h3, h4, h5, h6 {
+  font-family: inherit;
   font-weight: 600;
-  color: #fff8f0;
+  color: var(--ion-text-color);
 }
 
 h1 { font-size: 28px; }
@@ -34,19 +37,19 @@ h2 { font-size: 24px; }
 h3 { font-size: 20px; }
 h4 { font-size: 18px; }
 
-p, span, ion-label {
-  color: rgba(255, 246, 235, 0.92);
+p, ion-label {
+  color: var(--ion-text-color);
 }
 
 // =============================================================================
-// APP THEME - GLOBAL ORANGE/BLACK GLASS
+// APP THEME — cream / terracotta / gold
 // =============================================================================
 
 ion-content {
   --background:
-    radial-gradient(circle at 20% 15%, rgba(255, 145, 0, 0.3) 0%, transparent 42%),
-    radial-gradient(circle at 82% 88%, rgba(255, 92, 0, 0.2) 0%, transparent 46%),
-    linear-gradient(165deg, #ff7a00 0%, #2a0f02 42%, #050505 100%);
+    radial-gradient(circle at 18% 12%, rgba(227, 168, 71, 0.18) 0%, transparent 40%),
+    radial-gradient(circle at 88% 90%, rgba(192, 92, 70, 0.12) 0%, transparent 44%),
+    linear-gradient(180deg, #f9f6ee 0%, #f2e4da 100%);
 }
 
 ion-content::part(background) {
@@ -59,10 +62,9 @@ ion-content::part(background) {
 
 ion-card {
   border-radius: 16px;
-  background: rgba(255, 255, 255, 0.12);
-  border: 1px solid rgba(255, 255, 255, 0.28);
-  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.34);
-  backdrop-filter: blur(14px);
+  background: #ffffff;
+  border: 1px solid var(--luna-soft-terracotta);
+  box-shadow: 0 10px 28px rgba(54, 26, 20, 0.08);
   margin: 8px 0;
   
   &:active {
@@ -85,10 +87,10 @@ ion-card-content {
 
 ion-button {
   --border-radius: 12px;
-  --background: #ff7a00;
-  --background-hover: #ff8d21;
-  --background-activated: #e26500;
-  --color: #22140b;
+  --background: var(--ion-color-primary);
+  --background-hover: var(--ion-color-primary-tint);
+  --background-activated: var(--ion-color-primary-shade);
+  --color: var(--ion-color-primary-contrast);
   font-weight: 600;
   text-transform: none;
   letter-spacing: 0.3px;
@@ -101,7 +103,8 @@ ion-button {
 ion-fab-button {
   --background: var(--ion-color-secondary);
   --background-activated: var(--ion-color-secondary-shade);
-  --box-shadow: 0 4px 16px rgba(255, 106, 0, 0.4);
+  --color: var(--ion-color-secondary-contrast);
+  --box-shadow: 0 4px 16px rgba(227, 168, 71, 0.35);
 }
 
 // =============================================================================
@@ -109,21 +112,21 @@ ion-fab-button {
 // =============================================================================
 
 ion-input, ion-textarea, ion-select {
-  --background: rgba(255, 255, 255, 0.16);
-  --color: #fffaf5;
-  --placeholder-color: rgba(255, 250, 245, 0.78);
-  --label-color: rgba(255, 250, 245, 0.9);
+  --background: #ffffff;
+  --color: var(--ion-text-color);
+  --placeholder-color: var(--ion-placeholder-color);
+  --label-color: var(--ion-text-color);
   --border-radius: 12px;
   --padding-start: 16px;
   --padding-end: 16px;
-  border: 1px solid rgba(255, 255, 255, 0.24);
+  border: 1px solid var(--luna-soft-terracotta);
   border-radius: 12px;
   margin-bottom: 12px;
 }
 
 ion-item {
-  --background: rgba(255, 255, 255, 0.16);
-  --color: #fffaf5;
+  --background: #ffffff;
+  --color: var(--ion-text-color);
   --border-radius: 12px;
   --padding-start: 16px;
   --padding-end: 16px;
@@ -131,12 +134,11 @@ ion-item {
   --highlight-height: 0;
   margin-bottom: 8px;
   border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.24);
-  backdrop-filter: blur(10px);
+  border: 1px solid var(--luna-soft-terracotta);
   
   &.item-has-focus {
-    --background: rgba(255, 255, 255, 0.22);
-    --border-color: #ffb067;
+    --background: var(--luna-soft-gold);
+    --border-color: var(--ion-color-primary);
     --border-width: 1px;
     --border-style: solid;
   }
@@ -147,18 +149,17 @@ ion-item {
 // =============================================================================
 
 ion-segment {
-  --background: rgba(255, 255, 255, 0.14);
+  --background: var(--luna-soft-terracotta);
   border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.22);
-  backdrop-filter: blur(10px);
+  border: 1px solid var(--luna-soft-terracotta);
   padding: 4px;
 }
 
 ion-segment-button {
   --border-radius: 8px;
-  --indicator-color: #ff7a00;
-  --color: rgba(255, 247, 238, 0.86);
-  --color-checked: #1d1109;
+  --indicator-color: var(--ion-color-primary);
+  --color: var(--ion-color-medium);
+  --color-checked: var(--ion-color-primary-contrast);
   font-weight: 500;
   text-transform: none;
   min-height: 40px;
@@ -200,10 +201,9 @@ ion-chip {
 // =============================================================================
 
 ion-toolbar {
-  --background: rgba(20, 11, 8, 0.72);
-  --color: #fff8f0;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.18);
-  backdrop-filter: blur(8px);
+  --background: var(--ion-toolbar-background);
+  --color: var(--ion-toolbar-color);
+  border-bottom: 1px solid var(--luna-soft-terracotta);
   --min-height: 56px;
   
   ion-title {
@@ -211,11 +211,11 @@ ion-toolbar {
   }
   
   ion-back-button {
-    --color: #ffffff;
+    --color: var(--ion-color-primary);
   }
   
   ion-button {
-    --color: #ffffff;
+    --color: var(--ion-color-primary);
   }
 }
 
@@ -224,16 +224,16 @@ ion-toolbar {
 // =============================================================================
 
 ion-tab-bar {
-  --background: rgba(20, 11, 8, 0.74);
-  --border: 1px solid rgba(255, 255, 255, 0.18);
+  --background: var(--ion-tab-bar-background);
+  --border: 1px solid var(--luna-soft-terracotta);
   border-radius: 20px 20px 0 0;
-  backdrop-filter: blur(10px);
+  box-shadow: 0 -8px 24px rgba(54, 26, 20, 0.06);
   padding: 8px 0;
   height: 64px;
   
   ion-tab-button {
-    --color: rgba(255, 246, 235, 0.75);
-    --color-selected: #ff9f4f;
+    --color: var(--ion-tab-bar-color);
+    --color-selected: var(--ion-tab-bar-color-selected);
     --padding-top: 4px;
     --padding-bottom: 4px;
     
@@ -253,10 +253,11 @@ ion-tab-bar {
 // =============================================================================
 
 ion-loading {
-  --background: rgba(22, 14, 10, 0.86);
-  --color: #fff8f0;
+  --background: #ffffff;
+  --color: var(--ion-text-color);
   --border-radius: 16px;
-  --spinner-color: #ff8a1f;
+  --spinner-color: var(--ion-color-primary);
+  --box-shadow: 0 12px 32px rgba(54, 26, 20, 0.12);
   
   .loading-wrapper {
     border-radius: 16px;
@@ -295,7 +296,7 @@ ion-toast {
   
   &.toast-warning {
     --background: var(--ion-color-warning);
-    --color: #000000;
+    --color: var(--ion-color-warning-contrast);
     --border-radius: 12px;
   }
 }
@@ -305,15 +306,15 @@ ion-toast {
 // =============================================================================
 
 ion-skeleton-text {
-  --background: rgba(255, 255, 255, 0.18);
-  --background-rgb: 255, 255, 255;
+  --background: var(--luna-soft-terracotta);
+  --background-rgb: 242, 228, 218;
   border-radius: 8px;
 }
 
 .skeleton-card {
-  background: rgba(255, 255, 255, 0.12);
+  background: #ffffff;
   border-radius: 16px;
-  border: 1px solid rgba(255, 255, 255, 0.22);
+  border: 1px solid var(--luna-soft-terracotta);
   padding: 16px;
   margin: 8px 0;
   
@@ -350,13 +351,13 @@ ion-skeleton-text {
   .empty-title {
     font-size: 18px;
     font-weight: 600;
-    color: #fff8f0;
+    color: var(--ion-text-color);
     margin-bottom: 8px;
   }
   
   .empty-message {
     font-size: 14px;
-    color: rgba(255, 246, 235, 0.84);
+    color: var(--ion-color-medium);
   }
 }
 
@@ -366,7 +367,7 @@ ion-skeleton-text {
 
 ion-badge {
   --background: var(--ion-color-secondary);
-  --color: #ffffff;
+  --color: var(--ion-color-secondary-contrast);
   border-radius: 50%;
   font-size: 11px;
   font-weight: 600;
@@ -391,7 +392,7 @@ ion-refresher {
 
 .header-icon {
   font-size: 24px;
-  color: #ffffff;
+  color: var(--ion-color-primary);
 }
 
 .notification-badge {
@@ -399,7 +400,7 @@ ion-refresher {
   top: 8px;
   right: 8px;
   background: var(--ion-color-secondary);
-  color: #ffffff;
+  color: var(--ion-color-secondary-contrast);
   font-size: 10px;
   font-weight: 600;
   min-width: 18px;

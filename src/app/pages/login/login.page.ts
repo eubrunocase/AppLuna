@@ -1,256 +1,562 @@
-import { Component, inject } from '@angular/core';
-import { IonicModule } from '@ionic/angular';
+import {
+  AfterViewInit,
+  ChangeDetectorRef,
+  Component,
+  ElementRef,
+  NgZone,
+  OnDestroy,
+  ViewChild,
+  inject,
+} from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
-import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
+import { IonContent } from '@ionic/angular/standalone';
+import { NgIcon, provideIcons } from '@ng-icons/core';
+import {
+  lucideBuilding2,
+  lucideEye,
+  lucideEyeOff,
+  lucideLock,
+  lucideMail,
+  lucideMoonStar,
+  lucideShieldCheck,
+} from '@ng-icons/lucide';
+import { HlmButtonImports } from '@spartan-ng/helm/button';
+import { HlmCardImports } from '@spartan-ng/helm/card';
+import { HlmFieldImports } from '@spartan-ng/helm/field';
+import { HlmInputImports } from '@spartan-ng/helm/input';
+import { HlmSpinnerImports } from '@spartan-ng/helm/spinner';
+import gsap from 'gsap';
+import { catchError, finalize, of } from 'rxjs';
 import { AuthService } from '../../services/auth.service';
 import { UiService } from '../../shared/services/ui.service';
-import { catchError, finalize, of } from 'rxjs';
 
 @Component({
   selector: 'app-login',
+  standalone: true,
+  imports: [
+    IonContent,
+    ReactiveFormsModule,
+    NgIcon,
+    HlmButtonImports,
+    HlmCardImports,
+    HlmFieldImports,
+    HlmInputImports,
+    HlmSpinnerImports,
+  ],
+  providers: [
+    provideIcons({
+      lucideBuilding2,
+      lucideEye,
+      lucideEyeOff,
+      lucideLock,
+      lucideMail,
+      lucideMoonStar,
+      lucideShieldCheck,
+    }),
+  ],
   template: `
-    <ion-content class="login-content">
-      <div class="login-container">
-        <div class="logo-section">
-          <div class="logo-icon">
-            <span class="moon-emoji" aria-hidden="true">🌙</span>
-          </div>
-          <h1>LunaLink</h1>
-          <p>Sistema de Gestão do condomínio Luna</p>
+    @if (showSplash) {
+      <div #splashRoot class="splash" aria-hidden="true">
+        <div #splashLogo class="splash-logo">
+          <ng-icon name="lucideMoonStar" class="splash-logo-icon" />
         </div>
-        
-        <form [formGroup]="form" (ngSubmit)="onSubmit()">
-          <div class="form-card">
-            <div class="form-title">
-              <h2>Acesse sua conta</h2>
-              <p>Informe suas credenciais para continuar</p>
+      </div>
+    }
+
+    <ion-content [fullscreen]="true" class="login-content">
+      <div #loginShell class="login-shell">
+        <section class="form-column">
+          <div #loginCard class="form-wrap">
+            <hlm-card class="login-card">
+              <div class="card-brand">
+                <h1 class="brand-name">
+                  <ng-icon name="lucideMoonStar" class="brand-icon" aria-hidden="true" />
+                  LunaLink
+                </h1>
+              </div>
+
+              <div hlmCardContent>
+                <form [formGroup]="form" (ngSubmit)="onSubmit()" novalidate>
+                  <hlm-field-group>
+                    <hlm-field>
+                      <div class="input-with-icon">
+                        <ng-icon name="lucideMail" class="field-icon" aria-hidden="true" />
+                        <input
+                          hlmInput
+                          id="login-email"
+                          type="email"
+                          formControlName="email"
+                          autocomplete="email"
+                          placeholder="seu@email.com"
+                          aria-label="E-mail"
+                          class="login-input pl-9"
+                          [attr.aria-invalid]="showError('email')"
+                        />
+                      </div>
+                      @if (showError('email')) {
+                        <hlm-field-error [forceShow]="true">
+                          {{ getErrorMessage('email') }}
+                        </hlm-field-error>
+                      }
+                    </hlm-field>
+
+                    <hlm-field>
+                      <div class="input-with-icon">
+                        <ng-icon name="lucideLock" class="field-icon" aria-hidden="true" />
+                        <input
+                          hlmInput
+                          id="login-password"
+                          [type]="showPassword ? 'text' : 'password'"
+                          formControlName="password"
+                          autocomplete="current-password"
+                          placeholder="Sua senha"
+                          aria-label="Senha"
+                          class="login-input pl-9 pr-10"
+                          [attr.aria-invalid]="showError('password')"
+                        />
+                        <button
+                          hlmBtn
+                          type="button"
+                          variant="ghost"
+                          size="icon-sm"
+                          class="password-toggle"
+                          (click)="togglePassword()"
+                          [attr.aria-label]="showPassword ? 'Ocultar senha' : 'Mostrar senha'"
+                        >
+                          <ng-icon [name]="showPassword ? 'lucideEyeOff' : 'lucideEye'" />
+                        </button>
+                      </div>
+                      @if (showError('password')) {
+                        <hlm-field-error [forceShow]="true">
+                          {{ getErrorMessage('password') }}
+                        </hlm-field-error>
+                      }
+                    </hlm-field>
+
+                    <hlm-field>
+                      <button
+                        hlmBtn
+                        type="submit"
+                        class="login-submit w-full gap-2"
+                        [disabled]="isLoading"
+                        [attr.aria-busy]="isLoading"
+                      >
+                        @if (isLoading) {
+                          <hlm-spinner aria-label="Entrando" />
+                          <span>Entrando…</span>
+                        } @else {
+                          <span>Entrar</span>
+                        }
+                      </button>
+                    </hlm-field>
+                  </hlm-field-group>
+                </form>
+              </div>
+
+              <hlm-card-footer class="flex-col items-stretch gap-3 border-t border-border/60 pt-4">
+                <p class="text-muted-foreground text-center text-xs leading-relaxed">
+                  Precisa de ajuda? Fale com o síndico ou a administração do condomínio.
+                </p>
+                <div class="trust-row">
+                  <ng-icon name="lucideShieldCheck" class="trust-icon" aria-hidden="true" />
+                  <span>Acesso seguro para moradores e equipe</span>
+                </div>
+              </hlm-card-footer>
+            </hlm-card>
+          </div>
+        </section>
+
+        <aside class="visual-column" aria-hidden="true">
+          <div class="visual-glow"></div>
+          <div class="visual-content">
+            <div class="visual-badge">
+              <ng-icon name="lucideBuilding2" />
+              <span>Condomínio Luna</span>
             </div>
-
-            <ion-item lines="none">
-              <ion-icon slot="start" name="mail-outline"></ion-icon>
-              <ion-input 
-                formControlName="email"
-                type="email"
-                label="Email"
-                labelPlacement="floating"
-                placeholder="seu@email.com"
-                autocomplete="email">
-              </ion-input>
-            </ion-item>
-            <p class="error-text" *ngIf="showError('email')">
-              {{ getErrorMessage('email') }}
-            </p>
-
-            <ion-item lines="none">
-              <ion-icon slot="start" name="lock-closed-outline"></ion-icon>
-              <ion-input 
-                formControlName="password"
-                [type]="showPassword ? 'text' : 'password'"
-                label="Senha"
-                labelPlacement="floating"
-                placeholder="Sua senha"
-                autocomplete="current-password">
-              </ion-input>
-              <ion-icon 
-                slot="end" 
-                [name]="showPassword ? 'eye-off-outline' : 'eye-outline'"
-                (click)="togglePassword()"
-                class="password-toggle">
-              </ion-icon>
-            </ion-item>
-            <p class="error-text" *ngIf="showError('password')">
-              {{ getErrorMessage('password') }}
-            </p>
-
-            <ion-button 
-              expand="block" 
-              type="submit" 
-              [disabled]="form.invalid || isLoading"
-              class="login-button">
-              <ion-spinner *ngIf="isLoading" name="crescent"></ion-spinner>
-              <span *ngIf="!isLoading">Entrar</span>
-            </ion-button>
+            <img
+              src="assets/illustrations/authentication.svg"
+              alt=""
+              class="visual-illustration"
+            />
+            <blockquote class="visual-quote">
+              <p>Reservas, entregas e ocorrências em um só lugar — simples e transparente.</p>
+            </blockquote>
           </div>
-        </form>
-
-        <div class="footer">
-          <p>Precisa de ajuda? Entre em contato com o síndico.</p>
-        </div>
+        </aside>
       </div>
     </ion-content>
   `,
-  styles: [`
-    .login-content {
-      --background:
-        radial-gradient(circle at 20% 15%, rgba(255, 145, 0, 0.35) 0%, transparent 42%),
-        radial-gradient(circle at 80% 90%, rgba(255, 92, 0, 0.2) 0%, transparent 46%),
-        linear-gradient(165deg, #ff7a00 0%, #2a0f02 42%, #050505 100%);
+  styles: `
+    :host {
+      display: block;
+      height: 100%;
     }
 
-    .login-container {
+    .login-content {
+      --background: #f9f6ee;
+    }
+
+    .splash {
+      position: fixed;
+      inset: 0;
+      z-index: 50;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #c05c46;
+      transform-origin: center center;
+      pointer-events: none;
+      will-change: opacity, transform;
+    }
+
+    .splash-logo {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 5.25rem;
+      height: 5.25rem;
+      border-radius: 1.25rem;
+      background: #ffffff;
+      color: #c05c46;
+      box-shadow: 0 12px 32px rgba(54, 26, 20, 0.18);
+      will-change: transform, opacity;
+    }
+
+    .splash-logo-icon {
+      font-size: 2.1rem;
+    }
+
+    .login-shell {
+      min-height: 100%;
       display: flex;
       flex-direction: column;
-      align-items: center;
+      background: #f9f6ee;
+      opacity: 0;
+    }
+
+    .form-column {
+      display: flex;
+      flex: 1;
+      flex-direction: column;
       justify-content: center;
-      min-height: 100%;
-      padding: 24px;
+      padding: 1.25rem 1.25rem 2rem;
     }
 
-    .logo-section {
-      text-align: center;
-      margin-bottom: 40px;
+    .form-wrap {
+      width: 100%;
+      max-width: 24rem;
+      margin: 0 auto;
     }
 
-    .logo-icon {
-      width: 108px;
-      height: 108px;
-      background: rgba(255, 255, 255, 0.14);
-      border-radius: 24px;
+    .login-card {
+      width: 100%;
+      border-color: var(--brand-soft-terracotta, #f2e4da);
+      box-shadow: 0 14px 40px color-mix(in oklab, var(--foreground) 8%, transparent);
+      background: #ffffff;
+    }
+
+    .card-brand {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 1.75rem 1.5rem 0;
+      margin-bottom: 16px;
+    }
+
+    .brand-name {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.12rem;
+      margin: 0;
+      font-family: var(--font-logo);
+      font-weight: 800;
+      font-style: normal;
+      font-size: clamp(2.5rem, 8.5vw, 3.15rem);
+      letter-spacing: -0.03em;
+      line-height: 0.9;
+      color: #c05c46;
+    }
+
+    .brand-icon {
+      flex-shrink: 0;
+      font-size: 0.82em;
+      width: 0.82em;
+      height: 0.82em;
+    }
+
+    .input-with-icon {
+      position: relative;
       display: flex;
       align-items: center;
-      justify-content: center;
-      margin: 0 auto 20px;
-      border: 1px solid rgba(255, 255, 255, 0.3);
-      box-shadow: 0 10px 28px rgba(0, 0, 0, 0.3);
-      backdrop-filter: blur(12px);
     }
 
-    .moon-emoji {
-      font-size: 42px;
-      line-height: 1;
-      filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.35));
+    .field-icon {
+      position: absolute;
+      left: 0.85rem;
+      z-index: 1;
+      font-size: 1.05rem;
+      color: var(--muted-foreground);
+      pointer-events: none;
     }
 
-    .logo-section h1 {
-      font-size: 32px;
-      font-weight: 700;
-      color: #fff8f0;
-      text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-      margin: 0 0 8px 0;
+    .login-input {
+      height: 3rem !important;
+      min-height: 3rem;
+      font-size: 1rem !important;
     }
 
-    .logo-section p {
-      font-size: 14px;
-      color: rgba(255, 246, 235, 0.92);
-      margin: 0;
-    }
-
-    .form-card {
-      width: 100%;
-      max-width: 400px;
-      background: rgba(255, 255, 255, 0.12);
-      border-radius: 24px;
-      padding: 32px 24px;
-      border: 1px solid rgba(255, 255, 255, 0.28);
-      box-shadow: 0 16px 36px rgba(0, 0, 0, 0.34);
-      backdrop-filter: blur(14px);
-    }
-
-    .form-title {
-      text-align: center;
-      margin-bottom: 24px;
-    }
-
-    .form-title h2 {
-      font-size: 20px;
-      font-weight: 600;
-      color: #fff9f2;
-      margin: 0 0 4px 0;
-    }
-
-    .form-title p {
-      font-size: 13px;
-      color: rgba(255, 248, 240, 0.9);
-      margin: 0;
-    }
-
-    ion-item {
-      --background: rgba(255, 255, 255, 0.16);
-      --border-radius: 12px;
-      --padding-start: 12px;
-      --padding-end: 12px;
-      --inner-padding-end: 8px;
-      --highlight-height: 0;
-      --highlight-color-focused: transparent;
-      --inner-border-width: 0;
-      --border-width: 0;
-      --inner-box-shadow: none;
-      color: #fffaf5;
-      border: 1px solid rgba(255, 255, 255, 0.24);
-      margin-bottom: 8px;
-    }
-
-    ion-item:first-child {
-      margin-top: 8px;
-    }
-
-    ion-input {
-      --background: transparent;
-      --color: #fffaf5;
-      --placeholder-color: rgba(255, 250, 245, 0.78);
-      --label-color: rgba(255, 250, 245, 0.9);
-      border: 0;
-      box-shadow: none;
-    }
-
-    ion-icon {
-      color: #fff7ee;
-      margin-right: 8px;
+    .input-with-icon input {
+      position: relative;
+      z-index: 0;
+      pointer-events: auto;
     }
 
     .password-toggle {
-      cursor: pointer;
-      color: #fff8f1;
-      font-size: 20px;
-      padding: 8px;
+      position: absolute;
+      right: 0.35rem;
+      z-index: 2;
+      color: var(--muted-foreground);
     }
 
-    .error-text {
-      color: #ffd6d6;
-      font-size: 12px;
-      font-weight: 600;
-      margin: 0 0 8px 16px;
+    .login-submit {
+      height: 3.15rem !important;
+      min-height: 3.15rem;
+      font-weight: 600 !important;
     }
 
-    .login-button {
-      margin-top: 24px;
-      --background: #ff7a00;
-      --background-hover: #ff8d21;
-      --color: #1f1209;
-      --border-radius: 12px;
-      height: 52px;
-      font-weight: 700;
-      font-size: 16px;
+    .login-submit,
+    .login-submit span {
+      color: #f9f6ee !important;
+      font-weight: 600 !important;
     }
 
-    .footer {
-      margin-top: 32px;
-      text-align: center;
+    .trust-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.4rem;
+      font-size: 0.7rem;
+      color: var(--muted-foreground);
     }
 
-    .footer p {
-      font-size: 12px;
-      color: rgba(255, 245, 235, 0.86);
-      margin: 0;
+    .trust-icon {
+      font-size: 0.9rem;
+      color: var(--brand-gold, #e3a847);
     }
-  `],
-  standalone: true,
-  imports: [IonicModule, ReactiveFormsModule, CommonModule]
+
+    .visual-column {
+      display: none;
+    }
+
+    @media (min-width: 1024px) {
+      .login-shell {
+        flex-direction: row;
+        min-height: 100dvh;
+      }
+
+      .form-column {
+        width: min(44%, 34rem);
+        max-width: 34rem;
+        padding: 2rem 2.5rem;
+      }
+
+      .form-wrap {
+        margin: 0;
+        max-width: 26rem;
+      }
+
+      .visual-column {
+        display: block;
+        position: relative;
+        flex: 1;
+        overflow: hidden;
+        background: #f2e4da;
+      }
+
+      .visual-glow {
+        position: absolute;
+        inset: 12% 18%;
+        border-radius: 2rem;
+        background: color-mix(in oklab, white 55%, transparent);
+        filter: blur(40px);
+        opacity: 0.7;
+      }
+
+      .visual-content {
+        position: relative;
+        z-index: 1;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 1.75rem;
+        padding: 3rem;
+        text-align: center;
+      }
+
+      .visual-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.4rem 0.85rem;
+        border-radius: 999px;
+        background: #ffffff;
+        border: 1px solid color-mix(in oklab, var(--brand-terracotta) 18%, transparent);
+        color: var(--foreground);
+        font-size: 0.8rem;
+        font-weight: 600;
+      }
+
+      .visual-illustration {
+        width: min(72%, 28rem);
+        height: auto;
+        filter: drop-shadow(0 18px 30px color-mix(in oklab, var(--foreground) 12%, transparent));
+      }
+
+      .visual-quote {
+        margin: 0;
+        max-width: 22rem;
+        font-size: 1rem;
+        line-height: 1.5;
+        color: var(--foreground);
+        font-weight: 500;
+      }
+
+      .visual-quote p {
+        margin: 0;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .splash,
+      .splash-logo {
+        animation: none !important;
+        transition: none !important;
+      }
+    }
+  `,
 })
-export class LoginPage {
+export class LoginPage implements AfterViewInit, OnDestroy {
+  @ViewChild('splashRoot') private splashRoot?: ElementRef<HTMLElement>;
+  @ViewChild('splashLogo') private splashLogo?: ElementRef<HTMLElement>;
+  @ViewChild('loginShell') private loginShell?: ElementRef<HTMLElement>;
+  @ViewChild('loginCard') private loginCard?: ElementRef<HTMLElement>;
+
   private fb = inject(FormBuilder);
   private authService = inject(AuthService);
   private uiService = inject(UiService);
   private router = inject(Router);
+  private zone = inject(NgZone);
+  private cdr = inject(ChangeDetectorRef);
+
+  private timeline?: gsap.core.Timeline;
 
   form: FormGroup = this.fb.group({
     email: ['', [Validators.required, Validators.email]],
-    password: ['', [Validators.required, Validators.minLength(4)]]
+    password: ['', [Validators.required, Validators.minLength(4)]],
   });
 
   isLoading = false;
   showPassword = false;
+  showSplash = true;
+
+  ngAfterViewInit(): void {
+    // Espera o próximo frame para o layout estabilizar (comportamento nativo)
+    requestAnimationFrame(() => {
+      this.zone.runOutsideAngular(() => this.playSplash());
+    });
+  }
+
+  ngOnDestroy(): void {
+    this.timeline?.kill();
+  }
+
+  private playSplash(): void {
+    const root = this.splashRoot?.nativeElement;
+    const logo = this.splashLogo?.nativeElement;
+    const shell = this.loginShell?.nativeElement;
+    const card = this.loginCard?.nativeElement;
+    if (!root || !logo || !shell) return;
+
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (reduceMotion) {
+      gsap.set(shell, { opacity: 1 });
+      this.zone.run(() => {
+        this.showSplash = false;
+      });
+      return;
+    }
+
+    // Estilo app nativo: splash estático → hold → crossfade suave
+    gsap.set(logo, { opacity: 0, scale: 0.92 });
+    gsap.set(shell, { opacity: 0 });
+    if (card) {
+      gsap.set(card, { opacity: 0, y: 12 });
+    }
+
+    this.timeline = gsap.timeline();
+
+    this.timeline
+      .to(logo, {
+        opacity: 1,
+        scale: 1,
+        duration: 0.45,
+        ease: 'power2.out',
+      })
+      .to({}, { duration: 0.55 })
+      .add(() => {
+        root.style.pointerEvents = 'none';
+      })
+      .to(
+        root,
+        {
+          opacity: 0,
+          scale: 1.04,
+          duration: 0.48,
+          ease: 'power2.inOut',
+          onComplete: () => {
+            this.zone.run(() => {
+              this.showSplash = false;
+            });
+          },
+        },
+        'reveal',
+      )
+      .to(
+        logo,
+        {
+          scale: 0.96,
+          opacity: 0,
+          duration: 0.35,
+          ease: 'power2.inOut',
+        },
+        'reveal',
+      )
+      .to(
+        shell,
+        {
+          opacity: 1,
+          duration: 0.4,
+          ease: 'power2.out',
+        },
+        'reveal+=0.08',
+      );
+
+    if (card) {
+      this.timeline.to(
+        card,
+        {
+          opacity: 1,
+          y: 0,
+          duration: 0.5,
+          ease: 'power3.out',
+        },
+        'reveal+=0.12',
+      );
+    }
+  }
 
   togglePassword(): void {
     this.showPassword = !this.showPassword;
@@ -264,30 +570,45 @@ export class LoginPage {
   getErrorMessage(field: string): string {
     const control = this.form.get(field);
     if (control?.hasError('required')) return 'Campo obrigatório';
-    if (control?.hasError('email')) return 'Email inválido';
+    if (control?.hasError('email')) return 'E-mail inválido';
     if (control?.hasError('minlength')) return 'Mínimo 4 caracteres';
     return '';
   }
 
   onSubmit(): void {
-    if (this.form.invalid) return;
+    if (this.form.invalid) {
+      this.form.markAllAsTouched();
+      return;
+    }
+    if (this.isLoading) return;
 
     this.isLoading = true;
+    this.cdr.markForCheck();
+
     const { email, password } = this.form.value;
 
-    this.authService.login({ email, password }).pipe(
-      catchError(error => {
-        const message = error?.message || 'Credenciais inválidas';
-        this.uiService.showError(message);
-        return of(null);
-      }),
-      finalize(() => {
-        this.isLoading = false;
-      })
-    ).subscribe(user => {
-      if (user) {
-        this.router.navigate(['/tabs/home']);
-      }
-    });
+    this.authService
+      .login({ email, password })
+      .pipe(
+        catchError((error) => {
+          const message = error?.message || 'Credenciais inválidas';
+          this.stopLoading();
+          void this.uiService.showError(message);
+          return of(null);
+        }),
+        finalize(() => this.stopLoading()),
+      )
+      .subscribe((user) => {
+        if (user) {
+          this.stopLoading();
+          void this.router.navigate(['/tabs/home']);
+        }
+      });
+  }
+
+  private stopLoading(): void {
+    if (!this.isLoading) return;
+    this.isLoading = false;
+    this.cdr.detectChanges();
   }
 }
