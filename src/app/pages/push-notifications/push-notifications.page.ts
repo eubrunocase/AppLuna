@@ -3,19 +3,13 @@ import { IonicModule } from '@ionic/angular';
 import { CommonModule } from '@angular/common';
 import { ToastController } from '@ionic/angular';
 import { WebPushService } from '../../services/web-push.service';
+import { PageHeaderComponent } from '../../shared/components/page-header/page-header.component';
 import { catchError, finalize, of } from 'rxjs';
 
 @Component({
   selector: 'app-push-notifications',
   template: `
-    <ion-header>
-      <ion-toolbar color="primary">
-        <ion-buttons slot="start">
-          <ion-back-button defaultHref="/home"></ion-back-button>
-        </ion-buttons>
-        <ion-title>Notificações</ion-title>
-      </ion-toolbar>
-    </ion-header>
+    <app-page-header title="Notificações" [showBack]="true" backHref="/tabs/home" />
 
     <ion-content class="ion-padding">
       <ion-card class="info-card">
@@ -132,7 +126,7 @@ import { catchError, finalize, of } from 'rxjs';
     }
   `],
   standalone: true,
-  imports: [IonicModule, CommonModule]
+  imports: [IonicModule, CommonModule, PageHeaderComponent]
 })
 export class PushNotificationsPage {
   private webPushService = inject(WebPushService);

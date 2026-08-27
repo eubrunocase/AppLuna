@@ -1,14 +1,3 @@
 <ion-app>
   <ion-router-outlet></ion-router-outlet>
-
-  <ion-button
-    *ngIf="(isAuthenticated$ | async) && !isLoginPage"
-    class="global-logout-button"
-    fill="outline"
-    (click)="confirmLogout()"
-    aria-label="Sair"
-  >
-    <ion-icon slot="start" name="log-out-outline"></ion-icon>
-    <span>Sair</span>
-  </ion-button>
 </ion-app>

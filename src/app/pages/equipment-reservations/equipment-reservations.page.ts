@@ -5,24 +5,17 @@ import { AlertController } from '@ionic/angular';
 import { EquipmentReservationService } from '../../services/equipment-reservation.service';
 import { EquipmentReservationResponseDTO, EquipmentReservationStatus, UserRoles } from '../../core/models';
 import { AuthService } from '../../services/auth.service';
+import { PageHeaderComponent } from '../../shared/components/page-header/page-header.component';
 import { catchError, finalize, of } from 'rxjs';
 
 @Component({
   selector: 'app-equipment-reservations',
   template: `
-    <ion-header>
-      <ion-toolbar color="primary">
-        <ion-buttons slot="start">
-          <ion-back-button defaultHref="/home"></ion-back-button>
-        </ion-buttons>
-        <ion-title>Empréstimo de Equipamentos</ion-title>
-        <ion-buttons slot="end">
-          <ion-button (click)="openCreateModal()">
-            <ion-icon slot="icon-only" name="add"></ion-icon>
-          </ion-button>
-        </ion-buttons>
-      </ion-toolbar>
-    </ion-header>
+    <app-page-header title="Empréstimo de Equipamentos" [showBack]="true" backHref="/tabs/home">
+      <ion-button headerActions fill="clear" (click)="openCreateModal()" aria-label="Novo empréstimo">
+        <ion-icon slot="icon-only" name="add"></ion-icon>
+      </ion-button>
+    </app-page-header>
 
     <ion-content class="ion-padding">
       <ion-refresher slot="fixed" (ionRefresh)="refresh($event)">
@@ -139,7 +132,7 @@ import { catchError, finalize, of } from 'rxjs';
     }
   `],
   standalone: true,
-  imports: [IonicModule, CommonModule]
+  imports: [IonicModule, CommonModule, PageHeaderComponent]
 })
 export class EquipmentReservationsPage implements OnInit {
   private equipmentService = inject(EquipmentReservationService);

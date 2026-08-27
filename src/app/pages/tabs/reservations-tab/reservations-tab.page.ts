@@ -8,6 +8,7 @@ import { EquipmentReservationService } from '../../../services/equipment-reserva
 import { ReservationResponseDTO, EquipmentReservationResponseDTO, ReservationStatus } from '../../../core/models';
 import { AuthService } from '../../../services/auth.service';
 import { UiService } from '../../../shared/services/ui.service';
+import { PageHeaderComponent } from '../../../shared/components/page-header/page-header.component';
 import { catchError, combineLatest, finalize, of } from 'rxjs';
 
 type ReservationKind = 'space' | 'equipment';
@@ -35,11 +36,8 @@ interface UnifiedReservation {
 @Component({
   selector: 'app-reservations-tab',
   template: `
+    <app-page-header [title]="isAdmin && viewMode === 'all' ? 'Reservas do Condomínio' : 'Minhas Reservas'" />
     <ion-header>
-      <ion-toolbar color="primary">
-        <ion-title>{{ isAdmin && viewMode === 'all' ? 'Reservas do Condomínio' : 'Minhas Reservas' }}</ion-title>
-      </ion-toolbar>
-
       <ion-toolbar *ngIf="isAdmin && viewMode === 'all' && pendingCount > 0" color="warning" class="pending-banner">
         <div class="pending-banner-content">
           <ion-icon name="alert-circle-outline"></ion-icon>
@@ -420,7 +418,7 @@ interface UnifiedReservation {
     }
   `],
   standalone: true,
-  imports: [IonicModule, CommonModule, FormsModule]
+  imports: [IonicModule, CommonModule, FormsModule, PageHeaderComponent]
 })
 export class ReservationsTabPage implements OnInit {
   private reservationService = inject(ReservationService);

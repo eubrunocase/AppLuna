@@ -8,23 +8,18 @@ import { UserService } from '../../services/user.service';
 import { ResponseDeliveryDTO, UserSummaryDTO, DeliveryStatus, UserRoles } from '../../core/models';
 import { AuthService } from '../../services/auth.service';
 import { AlertController } from '@ionic/angular';
+import { PageHeaderComponent } from '../../shared/components/page-header/page-header.component';
 import { catchError, finalize, of } from 'rxjs';
 
 @Component({
   selector: 'app-deliveries',
   template: `
+    <app-page-header title="Entregas" [showBack]="true" backHref="/tabs/home">
+      <ion-button *ngIf="canCreate" headerActions fill="clear" (click)="openCreateModal()" aria-label="Nova encomenda">
+        <ion-icon slot="icon-only" name="add"></ion-icon>
+      </ion-button>
+    </app-page-header>
     <ion-header>
-      <ion-toolbar color="primary">
-        <ion-buttons slot="start">
-          <ion-back-button defaultHref="/home"></ion-back-button>
-        </ion-buttons>
-        <ion-title>Entregas</ion-title>
-        <ion-buttons slot="end" *ngIf="canCreate">
-          <ion-button (click)="openCreateModal()">
-            <ion-icon slot="icon-only" name="add"></ion-icon>
-          </ion-button>
-        </ion-buttons>
-      </ion-toolbar>
       <ion-toolbar>
         <ion-segment [(ngModel)]="statusFilter" (ionChange)="filterByStatus()">
           <ion-segment-button value="ALL">
@@ -154,7 +149,7 @@ import { catchError, finalize, of } from 'rxjs';
     }
   `],
   standalone: true,
-  imports: [IonicModule, CommonModule, FormsModule]
+  imports: [IonicModule, CommonModule, FormsModule, PageHeaderComponent]
 })
 export class DeliveriesPage implements OnInit {
   private deliveryService = inject(DeliveryService);

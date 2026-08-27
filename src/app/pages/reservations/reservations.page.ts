@@ -6,23 +6,18 @@ import { ReservationService } from '../../services/reservation.service';
 import { ReservationResponseDTO, ReservationStatus, UserRoles } from '../../core/models';
 import { AuthService } from '../../services/auth.service';
 import { AlertController, ToastController } from '@ionic/angular';
+import { PageHeaderComponent } from '../../shared/components/page-header/page-header.component';
 import { catchError, finalize, of, Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-reservations',
   template: `
+    <app-page-header title="Reservas de Espaços" [showBack]="true" backHref="/tabs/home">
+      <ion-button headerActions fill="clear" (click)="openCreateModal()" aria-label="Nova reserva">
+        <ion-icon slot="icon-only" name="add"></ion-icon>
+      </ion-button>
+    </app-page-header>
     <ion-header>
-      <ion-toolbar color="primary">
-        <ion-buttons slot="start">
-          <ion-back-button defaultHref="/home"></ion-back-button>
-        </ion-buttons>
-        <ion-title>Reservas de Espaços</ion-title>
-        <ion-buttons slot="end">
-          <ion-button (click)="openCreateModal()">
-            <ion-icon slot="icon-only" name="add"></ion-icon>
-          </ion-button>
-        </ion-buttons>
-      </ion-toolbar>
       <ion-toolbar>
         <ion-segment [(ngModel)]="statusFilter" (ionChange)="filterByStatus()">
           <ion-segment-button value="ALL">
@@ -145,7 +140,7 @@ import { catchError, finalize, of, Subscription } from 'rxjs';
     }
   `],
   standalone: true,
-  imports: [IonicModule, CommonModule, ReactiveFormsModule, FormsModule]
+  imports: [IonicModule, CommonModule, ReactiveFormsModule, FormsModule, PageHeaderComponent]
 })
 export class ReservationsPage implements OnInit, OnDestroy {
   private reservationService = inject(ReservationService);

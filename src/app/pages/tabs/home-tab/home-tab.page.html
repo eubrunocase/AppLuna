@@ -1,0 +1,148 @@
+<ion-content [fullscreen]="true" class="home-content">
+  <div class="home-shell">
+    <header class="home-header">
+      <div class="home-header__toolbar">
+        <div class="home-hero__intro">
+          <div class="home-hero__logo" aria-hidden="true">
+            <ng-icon name="lucideMoonStar" />
+          </div>
+          <div class="home-hero__identity">
+            <p class="home-hero__greeting">{{ greeting }}</p>
+            <div class="home-hero__meta">
+              @if (userApartment) {
+                <span class="home-hero__unit">{{ userApartment }}</span>
+              }
+              <span class="role-badge">{{ userRoleLabel }}</span>
+            </div>
+          </div>
+        </div>
+
+        <button
+          hlmBtn
+          type="button"
+          variant="ghost"
+          size="icon"
+          class="home-header__logout"
+          (click)="confirmLogout()"
+          aria-label="Sair"
+        >
+          <ng-icon name="lucideLogOut" />
+        </button>
+      </div>
+    </header>
+
+    <div
+      #statsGrid
+      class="home-stats"
+      role="region"
+      aria-label="Resumo rápido"
+      [style.--stat-cols]="statColumns"
+    >
+      @if (isAdmin) {
+        <button type="button" hlmCard size="sm" class="stat-card" (click)="goToPendingApprovals()">
+          <div hlmCardContent class="stat-card__inner">
+            <div class="stat-card__top">
+              <span class="stat-card__icon stat-card__icon--approval">
+                <ng-icon name="lucideClipboardList" />
+              </span>
+              <span class="stat-card__value">{{ pendingApprovals }}</span>
+            </div>
+            <span class="stat-card__label">Aprovações pendentes</span>
+          </div>
+        </button>
+      }
+
+      <button type="button" hlmCard size="sm" class="stat-card" (click)="goToDeliveries()">
+        <div hlmCardContent class="stat-card__inner">
+          <div class="stat-card__top">
+            <span class="stat-card__icon stat-card__icon--delivery">
+              <ng-icon name="lucidePackage" />
+            </span>
+            <span class="stat-card__value">{{ pendingDeliveries }}</span>
+          </div>
+          <span class="stat-card__label">Encomendas</span>
+        </div>
+      </button>
+
+      @if (canSeeReservationsSummary) {
+        <button type="button" hlmCard size="sm" class="stat-card" (click)="goToReservations()">
+          <div hlmCardContent class="stat-card__inner">
+            <div class="stat-card__top">
+              <span class="stat-card__icon stat-card__icon--reservation">
+                <ng-icon name="lucideCalendar" />
+              </span>
+              <span class="stat-card__value">{{ activeReservations }}</span>
+            </div>
+            <span class="stat-card__label">Reservas</span>
+          </div>
+        </button>
+      }
+    </div>
+
+    <div class="home-body">
+      <div class="quick-access">
+        <h3 class="section-title">Acesso Rápido</h3>
+        <div class="quick-grid">
+          <ion-card *ngIf="canCreateReservation" class="quick-card" (click)="openNewReservation()">
+            <ion-card-content>
+              <ion-icon name="add-circle-outline" class="quick-card__icon quick-card__icon--primary"></ion-icon>
+              <span>Nova Reserva</span>
+            </ion-card-content>
+          </ion-card>
+
+          <ion-card *ngIf="canReserveEquipment" class="quick-card" (click)="openTVReservation()">
+            <ion-card-content>
+              <ion-icon name="tv-outline" class="quick-card__icon quick-card__icon--primary"></ion-icon>
+              <span>Reservar TV</span>
+            </ion-card-content>
+          </ion-card>
+
+          <ion-card *ngIf="canCreateOccurrence" class="quick-card" (click)="openNewOccurrence()">
+            <ion-card-content>
+              <ion-icon name="warning-outline" class="quick-card__icon quick-card__icon--danger"></ion-icon>
+              <span>Reportar Ocorrência</span>
+            </ion-card-content>
+          </ion-card>
+
+          <ion-card *ngIf="canManageDeliveries" class="quick-card" (click)="openDeliveriesManagement()">
+            <ion-card-content>
+              <ion-icon name="cube-outline" class="quick-card__icon quick-card__icon--success"></ion-icon>
+              <span>Registrar Entrega</span>
+            </ion-card-content>
+          </ion-card>
+
+          <ion-card *ngIf="canManageEquipment" class="quick-card" (click)="openEquipmentFlow()">
+            <ion-card-content>
+              <ion-icon name="construct-outline" class="quick-card__icon quick-card__icon--warning"></ion-icon>
+              <span>Equipamentos</span>
+            </ion-card-content>
+          </ion-card>
+
+          <ion-card *ngIf="isAdmin" class="quick-card" (click)="openUsers()">
+            <ion-card-content>
+              <ion-icon name="people-outline" class="quick-card__icon quick-card__icon--danger"></ion-icon>
+              <span>Usuários</span>
+            </ion-card-content>
+          </ion-card>
+
+          <ion-card *ngIf="isAdmin" class="quick-card" (click)="openReports()">
+            <ion-card-content>
+              <ion-icon name="bar-chart-outline" class="quick-card__icon quick-card__icon--medium"></ion-icon>
+              <span>Relatórios</span>
+            </ion-card-content>
+          </ion-card>
+        </div>
+      </div>
+
+      <div class="info-section">
+        <h3 class="section-title">Avisos</h3>
+        <ion-card>
+          <ion-card-content>
+            <ion-icon name="information-circle-outline" class="info-icon"></ion-icon>
+            <p>Mantenha suas informações atualizadas na página de gerenciamento.</p>
+          </ion-card-content>
+        </ion-card>
+      </div>
+    </div>
+  </div>
+</ion-content>

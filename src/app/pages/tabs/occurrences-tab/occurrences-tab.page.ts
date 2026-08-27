@@ -5,6 +5,7 @@ import { Router } from '@angular/router';
 import { UiService } from '../../../shared/services/ui.service';
 import { OccurrenceService } from '../../../services/occurrence.service';
 import { OccurrenceResponseDTO } from '../../../core/models';
+import { PageHeaderComponent } from '../../../shared/components/page-header/page-header.component';
 import { catchError, finalize, of } from 'rxjs';
 
 type Occurrence = OccurrenceResponseDTO;
@@ -12,11 +13,7 @@ type Occurrence = OccurrenceResponseDTO;
 @Component({
   selector: 'app-occurrences-tab',
   template: `
-    <ion-header>
-      <ion-toolbar color="primary">
-        <ion-title>Ocorrências</ion-title>
-      </ion-toolbar>
-    </ion-header>
+    <app-page-header title="Ocorrências" />
 
     <ion-content class="ion-padding">
       <div class="info-banner">
@@ -228,7 +225,7 @@ type Occurrence = OccurrenceResponseDTO;
     }
   `],
   standalone: true,
-  imports: [IonicModule, CommonModule]
+  imports: [IonicModule, CommonModule, PageHeaderComponent]
 })
 export class OccurrencesTabPage implements OnInit {
   private uiService = inject(UiService);

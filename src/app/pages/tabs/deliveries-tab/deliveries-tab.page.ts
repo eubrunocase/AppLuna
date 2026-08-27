@@ -7,15 +7,14 @@ import { DeliveryService } from '../../../services/delivery.service';
 import { AuthService } from '../../../services/auth.service';
 import { UiService } from '../../../shared/services/ui.service';
 import { ResponseDeliveryDTO, DeliveryStatus } from '../../../core/models';
+import { PageHeaderComponent } from '../../../shared/components/page-header/page-header.component';
 import { catchError, finalize, of } from 'rxjs';
 
 @Component({
   selector: 'app-deliveries-tab',
   template: `
+    <app-page-header title="Minhas Entregas" />
     <ion-header>
-      <ion-toolbar color="primary">
-        <ion-title>Minhas Entregas</ion-title>
-      </ion-toolbar>
       <ion-toolbar>
         <ion-segment [(ngModel)]="statusFilter" (ionChange)="filterByStatus()">
           <ion-segment-button value="ALL">
@@ -187,7 +186,7 @@ import { catchError, finalize, of } from 'rxjs';
     }
   `],
   standalone: true,
-  imports: [IonicModule, CommonModule, FormsModule]
+  imports: [IonicModule, CommonModule, FormsModule, PageHeaderComponent]
 })
 export class DeliveriesTabPage implements OnInit {
   private deliveryService = inject(DeliveryService);

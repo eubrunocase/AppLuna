@@ -6,6 +6,7 @@ import { Router } from '@angular/router';
 import { ReservationService } from '../../services/reservation.service';
 import { SpaceService } from '../../services/space.service';
 import { UiService } from '../../shared/services/ui.service';
+import { PageHeaderComponent } from '../../shared/components/page-header/page-header.component';
 import { catchError, of } from 'rxjs';
 
 interface SpaceOption {
@@ -35,14 +36,7 @@ const TV_OPTION: Omit<SpaceOption, 'id'> = {
 @Component({
   selector: 'app-reservation-create',
   template: `
-    <ion-header>
-      <ion-toolbar color="primary">
-        <ion-buttons slot="start">
-          <ion-back-button defaultHref="/tabs/reservations"></ion-back-button>
-        </ion-buttons>
-        <ion-title>Nova Reserva</ion-title>
-      </ion-toolbar>
-    </ion-header>
+    <app-page-header title="Nova Reserva" [showBack]="true" backHref="/tabs/reservations" />
 
     <ion-content class="ion-padding">
       <form (ngSubmit)="onSubmit()">
@@ -296,7 +290,7 @@ const TV_OPTION: Omit<SpaceOption, 'id'> = {
     }
   `],
   standalone: true,
-  imports: [IonicModule, CommonModule, FormsModule]
+  imports: [IonicModule, CommonModule, FormsModule, PageHeaderComponent]
 })
 export class ReservationCreatePage implements OnInit {
   private reservationService = inject(ReservationService);

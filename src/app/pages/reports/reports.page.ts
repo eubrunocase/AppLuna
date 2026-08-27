@@ -4,19 +4,13 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ReservationService } from '../../services/reservation.service';
 import { MonthlyReservationReportDTO, ReportExportStatus, ReportFormat } from '../../core/models';
+import { PageHeaderComponent } from '../../shared/components/page-header/page-header.component';
 import { EMPTY, Subscription, catchError, finalize, interval, of, startWith, switchMap, takeWhile } from 'rxjs';
 
 @Component({
   selector: 'app-reports',
   template: `
-    <ion-header>
-      <ion-toolbar color="primary">
-        <ion-buttons slot="start">
-          <ion-back-button defaultHref="/home"></ion-back-button>
-        </ion-buttons>
-        <ion-title>Relatório de Reservas</ion-title>
-      </ion-toolbar>
-    </ion-header>
+    <app-page-header title="Relatório de Reservas" [showBack]="true" backHref="/tabs/home" />
 
     <ion-content class="ion-padding">
       <ion-card class="filter-card">
@@ -215,7 +209,7 @@ import { EMPTY, Subscription, catchError, finalize, interval, of, startWith, swi
     }
   `],
   standalone: true,
-  imports: [IonicModule, CommonModule, FormsModule]
+  imports: [IonicModule, CommonModule, FormsModule, PageHeaderComponent]
 })
 export class ReportsPage implements OnInit, OnDestroy {
   private reservationService = inject(ReservationService);

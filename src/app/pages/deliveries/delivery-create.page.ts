@@ -7,19 +7,13 @@ import { DeliveryService } from '../../services/delivery.service';
 import { UserService } from '../../services/user.service';
 import { UiService } from '../../shared/services/ui.service';
 import { ResponseUserDTO, UserRoles } from '../../core/models';
+import { PageHeaderComponent } from '../../shared/components/page-header/page-header.component';
 import { catchError, map, of } from 'rxjs';
 
 @Component({
   selector: 'app-delivery-create',
   template: `
-    <ion-header>
-      <ion-toolbar color="primary">
-        <ion-buttons slot="start">
-          <ion-back-button defaultHref="/deliveries"></ion-back-button>
-        </ion-buttons>
-        <ion-title>Nova Encomenda</ion-title>
-      </ion-toolbar>
-    </ion-header>
+    <app-page-header title="Nova Encomenda" [showBack]="true" backHref="/deliveries" />
 
     <ion-content class="ion-padding">
       <form [formGroup]="form" (ngSubmit)="onSubmit()">
@@ -178,7 +172,7 @@ import { catchError, map, of } from 'rxjs';
     }
   `],
   standalone: true,
-  imports: [IonicModule, CommonModule, ReactiveFormsModule]
+  imports: [IonicModule, CommonModule, ReactiveFormsModule, PageHeaderComponent]
 })
 export class DeliveryCreatePage implements OnInit {
   private fb = inject(FormBuilder);

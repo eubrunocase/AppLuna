@@ -5,6 +5,7 @@ import { FormsModule } from '@angular/forms';
 import { EquipmentReservationService } from '../../services/equipment-reservation.service';
 import { EquipmentReservationResponseDTO, EquipmentReservationStatus } from '../../core/models';
 import { UiService } from '../../shared/services/ui.service';
+import { PageHeaderComponent } from '../../shared/components/page-header/page-header.component';
 import { catchError, finalize, of } from 'rxjs';
 
 const TV_EQUIPMENT_ID = 1;
@@ -13,14 +14,7 @@ const TV_NAME = 'Televisão Comunitária';
 @Component({
   selector: 'app-equipment-reservation-create',
   template: `
-    <ion-header>
-      <ion-toolbar color="primary">
-        <ion-buttons slot="start">
-          <ion-back-button defaultHref="/home"></ion-back-button>
-        </ion-buttons>
-        <ion-title>Reservar TV Comunitária</ion-title>
-      </ion-toolbar>
-    </ion-header>
+    <app-page-header title="Reservar TV Comunitária" [showBack]="true" backHref="/tabs/home" />
 
     <ion-content class="ion-padding">
       <div class="tv-card">
@@ -411,7 +405,7 @@ const TV_NAME = 'Televisão Comunitária';
     }
   `],
   standalone: true,
-  imports: [IonicModule, CommonModule, FormsModule]
+  imports: [IonicModule, CommonModule, FormsModule, PageHeaderComponent]
 })
 export class EquipmentReservationCreatePage implements OnInit {
   private equipmentService = inject(EquipmentReservationService);

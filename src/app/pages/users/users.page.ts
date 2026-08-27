@@ -4,24 +4,17 @@ import { CommonModule } from '@angular/common';
 import { UserService } from '../../services/user.service';
 import { ResponseUserDTO, UserRoles } from '../../core/models';
 import { AlertController } from '@ionic/angular';
+import { PageHeaderComponent } from '../../shared/components/page-header/page-header.component';
 import { catchError, finalize, of } from 'rxjs';
 
 @Component({
   selector: 'app-users',
   template: `
-    <ion-header>
-      <ion-toolbar color="primary">
-        <ion-buttons slot="start">
-          <ion-back-button defaultHref="/home"></ion-back-button>
-        </ion-buttons>
-        <ion-title>Gerenciar Usuários</ion-title>
-        <ion-buttons slot="end">
-          <ion-button (click)="openCreateModal()">
-            <ion-icon slot="icon-only" name="person-add-outline"></ion-icon>
-          </ion-button>
-        </ion-buttons>
-      </ion-toolbar>
-    </ion-header>
+    <app-page-header title="Gerenciar Usuários" [showBack]="true" backHref="/tabs/home">
+      <ion-button headerActions fill="clear" (click)="openCreateModal()" aria-label="Novo usuário">
+        <ion-icon slot="icon-only" name="person-add-outline"></ion-icon>
+      </ion-button>
+    </app-page-header>
 
     <ion-content class="ion-padding">
       <ion-refresher slot="fixed" (ionRefresh)="refresh($event)">
@@ -103,7 +96,7 @@ import { catchError, finalize, of } from 'rxjs';
     }
   `],
   standalone: true,
-  imports: [IonicModule, CommonModule]
+  imports: [IonicModule, CommonModule, PageHeaderComponent]
 })
 export class UsersPage implements OnInit {
   private userService = inject(UserService);

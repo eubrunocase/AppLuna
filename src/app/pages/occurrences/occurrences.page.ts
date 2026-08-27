@@ -4,20 +4,14 @@ import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { OccurrenceService } from '../../services/occurrence.service';
 import { AlertController, ToastController } from '@ionic/angular';
+import { PageHeaderComponent } from '../../shared/components/page-header/page-header.component';
 import { toLocalDateTimeString } from '../../shared/utils/date.utils';
 import { catchError, finalize, of } from 'rxjs';
 
 @Component({
   selector: 'app-occurrences',
   template: `
-    <ion-header>
-      <ion-toolbar color="primary">
-        <ion-buttons slot="start">
-          <ion-back-button defaultHref="/home"></ion-back-button>
-        </ion-buttons>
-        <ion-title>Registrar Ocorrência</ion-title>
-      </ion-toolbar>
-    </ion-header>
+    <app-page-header title="Registrar Ocorrência" [showBack]="true" backHref="/tabs/home" />
 
     <ion-content class="ion-padding">
       <ion-card class="form-card">
@@ -143,7 +137,7 @@ import { catchError, finalize, of } from 'rxjs';
     }
   `],
   standalone: true,
-  imports: [IonicModule, ReactiveFormsModule, CommonModule]
+  imports: [IonicModule, ReactiveFormsModule, CommonModule, PageHeaderComponent]
 })
 export class OccurrencesPage {
   private fb = inject(FormBuilder);
