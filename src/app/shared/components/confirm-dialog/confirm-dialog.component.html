@@ -1,0 +1,17 @@
+<hlm-alert-dialog #dialog="hlmAlertDialog">
+  <hlm-alert-dialog-content *hlmAlertDialogPortal="let ctx">
+    <hlm-alert-dialog-header>
+      <hlm-alert-dialog-media>
+        <ng-icon [name]="icon()" />
+      </hlm-alert-dialog-media>
+      <h2 hlmAlertDialogTitle>{{ title() }}</h2>
+      <p hlmAlertDialogDescription>{{ description() }}</p>
+    </hlm-alert-dialog-header>
+    <hlm-alert-dialog-footer>
+      <button hlmAlertDialogCancel type="button">{{ cancelLabel() }}</button>
+      <button hlmAlertDialogAction type="button" (click)="onConfirm()">
+        {{ confirmLabel() }}
+      </button>
+    </hlm-alert-dialog-footer>
+  </hlm-alert-dialog-content>
+</hlm-alert-dialog>

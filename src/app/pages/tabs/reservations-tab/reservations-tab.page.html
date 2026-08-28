@@ -4,7 +4,7 @@
   </ion-refresher>
 
   <div class="reservations-shell">
-    @if (isAdmin && pendingApprovalCount > 0) {
+    @if (isAdmin && viewMode === 'mine' && pendingApprovalCount > 0) {
       <button type="button" class="pending-banner" (click)="focusPending()">
         <span class="pending-banner__icon" aria-hidden="true">
           <ng-icon name="lucideTriangleAlert" />
@@ -237,6 +237,15 @@
       </div>
     }
   </div>
+
+  <app-confirm-dialog
+    #confirmDialog
+    [title]="confirmTitle"
+    [description]="confirmDescription"
+    [confirmLabel]="confirmLabel"
+    [icon]="confirmIcon"
+    (confirmed)="confirmDialogAction()"
+  />
 
   <button
     slot="fixed"

@@ -1,9 +1,8 @@
-import { ChangeDetectorRef, Component, inject, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, inject, OnInit, viewChild } from '@angular/core';
 import {
   IonContent,
   IonRefresher,
   IonRefresherContent,
-  AlertController,
   ViewWillEnter,
 } from '@ionic/angular/standalone';
 import { ActivatedRoute } from '@angular/router';
@@ -40,6 +39,7 @@ import { APP_ROUTES } from '../../../core/navigation/app-routes';
 import { AppShellService } from '../../../core/shell/app-shell.service';
 import { ReservationDraftService } from '../../reservations/reservation-draft.service';
 import { getSpaceCatalogEntry } from '../../reservations/space-catalog';
+import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog.component';
 import { catchError, finalize, forkJoin, of } from 'rxjs';
 
 type ReservationKind = 'space' | 'equipment';
@@ -78,6 +78,7 @@ interface UnifiedReservation {
     HlmCardImports,
     HlmSkeletonImports,
     HlmSpinnerImports,
+    ConfirmDialogComponent,
   ],
   providers: [
     provideIcons({
@@ -109,7 +110,6 @@ export class ReservationsTabPage implements OnInit, ViewWillEnter {
   private shell = inject(AppShellService);
   private draft = inject(ReservationDraftService);
   private uiService = inject(UiService);
-  private alertController = inject(AlertController);
   private cdr = inject(ChangeDetectorRef);
 
   reservations: ReservationResponseDTO[] = [];
@@ -123,6 +123,15 @@ export class ReservationsTabPage implements OnInit, ViewWillEnter {
   statusFilter: StatusFilter = 'ALL';
   processingId: string | null = null;
   pendingApprovalCount = 0;
+  confirmTitle = '';
+  confirmDescription = '';
+  confirmLabel = 'Confirmar';
+  confirmIcon = 'lucideLogOut';
+  private pendingAction: {
+    kind: 'reject' | 'cancel-space' | 'cancel-equipment';
+    reservation: UnifiedReservation;
+  } | null = null;
+  private readonly confirmDialog = viewChild.required<ConfirmDialogComponent>('confirmDialog');
 
   readonly skeletonItems = [1, 2, 3, 4];
 
@@ -382,21 +391,49 @@ export class ReservationsTabPage implements OnInit, ViewWillEnter {
     });
   }
 
-  async rejectReservation(reservation: UnifiedReservation): Promise<void> {
+  private openConfirm(config: {
+    kind: 'reject' | 'cancel-space' | 'cancel-equipment';
+    reservation: UnifiedReservation;
+    title: string;
+    description: string;
+    confirmLabel: string;
+    icon: string;
+  }): void {
     if (this.processingId) return;
-    const alert = await this.alertController.create({
-      header: 'Rejeitar reserva',
-      message: `Confirma a rejeição da reserva de <strong>${reservation.user?.name}</strong> em ${this.formatDate(reservation.date)} (${this.getSpaceTypeLabel(reservation.spaceType!)})?`,
-      buttons: [
-        { text: 'Voltar', role: 'cancel' },
-        {
-          text: 'Rejeitar',
-          role: 'destructive',
-          handler: () => this.doReject(reservation)
-        }
-      ]
+    this.pendingAction = { kind: config.kind, reservation: config.reservation };
+    this.confirmTitle = config.title;
+    this.confirmDescription = config.description;
+    this.confirmLabel = config.confirmLabel;
+    this.confirmIcon = config.icon;
+    this.cdr.detectChanges();
+    this.confirmDialog().open();
+  }
+
+  rejectReservation(reservation: UnifiedReservation): void {
+    this.openConfirm({
+      kind: 'reject',
+      reservation,
+      title: 'Rejeitar reserva',
+      description: `Confirma a rejeição da reserva de ${reservation.user?.name} em ${this.formatDate(reservation.date)} (${this.getSpaceTypeLabel(reservation.spaceType!)})?`,
+      confirmLabel: 'Rejeitar',
+      icon: 'lucideX',
     });
-    await alert.present();
+  }
+
+  confirmDialogAction(): void {
+    const action = this.pendingAction;
+    this.pendingAction = null;
+    if (!action) return;
+
+    if (action.kind === 'reject') {
+      this.doReject(action.reservation);
+      return;
+    }
+    if (action.kind === 'cancel-space') {
+      this.doCancelSpace(action.reservation);
+      return;
+    }
+    this.doCancelEquipment(action.reservation);
   }
 
   private doReject(reservation: UnifiedReservation): void {
@@ -415,21 +452,15 @@ export class ReservationsTabPage implements OnInit, ViewWillEnter {
     });
   }
 
-  async cancelSpaceReservation(reservation: UnifiedReservation): Promise<void> {
-    if (this.processingId) return;
-    const alert = await this.alertController.create({
-      header: 'Cancelar reserva aprovada',
-      message: `Tem certeza que deseja cancelar a reserva de <strong>${reservation.user?.name}</strong>? O morador será notificado.`,
-      buttons: [
-        { text: 'Voltar', role: 'cancel' },
-        {
-          text: 'Cancelar reserva',
-          role: 'destructive',
-          handler: () => this.doCancelSpace(reservation)
-        }
-      ]
+  cancelSpaceReservation(reservation: UnifiedReservation): void {
+    this.openConfirm({
+      kind: 'cancel-space',
+      reservation,
+      title: 'Cancelar reserva',
+      description: `Tem certeza que deseja cancelar a reserva de ${reservation.user?.name}? O morador será notificado.`,
+      confirmLabel: 'Cancelar reserva',
+      icon: 'lucideBan',
     });
-    await alert.present();
   }
 
   private doCancelSpace(reservation: UnifiedReservation): void {
@@ -448,21 +479,15 @@ export class ReservationsTabPage implements OnInit, ViewWillEnter {
     });
   }
 
-  async cancelEquipmentReservation(reservation: UnifiedReservation): Promise<void> {
-    if (this.processingId) return;
-    const alert = await this.alertController.create({
-      header: 'Cancelar reserva da TV',
-      message: `Deseja realmente cancelar a reserva da televisão para ${this.formatDate(reservation.date)} (${reservation.startTime} - ${reservation.endTime})?`,
-      buttons: [
-        { text: 'Voltar', role: 'cancel' },
-        {
-          text: 'Cancelar reserva',
-          role: 'destructive',
-          handler: () => this.doCancelEquipment(reservation)
-        }
-      ]
+  cancelEquipmentReservation(reservation: UnifiedReservation): void {
+    this.openConfirm({
+      kind: 'cancel-equipment',
+      reservation,
+      title: 'Cancelar reserva',
+      description: `Deseja realmente cancelar a reserva da televisão para ${this.formatDate(reservation.date)} (${reservation.startTime} - ${reservation.endTime})?`,
+      confirmLabel: 'Cancelar reserva',
+      icon: 'lucideBan',
     });
-    await alert.present();
   }
 
   private doCancelEquipment(reservation: UnifiedReservation): void {
