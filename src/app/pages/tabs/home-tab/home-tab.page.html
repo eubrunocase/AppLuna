@@ -66,26 +66,6 @@
       }
     </div>
 
-    @if (!isLoadingStats && isAdmin && pendingApprovals > 0) {
-      <button
-        type="button"
-        class="pending-banner home-enter home-enter--banner"
-        (click)="goToPendingApprovals()"
-      >
-        <span class="pending-banner__icon" aria-hidden="true">
-          <ng-icon name="lucideTriangleAlert" />
-        </span>
-        <span class="pending-banner__text">
-          <strong>{{ pendingApprovals }}</strong>
-          {{ pendingApprovals === 1 ? 'reserva aguarda' : 'reservas aguardam' }} sua decisão
-        </span>
-        <span class="pending-banner__action">
-          Revisar
-          <ng-icon name="lucideArrowRight" />
-        </span>
-      </button>
-    }
-
     <div class="home-body">
       <section class="home-section home-enter home-enter--section-1" aria-labelledby="quick-access-title">
         <div class="home-section__header">

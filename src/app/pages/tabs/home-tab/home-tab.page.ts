@@ -6,12 +6,10 @@ import {
 } from '@ionic/angular/standalone';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import {
-  lucideArrowRight,
   lucideCalendar,
   lucideClipboardList,
   lucideInfo,
   lucidePackage,
-  lucideTriangleAlert,
 } from '@ng-icons/lucide';
 import { HlmButtonImports } from '@spartan-ng/helm/button';
 import { HlmCardImports } from '@spartan-ng/helm/card';
@@ -40,12 +38,10 @@ interface HomeQuickAction {
   imports: [IonContent, NgIcon, HlmButtonImports, HlmCardImports, HlmSkeletonImports],
   providers: [
     provideIcons({
-      lucideArrowRight,
       lucideClipboardList,
       lucidePackage,
       lucideCalendar,
       lucideInfo,
-      lucideTriangleAlert,
     }),
   ],
 })
