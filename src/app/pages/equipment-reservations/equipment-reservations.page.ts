@@ -1,23 +1,22 @@
 import { Component, inject, OnInit } from '@angular/core';
-import { IonicModule } from '@ionic/angular';
+import { IonicModule, ViewWillEnter } from '@ionic/angular';
 import { CommonModule } from '@angular/common';
 import { AlertController } from '@ionic/angular';
 import { EquipmentReservationService } from '../../services/equipment-reservation.service';
 import { EquipmentReservationResponseDTO, EquipmentReservationStatus, UserRoles } from '../../core/models';
 import { AuthService } from '../../services/auth.service';
-import { PageHeaderComponent } from '../../shared/components/page-header/page-header.component';
+import { AppShellService } from '../../core/shell/app-shell.service';
 import { catchError, finalize, of } from 'rxjs';
 
 @Component({
   selector: 'app-equipment-reservations',
   template: `
-    <app-page-header title="Empréstimo de Equipamentos" [showBack]="true" backHref="/tabs/home">
-      <ion-button headerActions fill="clear" (click)="openCreateModal()" aria-label="Novo empréstimo">
-        <ion-icon slot="icon-only" name="add"></ion-icon>
+    <ion-content class="shell-page-content ion-padding">
+      <ion-button expand="block" class="create-top-btn" (click)="openCreateModal()">
+        <ion-icon slot="start" name="add"></ion-icon>
+        Novo empréstimo
       </ion-button>
-    </app-page-header>
 
-    <ion-content class="ion-padding">
       <ion-refresher slot="fixed" (ionRefresh)="refresh($event)">
         <ion-refresher-content></ion-refresher-content>
       </ion-refresher>
@@ -130,14 +129,18 @@ import { catchError, finalize, of } from 'rxjs';
       font-size: 64px;
       margin-bottom: 16px;
     }
+    .create-top-btn {
+      margin-bottom: 0.75rem;
+    }
   `],
   standalone: true,
-  imports: [IonicModule, CommonModule, PageHeaderComponent]
+  imports: [IonicModule, CommonModule]
 })
-export class EquipmentReservationsPage implements OnInit {
+export class EquipmentReservationsPage implements OnInit, ViewWillEnter {
   private equipmentService = inject(EquipmentReservationService);
   private authService = inject(AuthService);
   private alertController = inject(AlertController);
+  private shell = inject(AppShellService);
 
   reservations: EquipmentReservationResponseDTO[] = [];
   isLoading = false;
@@ -146,6 +149,17 @@ export class EquipmentReservationsPage implements OnInit {
   ngOnInit(): void {
     this.canManage = this.authService.isAdmin() || this.authService.isEmployee();
     this.loadReservations();
+  }
+
+  ionViewWillEnter(): void {
+    this.shell.configure({
+      title: 'Empréstimo de Equipamentos',
+      showBack: true,
+      showLogo: false,
+      showLogout: false,
+      headerState: 'compact',
+    });
+    this.shell.setExpandContent(null);
   }
 
   loadReservations(): void {

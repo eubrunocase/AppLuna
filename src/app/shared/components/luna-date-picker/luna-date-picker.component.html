@@ -1,0 +1,55 @@
+<div class="luna-date-picker" role="group" aria-label="Selecione a data">
+  <p class="luna-date-picker__date-label">{{ formattedDateLabel() }}</p>
+
+  <div class="luna-date-picker__wheels">
+    <div class="luna-date-picker__wheel-col">
+      <span class="luna-date-picker__wheel-label">Dia</span>
+      <div class="luna-date-picker__wheel-mask">
+        <div #wheel class="luna-date-picker__wheel" (scroll)="onWheelScroll('day', $event)">
+          @for (day of dayOptions(); track day) {
+            <div
+              class="luna-date-picker__wheel-item"
+              [class.luna-date-picker__wheel-item--active]="day === selectedDay()"
+            >
+              {{ day }}
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+
+    <div class="luna-date-picker__wheel-col">
+      <span class="luna-date-picker__wheel-label">Mês</span>
+      <div class="luna-date-picker__wheel-mask">
+        <div #wheel class="luna-date-picker__wheel" (scroll)="onWheelScroll('month', $event)">
+          @for (month of monthOptions(); track month) {
+            <div
+              class="luna-date-picker__wheel-item"
+              [class.luna-date-picker__wheel-item--active]="month === selectedMonth()"
+            >
+              {{ monthName(month) }}
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+
+    <div class="luna-date-picker__wheel-col">
+      <span class="luna-date-picker__wheel-label">Ano</span>
+      <div class="luna-date-picker__wheel-mask">
+        <div #wheel class="luna-date-picker__wheel" (scroll)="onWheelScroll('year', $event)">
+          @for (year of yearOptions(); track year) {
+            <div
+              class="luna-date-picker__wheel-item"
+              [class.luna-date-picker__wheel-item--active]="year === selectedYear()"
+            >
+              {{ year }}
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+
+    <div class="luna-date-picker__highlight" aria-hidden="true"></div>
+  </div>
+</div>

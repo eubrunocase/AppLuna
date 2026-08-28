@@ -1,17 +1,15 @@
 import { Component, inject } from '@angular/core';
-import { IonicModule } from '@ionic/angular';
+import { IonicModule, ViewWillEnter } from '@ionic/angular';
 import { CommonModule } from '@angular/common';
 import { ToastController } from '@ionic/angular';
 import { WebPushService } from '../../services/web-push.service';
-import { PageHeaderComponent } from '../../shared/components/page-header/page-header.component';
+import { AppShellService } from '../../core/shell/app-shell.service';
 import { catchError, finalize, of } from 'rxjs';
 
 @Component({
   selector: 'app-push-notifications',
   template: `
-    <app-page-header title="Notificações" [showBack]="true" backHref="/tabs/home" />
-
-    <ion-content class="ion-padding">
+    <ion-content class="shell-page-content ion-padding">
       <ion-card class="info-card">
         <ion-card-header>
           <ion-card-title>
@@ -126,15 +124,27 @@ import { catchError, finalize, of } from 'rxjs';
     }
   `],
   standalone: true,
-  imports: [IonicModule, CommonModule, PageHeaderComponent]
+  imports: [IonicModule, CommonModule]
 })
-export class PushNotificationsPage {
+export class PushNotificationsPage implements ViewWillEnter {
   private webPushService = inject(WebPushService);
   private toastController = inject(ToastController);
+  private shell = inject(AppShellService);
 
   isSubscribed = false;
   isLoading = false;
   errorMessage = '';
+
+  ionViewWillEnter(): void {
+    this.shell.configure({
+      title: 'Notificações',
+      showBack: true,
+      showLogo: false,
+      showLogout: false,
+      headerState: 'compact',
+    });
+    this.shell.setExpandContent(null);
+  }
 
   async toggleSubscription(): Promise<void> {
     this.isLoading = true;

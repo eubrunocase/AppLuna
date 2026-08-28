@@ -1,0 +1,134 @@
+<div
+  #shellRoot
+  class="app-shell"
+  [attr.data-header-state]="shell.headerState()"
+  [style.--app-header-bar-height]="'3.25rem'"
+>
+  <header #shellHeader class="shell-header" role="banner">
+    <div class="shell-header__safe-top"></div>
+
+    <div class="shell-header__bar">
+      <div class="shell-header__start">
+        @if (shell.showBack()) {
+          <button
+            hlmBtn
+            type="button"
+            variant="ghost"
+            size="icon"
+            class="shell-icon-btn"
+            (click)="onBack()"
+            aria-label="Voltar"
+          >
+            <ng-icon name="lucideChevronLeft" />
+          </button>
+        }
+
+        @if (shell.showLogo()) {
+          <div class="shell-header__logo" aria-hidden="true">
+            <ng-icon name="lucideMoonStar" />
+          </div>
+        }
+
+        <div class="shell-header__brand">
+          <h1 class="shell-header__title">{{ shell.title() }}</h1>
+          @if (shell.subtitle()) {
+            <p class="shell-header__subtitle">{{ shell.subtitle() }}</p>
+          }
+        </div>
+      </div>
+
+      <div class="shell-header__end">
+        @if (shell.headerActions(); as actions) {
+          <ng-container
+            *ngComponentOutlet="actions.component; inputs: actions.inputs ?? {}"
+          />
+        }
+        @if (shell.showLogout()) {
+          <app-logout-confirm buttonClass="shell-icon-btn" />
+        }
+      </div>
+    </div>
+
+    @if (shell.progressStep() !== null && shell.progressTotal() !== null) {
+      <div class="shell-header__progress" aria-hidden="true">
+        <span
+          class="shell-header__progress-item"
+          [class.shell-header__progress-item--active]="shell.progressStep()! >= 1"
+        >
+          1
+        </span>
+        <span
+          class="shell-header__progress-line"
+          [class.shell-header__progress-line--active]="shell.progressStep()! >= 2"
+        ></span>
+        <span
+          class="shell-header__progress-item"
+          [class.shell-header__progress-item--active]="shell.progressStep()! >= 2"
+        >
+          2
+        </span>
+      </div>
+    }
+
+    <div
+      class="shell-header__expand"
+      [class.shell-header__expand--visible]="shell.headerState() === 'expanded'"
+    >
+      @if (shell.expandContent(); as expand) {
+        <ng-container
+          *ngComponentOutlet="expand.component; inputs: expand.inputs ?? {}"
+        />
+      }
+    </div>
+  </header>
+
+  <main class="shell-main">
+    <ion-router-outlet />
+  </main>
+
+  <nav class="shell-dock" aria-label="Navegação principal">
+    <button
+      type="button"
+      class="shell-dock__item"
+      [class.shell-dock__item--active]="isTabActive('home')"
+      (click)="onTabClick('home', $event)"
+    >
+      <ng-icon name="lucideHome" />
+      <span>Início</span>
+    </button>
+
+    @if (canSeeReservations) {
+      <button
+        type="button"
+        class="shell-dock__item"
+        [class.shell-dock__item--active]="isTabActive('reservations')"
+        (click)="onTabClick('reservations', $event)"
+      >
+        <ng-icon name="lucideCalendar" />
+        <span>Reservas</span>
+      </button>
+    }
+
+    <button
+      type="button"
+      class="shell-dock__item"
+      [class.shell-dock__item--active]="isTabActive('deliveries')"
+      (click)="onTabClick('deliveries', $event)"
+    >
+      <ng-icon name="lucidePackage" />
+      <span>Entregas</span>
+    </button>
+
+    @if (canSeeOccurrences) {
+      <button
+        type="button"
+        class="shell-dock__item"
+        [class.shell-dock__item--active]="isTabActive('occurrences')"
+        (click)="onTabClick('occurrences', $event)"
+      >
+        <ng-icon name="lucideTriangleAlert" />
+        <span>Ocorrências</span>
+      </button>
+    }
+  </nav>
+</div>

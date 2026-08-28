@@ -1,0 +1,79 @@
+<ion-content class="shell-page-content reservation-flow-content">
+  <div class="reservation-flow-shell">
+  <header class="section-header">
+    <span class="section-step" aria-hidden="true">1</span>
+    <div>
+      <h2 id="space-section-title" class="section-title">Selecione o espaço</h2>
+      <p class="section-subtitle">Escolha um dos espaços disponíveis no condomínio</p>
+    </div>
+  </header>
+
+  @if (isLoadingSpaces) {
+    <div class="space-loading" role="status">
+      <hlm-spinner aria-label="Carregando espaços" />
+      <span>Carregando espaços...</span>
+    </div>
+  } @else if (spacesLoadError) {
+    <div class="space-empty space-empty--error" role="alert">
+      <p>Não foi possível carregar os espaços. Verifique sua conexão e tente novamente.</p>
+      <button hlmBtn type="button" variant="outline" size="sm" (click)="retryLoadSpaces()">
+        Tentar novamente
+      </button>
+    </div>
+  } @else if (spaces.length === 0) {
+    <p class="space-empty" role="status">Nenhum espaço cadastrado no sistema.</p>
+  } @else {
+    <hlm-radio-group
+      class="space-grid"
+      name="reservation-space"
+      [(ngModel)]="selectedSpaceId"
+      (ngModelChange)="onSpaceSelected($event)"
+      aria-labelledby="space-section-title"
+    >
+      @for (space of spaces; track space.id) {
+        <label
+          class="space-card-option"
+          [class.space-card-option--selected]="selectedSpaceId === space.id"
+          [for]="spaceInputId(space.id)"
+        >
+          <hlm-radio
+            class="space-card-radio"
+            [value]="space.id"
+            [inputId]="spaceInputId(space.id)"
+            [attr.aria-label]="space.name"
+          />
+
+          <span class="space-card__inner">
+            <span class="space-card__media">
+              <img [src]="space.imageSrc" [alt]="space.name" loading="lazy" />
+              @if (selectedSpaceId === space.id) {
+                <span class="space-card__selected-badge" aria-hidden="true">
+                  <ng-icon name="lucideCheck" />
+                  Selecionado
+                </span>
+              }
+            </span>
+            <span class="space-card__body">
+              <span class="space-card__name">{{ space.name }}</span>
+              <span class="space-card__description">{{ space.description }}</span>
+            </span>
+          </span>
+        </label>
+      }
+    </hlm-radio-group>
+  }
+  </div>
+
+  <div slot="fixed" class="reservation-actions">
+  <button
+    hlmBtn
+    type="button"
+    class="submit-btn"
+    [disabled]="!selectedSpaceId || isLoadingSpaces"
+    (click)="goToNextStep()"
+  >
+    <span>Próximo</span>
+    <ng-icon name="lucideArrowRight" />
+  </button>
+  </div>
+</ion-content>

@@ -161,7 +161,16 @@ export class TokenStorageService {
   }
 
   isAuthenticated(): boolean {
-    return !!this.getAccessToken() || !!this.getRefreshToken();
+    if (this.getRefreshToken()) {
+      return true;
+    }
+
+    const accessToken = this.getAccessToken();
+    if (!accessToken) {
+      return false;
+    }
+
+    return !this.isAccessTokenExpired();
   }
 
   private getTokenTtlSeconds(token: string): number | null {
@@ -204,7 +213,20 @@ export class TokenStorageService {
   }
 
   private deleteCookie(name: string): void {
-    this.setCookie(name, '', 0);
+    if (typeof document === 'undefined') return;
+
+    const expired = 'Thu, 01 Jan 1970 00:00:00 GMT';
+    const variants = [
+      `${name}=; Path=/; Expires=${expired}; Max-Age=0; SameSite=Lax`,
+    ];
+
+    if (typeof location !== 'undefined' && location.protocol === 'https:') {
+      variants.push(`${name}=; Path=/; Expires=${expired}; Max-Age=0; SameSite=Lax; Secure`);
+    }
+
+    for (const cookie of variants) {
+      document.cookie = cookie;
+    }
   }
 
   private extractRole(candidate: unknown): string | null {

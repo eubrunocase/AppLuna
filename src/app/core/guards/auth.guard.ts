@@ -19,7 +19,7 @@ export const guestGuard: CanActivateFn = () => {
   const router = inject(Router);
 
   if (tokenStorage.isAuthenticated()) {
-    return router.createUrlTree(['/tabs/home']);
+    return router.createUrlTree(['/app/home']);
   }
 
   return true;
@@ -30,8 +30,7 @@ export const roleGuard = (allowedRoles: string[]): CanActivateFn => () => {
   const router = inject(Router);
 
   if (!tokenStorage.isAuthenticated()) {
-    router.navigate(['/login']);
-    return false;
+    return router.createUrlTree(['/login']);
   }
 
   const user = tokenStorage.getUser();
@@ -42,8 +41,7 @@ export const roleGuard = (allowedRoles: string[]): CanActivateFn => () => {
     return true;
   }
 
-  router.navigate(['/tabs/home']);
-  return false;
+  return router.createUrlTree(['/app/home']);
 };
 
 export const adminGuard: CanActivateFn = roleGuard([UserRoles.ADMIN_ROLE]);

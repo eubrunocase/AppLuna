@@ -1,5 +1,5 @@
 import { Component, inject, OnInit } from '@angular/core';
-import { IonicModule, AlertController } from '@ionic/angular';
+import { IonicModule, AlertController, ViewWillEnter } from '@ionic/angular';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -8,7 +8,10 @@ import { EquipmentReservationService } from '../../../services/equipment-reserva
 import { ReservationResponseDTO, EquipmentReservationResponseDTO, ReservationStatus } from '../../../core/models';
 import { AuthService } from '../../../services/auth.service';
 import { UiService } from '../../../shared/services/ui.service';
-import { PageHeaderComponent } from '../../../shared/components/page-header/page-header.component';
+import { AppNavigationService } from '../../../core/navigation/app-navigation.service';
+import { APP_ROUTES } from '../../../core/navigation/app-routes';
+import { AppShellService } from '../../../core/shell/app-shell.service';
+import { ReservationDraftService } from '../../reservations/reservation-draft.service';
 import { catchError, combineLatest, finalize, of } from 'rxjs';
 
 type ReservationKind = 'space' | 'equipment';
@@ -36,8 +39,8 @@ interface UnifiedReservation {
 @Component({
   selector: 'app-reservations-tab',
   template: `
-    <app-page-header [title]="isAdmin && viewMode === 'all' ? 'Reservas do Condomínio' : 'Minhas Reservas'" />
-    <ion-header>
+    <ion-content class="shell-page-content ion-padding">
+      <div class="tab-filters">
       <ion-toolbar *ngIf="isAdmin && viewMode === 'all' && pendingCount > 0" color="warning" class="pending-banner">
         <div class="pending-banner-content">
           <ion-icon name="alert-circle-outline"></ion-icon>
@@ -114,9 +117,8 @@ interface UnifiedReservation {
           </ion-segment-button>
         </ion-segment>
       </ion-toolbar>
-    </ion-header>
+      </div>
 
-    <ion-content class="ion-padding">
       <ion-refresher slot="fixed" (ionRefresh)="refresh($event)">
         <ion-refresher-content></ion-refresher-content>
       </ion-refresher>
@@ -416,16 +418,35 @@ interface UnifiedReservation {
       --background: var(--ion-color-success);
       --color: #fff;
     }
+
+    .tab-filters {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+      margin: -0.5rem -1rem 0.75rem;
+    }
+
+    .tab-filters ion-toolbar {
+      --background: #fff;
+      --padding-start: 0;
+      --padding-end: 0;
+    }
+
+    ion-fab {
+      bottom: var(--app-fab-bottom, 5rem);
+    }
   `],
   standalone: true,
-  imports: [IonicModule, CommonModule, FormsModule, PageHeaderComponent]
+  imports: [IonicModule, CommonModule, FormsModule]
 })
-export class ReservationsTabPage implements OnInit {
+export class ReservationsTabPage implements OnInit, ViewWillEnter {
   private reservationService = inject(ReservationService);
   private equipmentService = inject(EquipmentReservationService);
   private authService = inject(AuthService);
-  private router = inject(Router);
+  private navigation = inject(AppNavigationService);
   private route = inject(ActivatedRoute);
+  private shell = inject(AppShellService);
+  private draft = inject(ReservationDraftService);
   private uiService = inject(UiService);
   private alertController = inject(AlertController);
 
@@ -462,9 +483,20 @@ export class ReservationsTabPage implements OnInit {
     this.isAdmin = this.authService.isAdmin();
     this.applyQueryParams();
     this.loadReservations();
+    this.shell.configure({
+      title: this.isAdmin && this.viewMode === 'all' ? 'Reservas do Condomínio' : 'Minhas Reservas',
+      subtitle: '',
+      showBack: false,
+      showLogo: true,
+      showLogout: true,
+      headerState: 'compact',
+      progressStep: null,
+      progressTotal: null,
+    });
+    this.shell.setExpandContent(null);
   }
 
-  /** Permite chegar via `/tabs/reservations?view=all&status=PENDING` (atalho da Home). */
+  /** Permite chegar via `/app/reservations?view=all&status=PENDING` (atalho da Home). */
   private applyQueryParams(): void {
     const params = this.route.snapshot.queryParamMap;
     if (this.isAdmin && params.get('view') === 'all') {
@@ -730,6 +762,8 @@ export class ReservationsTabPage implements OnInit {
   }
 
   openNewReservation(): void {
-    this.router.navigate(['/reservations/new']);
+    this.draft.reset();
+    this.draft.setStackPrefix('reservations');
+    void this.navigation.push(APP_ROUTES.reservationsSpace);
   }
 }

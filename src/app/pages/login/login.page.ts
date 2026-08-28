@@ -9,8 +9,9 @@ import {
   inject,
 } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
 import { IonContent } from '@ionic/angular/standalone';
+import { AppNavigationService } from '../../core/navigation/app-navigation.service';
+import { APP_ROUTES } from '../../core/navigation/app-routes';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import {
   lucideBuilding2,
@@ -466,7 +467,7 @@ export class LoginPage implements AfterViewInit, OnDestroy {
   private fb = inject(FormBuilder);
   private authService = inject(AuthService);
   private uiService = inject(UiService);
-  private router = inject(Router);
+  private navigation = inject(AppNavigationService);
   private zone = inject(NgZone);
   private cdr = inject(ChangeDetectorRef);
 
@@ -620,7 +621,7 @@ export class LoginPage implements AfterViewInit, OnDestroy {
       .subscribe((user) => {
         if (user) {
           this.stopLoading();
-          void this.router.navigate(['/tabs/home']);
+          void this.navigation.resetToHome();
         }
       });
   }

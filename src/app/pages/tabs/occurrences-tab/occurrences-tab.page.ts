@@ -1,11 +1,12 @@
 import { Component, inject, OnInit } from '@angular/core';
-import { IonicModule } from '@ionic/angular';
+import { IonicModule, ViewWillEnter } from '@ionic/angular';
 import { CommonModule } from '@angular/common';
-import { Router } from '@angular/router';
 import { UiService } from '../../../shared/services/ui.service';
 import { OccurrenceService } from '../../../services/occurrence.service';
 import { OccurrenceResponseDTO } from '../../../core/models';
-import { PageHeaderComponent } from '../../../shared/components/page-header/page-header.component';
+import { AppNavigationService } from '../../../core/navigation/app-navigation.service';
+import { APP_ROUTES } from '../../../core/navigation/app-routes';
+import { AppShellService } from '../../../core/shell/app-shell.service';
 import { catchError, finalize, of } from 'rxjs';
 
 type Occurrence = OccurrenceResponseDTO;
@@ -13,9 +14,7 @@ type Occurrence = OccurrenceResponseDTO;
 @Component({
   selector: 'app-occurrences-tab',
   template: `
-    <app-page-header title="Ocorrências" />
-
-    <ion-content class="ion-padding">
+    <ion-content class="shell-page-content ion-padding">
       <div class="info-banner">
         <ion-icon name="information-circle-outline"></ion-icon>
         <p>Registre ocorrências de forma anônima. O síndico será notificado.</p>
@@ -225,12 +224,13 @@ type Occurrence = OccurrenceResponseDTO;
     }
   `],
   standalone: true,
-  imports: [IonicModule, CommonModule, PageHeaderComponent]
+  imports: [IonicModule, CommonModule]
 })
-export class OccurrencesTabPage implements OnInit {
+export class OccurrencesTabPage implements OnInit, ViewWillEnter {
   private uiService = inject(UiService);
-  private router = inject(Router);
+  private navigation = inject(AppNavigationService);
   private occurrenceService = inject(OccurrenceService);
+  private shell = inject(AppShellService);
 
   occurrences: Occurrence[] = [];
   isLoading = false;
@@ -241,6 +241,16 @@ export class OccurrencesTabPage implements OnInit {
 
   ionViewWillEnter(): void {
     this.loadOccurrences();
+    this.shell.configure({
+      title: 'Ocorrências',
+      showBack: false,
+      showLogo: true,
+      showLogout: true,
+      headerState: 'compact',
+      progressStep: null,
+      progressTotal: null,
+    });
+    this.shell.setExpandContent(null);
   }
 
   loadOccurrences(): void {
@@ -261,6 +271,6 @@ export class OccurrencesTabPage implements OnInit {
   }
 
   openNewOccurrence(): void {
-    this.router.navigate(['/occurrences/new']);
+    void this.navigation.push(APP_ROUTES.occurrencesNew);
   }
 }

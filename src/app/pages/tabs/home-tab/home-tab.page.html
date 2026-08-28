@@ -1,36 +1,9 @@
-<ion-content [fullscreen]="true" class="home-content">
+<ion-content
+  class="shell-page-content home-content"
+  [scrollEvents]="true"
+  (ionScroll)="onContentScroll($event)"
+>
   <div class="home-shell">
-    <header class="home-header home-enter">
-      <div class="home-header__toolbar">
-        <div class="home-hero__intro">
-          <div class="home-hero__logo" aria-hidden="true">
-            <ng-icon name="lucideMoonStar" />
-          </div>
-          <div class="home-hero__identity">
-            <p class="home-hero__greeting">{{ greeting }}</p>
-            <div class="home-hero__meta">
-              @if (userApartment) {
-                <span class="home-hero__unit">{{ userApartment }}</span>
-              }
-              <span class="role-badge">{{ userRoleLabel }}</span>
-            </div>
-          </div>
-        </div>
-
-        <button
-          hlmBtn
-          type="button"
-          variant="ghost"
-          size="icon"
-          class="home-header__logout"
-          (click)="confirmLogout()"
-          aria-label="Sair"
-        >
-          <ng-icon name="lucideLogOut" />
-        </button>
-      </div>
-    </header>
-
     <div
       #statsGrid
       class="home-stats home-enter home-enter--stats"
@@ -38,44 +11,58 @@
       aria-label="Resumo rápido"
       [style.--stat-cols]="statColumns"
     >
-      @if (isAdmin) {
-        <button type="button" hlmCard size="sm" class="stat-card" (click)="goToPendingApprovals()">
+      @if (isLoadingStats) {
+        @for (item of statSkeletonItems; track item) {
+          <div hlmCard size="sm" class="stat-card stat-card--skeleton" aria-hidden="true">
+            <div hlmCardContent class="stat-card__inner">
+              <div class="stat-card__top">
+                <span hlmSkeleton class="stat-card__skeleton-icon"></span>
+                <span hlmSkeleton class="stat-card__skeleton-value"></span>
+              </div>
+              <span hlmSkeleton class="stat-card__skeleton-label"></span>
+            </div>
+          </div>
+        }
+      } @else {
+        @if (isAdmin) {
+          <button type="button" hlmCard size="sm" class="stat-card" (click)="goToPendingApprovals()">
+            <div hlmCardContent class="stat-card__inner">
+              <div class="stat-card__top">
+                <span class="stat-card__icon">
+                  <ng-icon name="lucideClipboardList" />
+                </span>
+                <span class="stat-card__value">{{ pendingApprovals }}</span>
+              </div>
+              <span class="stat-card__label">Aprovações pendentes</span>
+            </div>
+          </button>
+        }
+
+        <button type="button" hlmCard size="sm" class="stat-card" (click)="goToDeliveries()">
           <div hlmCardContent class="stat-card__inner">
             <div class="stat-card__top">
               <span class="stat-card__icon">
-                <ng-icon name="lucideClipboardList" />
+                <ng-icon name="lucidePackage" />
               </span>
-              <span class="stat-card__value">{{ pendingApprovals }}</span>
+              <span class="stat-card__value">{{ pendingDeliveries }}</span>
             </div>
-            <span class="stat-card__label">Aprovações pendentes</span>
+            <span class="stat-card__label">Encomendas</span>
           </div>
         </button>
-      }
 
-      <button type="button" hlmCard size="sm" class="stat-card" (click)="goToDeliveries()">
-        <div hlmCardContent class="stat-card__inner">
-          <div class="stat-card__top">
-            <span class="stat-card__icon">
-              <ng-icon name="lucidePackage" />
-            </span>
-            <span class="stat-card__value">{{ pendingDeliveries }}</span>
-          </div>
-          <span class="stat-card__label">Encomendas</span>
-        </div>
-      </button>
-
-      @if (canSeeReservationsSummary) {
-        <button type="button" hlmCard size="sm" class="stat-card" (click)="goToReservations()">
-          <div hlmCardContent class="stat-card__inner">
-            <div class="stat-card__top">
-              <span class="stat-card__icon">
-                <ng-icon name="lucideCalendar" />
-              </span>
-              <span class="stat-card__value">{{ activeReservations }}</span>
+        @if (canSeeReservationsSummary) {
+          <button type="button" hlmCard size="sm" class="stat-card" (click)="goToReservations()">
+            <div hlmCardContent class="stat-card__inner">
+              <div class="stat-card__top">
+                <span class="stat-card__icon">
+                  <ng-icon name="lucideCalendar" />
+                </span>
+                <span class="stat-card__value">{{ activeReservations }}</span>
+              </div>
+              <span class="stat-card__label">Reservas</span>
             </div>
-            <span class="stat-card__label">Reservas</span>
-          </div>
-        </button>
+          </button>
+        }
       }
     </div>
 

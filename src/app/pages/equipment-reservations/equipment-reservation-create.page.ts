@@ -1,11 +1,11 @@
 import { Component, inject, OnInit } from '@angular/core';
-import { IonicModule, AlertController } from '@ionic/angular';
+import { IonicModule, AlertController, ViewWillEnter } from '@ionic/angular';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { EquipmentReservationService } from '../../services/equipment-reservation.service';
 import { EquipmentReservationResponseDTO, EquipmentReservationStatus } from '../../core/models';
 import { UiService } from '../../shared/services/ui.service';
-import { PageHeaderComponent } from '../../shared/components/page-header/page-header.component';
+import { AppShellService } from '../../core/shell/app-shell.service';
 import { catchError, finalize, of } from 'rxjs';
 
 const TV_EQUIPMENT_ID = 1;
@@ -14,9 +14,7 @@ const TV_NAME = 'Televisão Comunitária';
 @Component({
   selector: 'app-equipment-reservation-create',
   template: `
-    <app-page-header title="Reservar TV Comunitária" [showBack]="true" backHref="/tabs/home" />
-
-    <ion-content class="ion-padding">
+    <ion-content class="shell-page-content ion-padding">
       <div class="tv-card">
         <div class="tv-icon">
           <ion-icon name="tv-outline"></ion-icon>
@@ -405,11 +403,12 @@ const TV_NAME = 'Televisão Comunitária';
     }
   `],
   standalone: true,
-  imports: [IonicModule, CommonModule, FormsModule, PageHeaderComponent]
+  imports: [IonicModule, CommonModule, FormsModule]
 })
-export class EquipmentReservationCreatePage implements OnInit {
+export class EquipmentReservationCreatePage implements OnInit, ViewWillEnter {
   private equipmentService = inject(EquipmentReservationService);
   private uiService = inject(UiService);
+  private shell = inject(AppShellService);
   private alertController = inject(AlertController);
 
   tvName = TV_NAME;
@@ -429,6 +428,17 @@ export class EquipmentReservationCreatePage implements OnInit {
 
   ngOnInit(): void {
     this.loadMyReservations();
+  }
+
+  ionViewWillEnter(): void {
+    this.shell.configure({
+      title: 'Reservar TV Comunitária',
+      showBack: true,
+      showLogo: false,
+      showLogout: false,
+      headerState: 'compact',
+    });
+    this.shell.setExpandContent(null);
   }
 
   get minDate(): string {

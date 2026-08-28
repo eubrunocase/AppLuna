@@ -1,20 +1,21 @@
 import { Component, inject, OnInit } from '@angular/core';
-import { IonicModule } from '@ionic/angular';
+import { IonicModule, ViewWillEnter } from '@ionic/angular';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
 import { DeliveryService } from '../../../services/delivery.service';
 import { AuthService } from '../../../services/auth.service';
 import { UiService } from '../../../shared/services/ui.service';
 import { ResponseDeliveryDTO, DeliveryStatus } from '../../../core/models';
-import { PageHeaderComponent } from '../../../shared/components/page-header/page-header.component';
+import { AppNavigationService } from '../../../core/navigation/app-navigation.service';
+import { APP_ROUTES } from '../../../core/navigation/app-routes';
+import { AppShellService } from '../../../core/shell/app-shell.service';
 import { catchError, finalize, of } from 'rxjs';
 
 @Component({
   selector: 'app-deliveries-tab',
   template: `
-    <app-page-header title="Minhas Entregas" />
-    <ion-header>
+    <ion-content class="shell-page-content ion-padding">
+      <div class="tab-filters">
       <ion-toolbar>
         <ion-segment [(ngModel)]="statusFilter" (ionChange)="filterByStatus()">
           <ion-segment-button value="ALL">
@@ -28,9 +29,8 @@ import { catchError, finalize, of } from 'rxjs';
           </ion-segment-button>
         </ion-segment>
       </ion-toolbar>
-    </ion-header>
+      </div>
 
-    <ion-content class="ion-padding">
       <ion-refresher slot="fixed" (ionRefresh)="refresh($event)">
         <ion-refresher-content></ion-refresher-content>
       </ion-refresher>
@@ -184,15 +184,24 @@ import { catchError, finalize, of } from 'rxjs';
       --background: var(--ion-color-success);
       --color: #fff;
     }
+
+    .tab-filters {
+      margin: -0.5rem -1rem 0.75rem;
+    }
+
+    ion-fab {
+      bottom: var(--app-fab-bottom, 5rem);
+    }
   `],
   standalone: true,
-  imports: [IonicModule, CommonModule, FormsModule, PageHeaderComponent]
+  imports: [IonicModule, CommonModule, FormsModule]
 })
-export class DeliveriesTabPage implements OnInit {
+export class DeliveriesTabPage implements OnInit, ViewWillEnter {
   private deliveryService = inject(DeliveryService);
   private authService = inject(AuthService);
   private uiService = inject(UiService);
-  private router = inject(Router);
+  private navigation = inject(AppNavigationService);
+  private shell = inject(AppShellService);
 
   deliveries: ResponseDeliveryDTO[] = [];
   filteredDeliveries: ResponseDeliveryDTO[] = [];
@@ -213,6 +222,16 @@ export class DeliveriesTabPage implements OnInit {
 
   ionViewWillEnter(): void {
     this.loadDeliveries();
+    this.shell.configure({
+      title: 'Minhas Entregas',
+      showBack: false,
+      showLogo: true,
+      showLogout: true,
+      headerState: 'compact',
+      progressStep: null,
+      progressTotal: null,
+    });
+    this.shell.setExpandContent(null);
   }
 
   loadDeliveries(): void {
@@ -269,7 +288,7 @@ export class DeliveriesTabPage implements OnInit {
   }
 
   openCreate(): void {
-    this.router.navigate(['/deliveries/new']);
+    void this.navigation.push(APP_ROUTES.deliveriesNew);
   }
 
   getStatusLabel(status: DeliveryStatus): string {

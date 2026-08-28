@@ -1,5 +1,5 @@
 import { Component, inject, OnInit } from '@angular/core';
-import { IonicModule } from '@ionic/angular';
+import { IonicModule, ViewWillEnter } from '@ionic/angular';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -8,18 +8,16 @@ import { UserService } from '../../services/user.service';
 import { ResponseDeliveryDTO, UserSummaryDTO, DeliveryStatus, UserRoles } from '../../core/models';
 import { AuthService } from '../../services/auth.service';
 import { AlertController } from '@ionic/angular';
-import { PageHeaderComponent } from '../../shared/components/page-header/page-header.component';
+import { AppNavigationService } from '../../core/navigation/app-navigation.service';
+import { APP_ROUTES } from '../../core/navigation/app-routes';
+import { AppShellService } from '../../core/shell/app-shell.service';
 import { catchError, finalize, of } from 'rxjs';
 
 @Component({
   selector: 'app-deliveries',
   template: `
-    <app-page-header title="Entregas" [showBack]="true" backHref="/tabs/home">
-      <ion-button *ngIf="canCreate" headerActions fill="clear" (click)="openCreateModal()" aria-label="Nova encomenda">
-        <ion-icon slot="icon-only" name="add"></ion-icon>
-      </ion-button>
-    </app-page-header>
-    <ion-header>
+    <ion-content class="shell-page-content ion-padding">
+      <div class="tab-filters">
       <ion-toolbar>
         <ion-segment [(ngModel)]="statusFilter" (ionChange)="filterByStatus()">
           <ion-segment-button value="ALL">
@@ -33,9 +31,15 @@ import { catchError, finalize, of } from 'rxjs';
           </ion-segment-button>
         </ion-segment>
       </ion-toolbar>
-    </ion-header>
+      </div>
 
-    <ion-content class="ion-padding">
+      @if (canCreate) {
+        <ion-button expand="block" class="create-top-btn" (click)="openCreateModal()">
+          <ion-icon slot="start" name="add"></ion-icon>
+          Nova encomenda
+        </ion-button>
+      }
+
       <ion-refresher slot="fixed" (ionRefresh)="refresh($event)">
         <ion-refresher-content></ion-refresher-content>
       </ion-refresher>
@@ -147,15 +151,25 @@ import { catchError, finalize, of } from 'rxjs';
       font-size: 64px;
       margin-bottom: 16px;
     }
+
+    .tab-filters {
+      margin: -0.5rem -1rem 0.75rem;
+    }
+
+    .create-top-btn {
+      margin-bottom: 0.75rem;
+    }
   `],
   standalone: true,
-  imports: [IonicModule, CommonModule, FormsModule, PageHeaderComponent]
+  imports: [IonicModule, CommonModule, FormsModule]
 })
-export class DeliveriesPage implements OnInit {
+export class DeliveriesPage implements OnInit, ViewWillEnter {
   private deliveryService = inject(DeliveryService);
   private userService = inject(UserService);
   private authService = inject(AuthService);
   private alertController = inject(AlertController);
+  private navigation = inject(AppNavigationService);
+  private shell = inject(AppShellService);
   private router = inject(Router);
 
   deliveries: ResponseDeliveryDTO[] = [];
@@ -170,6 +184,25 @@ export class DeliveriesPage implements OnInit {
   ngOnInit(): void {
     this.setupPermissions();
     this.loadData();
+  }
+
+  ionViewWillEnter(): void {
+    this.shell.configure({
+      title: 'Entregas',
+      showBack: true,
+      showLogo: false,
+      showLogout: false,
+      headerState: 'compact',
+    });
+    this.shell.setExpandContent(null);
+  }
+
+  private isHomeStack(): boolean {
+    return this.router.url.includes('/app/home/');
+  }
+
+  private createRoute(): string {
+    return this.isHomeStack() ? APP_ROUTES.homeDeliveriesNew : APP_ROUTES.deliveriesNew;
   }
 
   private setupPermissions(): void {
@@ -265,6 +298,6 @@ export class DeliveriesPage implements OnInit {
   }
 
   openCreateModal(): void {
-    this.router.navigate(['/deliveries/new']);
+    void this.navigation.push(this.createRoute());
   }
 }

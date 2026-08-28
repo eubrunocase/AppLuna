@@ -1,20 +1,20 @@
 import { Component, inject } from '@angular/core';
-import { IonicModule } from '@ionic/angular';
+import { IonicModule, ViewWillEnter } from '@ionic/angular';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { OccurrenceService } from '../../services/occurrence.service';
+import { AppNavigationService } from '../../core/navigation/app-navigation.service';
+import { APP_ROUTES } from '../../core/navigation/app-routes';
+import { AppShellService } from '../../core/shell/app-shell.service';
 import { UiService } from '../../shared/services/ui.service';
-import { PageHeaderComponent } from '../../shared/components/page-header/page-header.component';
 import { toLocalDateTimeString, nowLocalDateTimeString } from '../../shared/utils/date.utils';
 import { catchError, of } from 'rxjs';
 
 @Component({
   selector: 'app-occurrence-create',
   template: `
-    <app-page-header title="Nova Ocorrência" [showBack]="true" backHref="/tabs/occurrences" />
-
-    <ion-content class="ion-padding">
+    <ion-content class="shell-page-content ion-padding">
       <div class="warning-banner">
         <ion-icon name="warning-outline"></ion-icon>
         <div>
@@ -203,13 +203,15 @@ import { catchError, of } from 'rxjs';
     }
   `],
   standalone: true,
-  imports: [IonicModule, CommonModule, ReactiveFormsModule, PageHeaderComponent]
+  imports: [IonicModule, CommonModule, ReactiveFormsModule]
 })
-export class OccurrenceCreatePage {
+export class OccurrenceCreatePage implements ViewWillEnter {
   private fb = inject(FormBuilder);
   private occurrenceService = inject(OccurrenceService);
-  private router = inject(Router);
+  private navigation = inject(AppNavigationService);
   private uiService = inject(UiService);
+  private shell = inject(AppShellService);
+  private router = inject(Router);
 
   form: FormGroup = this.fb.group({
     incidentDate: ['', [Validators.required]],
@@ -222,6 +224,23 @@ export class OccurrenceCreatePage {
 
   get maxDateTime(): string {
     return nowLocalDateTimeString();
+  }
+
+  ionViewWillEnter(): void {
+    this.shell.configure({
+      title: 'Nova Ocorrência',
+      showBack: true,
+      showLogo: false,
+      showLogout: false,
+      headerState: 'compact',
+    });
+    this.shell.setExpandContent(null);
+  }
+
+  private completeRoute(): string {
+    return this.router.url.includes('/app/home/')
+      ? APP_ROUTES.home
+      : APP_ROUTES.occurrences;
   }
 
   openDatePicker(): void {
@@ -264,8 +283,8 @@ export class OccurrenceCreatePage {
     ).subscribe(async (result) => {
       this.isSubmitting = false;
       if (result) {
+        await this.navigation.completeFlow(this.completeRoute());
         await this.uiService.showSuccess('Ocorrência registrada com sucesso!');
-        this.router.navigate(['/tabs/occurrences']);
       }
     });
   }

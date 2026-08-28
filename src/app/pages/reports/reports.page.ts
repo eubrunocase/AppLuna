@@ -1,18 +1,16 @@
 import { Component, inject, OnDestroy, OnInit } from '@angular/core';
-import { IonicModule, ToastController } from '@ionic/angular';
+import { IonicModule, ToastController, ViewWillEnter } from '@ionic/angular';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ReservationService } from '../../services/reservation.service';
 import { MonthlyReservationReportDTO, ReportExportStatus, ReportFormat } from '../../core/models';
-import { PageHeaderComponent } from '../../shared/components/page-header/page-header.component';
+import { AppShellService } from '../../core/shell/app-shell.service';
 import { EMPTY, Subscription, catchError, finalize, interval, of, startWith, switchMap, takeWhile } from 'rxjs';
 
 @Component({
   selector: 'app-reports',
   template: `
-    <app-page-header title="Relatório de Reservas" [showBack]="true" backHref="/tabs/home" />
-
-    <ion-content class="ion-padding">
+    <ion-content class="shell-page-content ion-padding">
       <ion-card class="filter-card">
         <ion-card-content>
           <ion-list lines="none">
@@ -209,11 +207,12 @@ import { EMPTY, Subscription, catchError, finalize, interval, of, startWith, swi
     }
   `],
   standalone: true,
-  imports: [IonicModule, CommonModule, FormsModule, PageHeaderComponent]
+  imports: [IonicModule, CommonModule, FormsModule]
 })
-export class ReportsPage implements OnInit, OnDestroy {
+export class ReportsPage implements OnInit, OnDestroy, ViewWillEnter {
   private reservationService = inject(ReservationService);
   private toastController = inject(ToastController);
+  private shell = inject(AppShellService);
 
   report: MonthlyReservationReportDTO[] = [];
   isLoading = false;
@@ -255,6 +254,17 @@ export class ReportsPage implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.loadReport();
+  }
+
+  ionViewWillEnter(): void {
+    this.shell.configure({
+      title: 'Relatório de Reservas',
+      showBack: true,
+      showLogo: false,
+      showLogout: false,
+      headerState: 'compact',
+    });
+    this.shell.setExpandContent(null);
   }
 
   ngOnDestroy(): void {

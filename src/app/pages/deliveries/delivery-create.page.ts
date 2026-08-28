@@ -1,21 +1,21 @@
 import { Component, inject, OnInit } from '@angular/core';
-import { IonicModule } from '@ionic/angular';
+import { IonicModule, ViewWillEnter } from '@ionic/angular';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { DeliveryService } from '../../services/delivery.service';
+import { AppNavigationService } from '../../core/navigation/app-navigation.service';
+import { APP_ROUTES } from '../../core/navigation/app-routes';
+import { AppShellService } from '../../core/shell/app-shell.service';
 import { UserService } from '../../services/user.service';
 import { UiService } from '../../shared/services/ui.service';
 import { ResponseUserDTO, UserRoles } from '../../core/models';
-import { PageHeaderComponent } from '../../shared/components/page-header/page-header.component';
 import { catchError, map, of } from 'rxjs';
 
 @Component({
   selector: 'app-delivery-create',
   template: `
-    <app-page-header title="Nova Encomenda" [showBack]="true" backHref="/deliveries" />
-
-    <ion-content class="ion-padding">
+    <ion-content class="shell-page-content ion-padding">
       <form [formGroup]="form" (ngSubmit)="onSubmit()">
 
         <div class="form-section">
@@ -172,14 +172,16 @@ import { catchError, map, of } from 'rxjs';
     }
   `],
   standalone: true,
-  imports: [IonicModule, CommonModule, ReactiveFormsModule, PageHeaderComponent]
+  imports: [IonicModule, CommonModule, ReactiveFormsModule]
 })
-export class DeliveryCreatePage implements OnInit {
+export class DeliveryCreatePage implements OnInit, ViewWillEnter {
   private fb = inject(FormBuilder);
   private deliveryService = inject(DeliveryService);
   private userService = inject(UserService);
-  private router = inject(Router);
+  private navigation = inject(AppNavigationService);
   private uiService = inject(UiService);
+  private shell = inject(AppShellService);
+  private router = inject(Router);
 
   users: ResponseUserDTO[] = [];
   isSubmitting = false;
@@ -198,6 +200,23 @@ export class DeliveryCreatePage implements OnInit {
     ).subscribe(users => {
       this.users = users;
     });
+  }
+
+  ionViewWillEnter(): void {
+    this.shell.configure({
+      title: 'Nova Encomenda',
+      showBack: true,
+      showLogo: false,
+      showLogout: false,
+      headerState: 'compact',
+    });
+    this.shell.setExpandContent(null);
+  }
+
+  private manageRoute(): string {
+    return this.router.url.includes('/app/home/')
+      ? APP_ROUTES.homeDeliveriesManage
+      : APP_ROUTES.deliveriesManage;
   }
 
   onSubmit(): void {
@@ -222,8 +241,8 @@ export class DeliveryCreatePage implements OnInit {
     ).subscribe(async result => {
       this.isSubmitting = false;
       if (result) {
+        await this.navigation.completeFlow(this.manageRoute());
         await this.uiService.showSuccess('Encomenda registrada com sucesso!');
-        this.router.navigate(['/deliveries']);
       }
     });
   }

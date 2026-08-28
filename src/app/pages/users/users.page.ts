@@ -1,22 +1,21 @@
 import { Component, inject, OnInit } from '@angular/core';
-import { IonicModule } from '@ionic/angular';
+import { IonicModule, ViewWillEnter } from '@ionic/angular';
 import { CommonModule } from '@angular/common';
 import { UserService } from '../../services/user.service';
 import { ResponseUserDTO, UserRoles } from '../../core/models';
 import { AlertController } from '@ionic/angular';
-import { PageHeaderComponent } from '../../shared/components/page-header/page-header.component';
+import { AppShellService } from '../../core/shell/app-shell.service';
 import { catchError, finalize, of } from 'rxjs';
 
 @Component({
   selector: 'app-users',
   template: `
-    <app-page-header title="Gerenciar Usuários" [showBack]="true" backHref="/tabs/home">
-      <ion-button headerActions fill="clear" (click)="openCreateModal()" aria-label="Novo usuário">
-        <ion-icon slot="icon-only" name="person-add-outline"></ion-icon>
+    <ion-content class="shell-page-content ion-padding">
+      <ion-button expand="block" class="create-top-btn" (click)="openCreateModal()">
+        <ion-icon slot="start" name="person-add-outline"></ion-icon>
+        Novo usuário
       </ion-button>
-    </app-page-header>
 
-    <ion-content class="ion-padding">
       <ion-refresher slot="fixed" (ionRefresh)="refresh($event)">
         <ion-refresher-content></ion-refresher-content>
       </ion-refresher>
@@ -96,17 +95,29 @@ import { catchError, finalize, of } from 'rxjs';
     }
   `],
   standalone: true,
-  imports: [IonicModule, CommonModule, PageHeaderComponent]
+  imports: [IonicModule, CommonModule]
 })
-export class UsersPage implements OnInit {
+export class UsersPage implements OnInit, ViewWillEnter {
   private userService = inject(UserService);
   private alertController = inject(AlertController);
+  private shell = inject(AppShellService);
 
   users: ResponseUserDTO[] = [];
   isLoading = false;
 
   ngOnInit(): void {
     this.loadUsers();
+  }
+
+  ionViewWillEnter(): void {
+    this.shell.configure({
+      title: 'Gerenciar Usuários',
+      showBack: true,
+      showLogo: false,
+      showLogout: false,
+      headerState: 'compact',
+    });
+    this.shell.setExpandContent(null);
   }
 
   loadUsers(): void {

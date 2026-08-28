@@ -4,7 +4,7 @@ import { Observable, tap, BehaviorSubject, switchMap, of, map } from 'rxjs';
 import { AuthenticationDTO, UserRoles, ResponseUserDTO, TokenDTO, RefreshRequestDTO, RefreshResponseDTO, LogoutRequestDTO } from '../core/models';
 import { TokenStorageService } from '../core/storage/token-storage.service';
 import { ApiConfigService } from '../core/api-config.service';
-import { Router } from '@angular/router';
+import { AppNavigationService } from '../core/navigation/app-navigation.service';
 import { catchError } from 'rxjs/operators';
 
 @Injectable({ providedIn: 'root' })
@@ -12,12 +12,35 @@ export class AuthService {
   private http = inject(HttpClient);
   private tokenStorage = inject(TokenStorageService);
   private apiConfig = inject(ApiConfigService);
-  private router = inject(Router);
+  private navigation = inject(AppNavigationService);
 
   private baseUrl = this.apiConfig.API_URL;
 
   private isAuthenticatedSubject = new BehaviorSubject<boolean>(this.tokenStorage.isAuthenticated());
   isAuthenticated$ = this.isAuthenticatedSubject.asObservable();
+  private redirectingToLogin = false;
+
+  constructor() {
+    this.isAuthenticated$.subscribe(authenticated => {
+      if (authenticated) {
+        return;
+      }
+
+      const currentUrl = typeof window !== 'undefined' ? window.location.pathname : '';
+      if (currentUrl === '/login') {
+        return;
+      }
+
+      void this.navigation.resetApp();
+    });
+  }
+
+  /** Limpa a sessão local e redireciona para o login sem chamar a API. */
+  forceLogout(): void {
+    this.tokenStorage.clearTokens();
+    this.isAuthenticatedSubject.next(false);
+    void this.navigation.resetApp();
+  }
 
   login(payload: AuthenticationDTO): Observable<ResponseUserDTO | null> {
     return this.http.post<TokenDTO>(`${this.baseUrl}/auth/login`, payload).pipe(
@@ -55,19 +78,16 @@ export class AuthService {
   /** Revoga a sessão no backend (best-effort) e limpa localmente. */
   logout(): void {
     const refreshToken = this.tokenStorage.getRefreshToken();
-    const body: LogoutRequestDTO = { refreshToken };
+    this.forceLogout();
 
+    if (!refreshToken) {
+      return;
+    }
+
+    const body: LogoutRequestDTO = { refreshToken };
     this.http.post<void>(`${this.baseUrl}/auth/logout`, body, { responseType: 'text' as 'json' }).pipe(
       catchError(() => of(null)),
-      tap(() => this.forceLogout())
     ).subscribe();
-  }
-
-  /** Limpa a sessão local e redireciona para o login sem chamar a API. */
-  forceLogout(): void {
-    this.tokenStorage.clearTokens();
-    this.isAuthenticatedSubject.next(false);
-    this.router.navigate(['/login']);
   }
 
   /**
