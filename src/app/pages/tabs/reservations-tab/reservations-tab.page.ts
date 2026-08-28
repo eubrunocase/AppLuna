@@ -1,8 +1,35 @@
-import { Component, inject, OnInit } from '@angular/core';
-import { IonicModule, AlertController, ViewWillEnter } from '@ionic/angular';
-import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ChangeDetectorRef, Component, inject, OnInit } from '@angular/core';
+import {
+  IonContent,
+  IonRefresher,
+  IonRefresherContent,
+  AlertController,
+  ViewWillEnter,
+} from '@ionic/angular/standalone';
+import { ActivatedRoute } from '@angular/router';
+import { NgIcon, provideIcons } from '@ng-icons/core';
+import {
+  lucideArrowRight,
+  lucideBan,
+  lucideCalendarOff,
+  lucideCheck,
+  lucideClock,
+  lucideDumbbell,
+  lucideFlame,
+  lucideGoal,
+  lucideLayoutGrid,
+  lucidePartyPopper,
+  lucidePlus,
+  lucideTriangleAlert,
+  lucideTv,
+  lucideUser,
+  lucideUsers,
+  lucideX,
+} from '@ng-icons/lucide';
+import { HlmButtonImports } from '@spartan-ng/helm/button';
+import { HlmCardImports } from '@spartan-ng/helm/card';
+import { HlmSkeletonImports } from '@spartan-ng/helm/skeleton';
+import { HlmSpinnerImports } from '@spartan-ng/helm/spinner';
 import { ReservationService } from '../../../services/reservation.service';
 import { EquipmentReservationService } from '../../../services/equipment-reservation.service';
 import { ReservationResponseDTO, EquipmentReservationResponseDTO, ReservationStatus } from '../../../core/models';
@@ -12,7 +39,8 @@ import { AppNavigationService } from '../../../core/navigation/app-navigation.se
 import { APP_ROUTES } from '../../../core/navigation/app-routes';
 import { AppShellService } from '../../../core/shell/app-shell.service';
 import { ReservationDraftService } from '../../reservations/reservation-draft.service';
-import { catchError, combineLatest, finalize, of } from 'rxjs';
+import { getSpaceCatalogEntry } from '../../reservations/space-catalog';
+import { catchError, finalize, forkJoin, of } from 'rxjs';
 
 type ReservationKind = 'space' | 'equipment';
 
@@ -38,406 +66,39 @@ interface UnifiedReservation {
 
 @Component({
   selector: 'app-reservations-tab',
-  template: `
-    <ion-content class="shell-page-content ion-padding">
-      <div class="tab-filters">
-      <ion-toolbar *ngIf="isAdmin && viewMode === 'all' && pendingCount > 0" color="warning" class="pending-banner">
-        <div class="pending-banner-content">
-          <ion-icon name="alert-circle-outline"></ion-icon>
-          <span>
-            <strong>{{ pendingCount }}</strong>
-            {{ pendingCount === 1 ? 'reserva aguarda' : 'reservas aguardam' }} sua decisão
-          </span>
-          <ion-button size="small" fill="clear" color="dark" (click)="focusPending()">
-            Revisar
-            <ion-icon name="arrow-forward" slot="end"></ion-icon>
-          </ion-button>
-        </div>
-      </ion-toolbar>
-      <ion-toolbar>
-        <ion-segment [(ngModel)]="typeFilter" (ionChange)="onTypeFilterChange()">
-          <ion-segment-button value="ALL">
-            <ion-label>Todas</ion-label>
-          </ion-segment-button>
-          <ion-segment-button value="SALAO_FESTAS">
-            <ion-label>Salão</ion-label>
-          </ion-segment-button>
-          <ion-segment-button value="CHURRASQUEIRA">
-            <ion-label>Churrasqueira</ion-label>
-          </ion-segment-button>
-          <ion-segment-button value="ACADEMIA">
-            <ion-label>Academia</ion-label>
-          </ion-segment-button>
-          <ion-segment-button value="CAMPO_FUTEBOL">
-            <ion-label>Campo</ion-label>
-          </ion-segment-button>
-          <ion-segment-button value="TELEVISAO">
-            <ion-label>Televisão</ion-label>
-          </ion-segment-button>
-        </ion-segment>
-      </ion-toolbar>
-      <ion-toolbar>
-        <ion-segment [(ngModel)]="statusFilter" (ionChange)="filterByStatus()">
-          <ion-segment-button value="ALL">
-            <ion-label>Todas</ion-label>
-          </ion-segment-button>
-          <ng-container *ngIf="isEquipmentFilter">
-            <ion-segment-button value="CONFIRMED">
-              <ion-label>Confirmadas</ion-label>
-            </ion-segment-button>
-            <ion-segment-button value="IN_USE">
-              <ion-label>Em uso</ion-label>
-            </ion-segment-button>
-            <ion-segment-button value="RETURNED">
-              <ion-label>Devolvidas</ion-label>
-            </ion-segment-button>
-            <ion-segment-button value="CANCELED">
-              <ion-label>Canceladas</ion-label>
-            </ion-segment-button>
-          </ng-container>
-          <ng-container *ngIf="!isEquipmentFilter">
-            <ion-segment-button value="PENDING">
-              <ion-label>Pendentes</ion-label>
-            </ion-segment-button>
-            <ion-segment-button value="APPROVED">
-              <ion-label>Aprovadas</ion-label>
-            </ion-segment-button>
-          </ng-container>
-        </ion-segment>
-      </ion-toolbar>
-      <ion-toolbar *ngIf="isAdmin">
-        <ion-segment [(ngModel)]="viewMode" (ionChange)="onViewModeChange()">
-          <ion-segment-button value="mine">
-            <ion-icon name="person-outline"></ion-icon>
-            <ion-label>Minhas</ion-label>
-          </ion-segment-button>
-          <ion-segment-button value="all">
-            <ion-icon name="people-outline"></ion-icon>
-            <ion-label>Todas</ion-label>
-          </ion-segment-button>
-        </ion-segment>
-      </ion-toolbar>
-      </div>
-
-      <ion-refresher slot="fixed" (ionRefresh)="refresh($event)">
-        <ion-refresher-content></ion-refresher-content>
-      </ion-refresher>
-
-      <div *ngIf="isLoading" class="skeleton-list">
-        <div *ngFor="let item of [1,2,3]" class="skeleton-card">
-          <ion-skeleton-text animated style="width: 30%; height: 16px;"></ion-skeleton-text>
-          <ion-skeleton-text animated style="width: 70%; height: 20px; margin-top: 8px;"></ion-skeleton-text>
-          <ion-skeleton-text animated style="width: 50%; height: 14px; margin-top: 8px;"></ion-skeleton-text>
-        </div>
-      </div>
-
-      <ion-list *ngIf="!isLoading && filteredReservations.length > 0">
-        <ion-card *ngFor="let reservation of filteredReservations"
-                  class="reservation-card"
-                  [class.pending-highlight]="reservation.kind === 'space' && isAdmin && viewMode === 'all' && reservation.status === 'PENDING'">
-          <ion-card-content>
-            <div class="card-row">
-              <div class="date-badge">
-                <span class="day">{{ getDay(reservation.date) }}</span>
-                <span class="month">{{ getMonth(reservation.date) }}</span>
-              </div>
-
-              <div class="reservation-info">
-                <h3 *ngIf="reservation.kind === 'space'">{{ getSpaceTypeLabel(reservation.spaceType!) }}</h3>
-                <h3 *ngIf="reservation.kind === 'equipment'">
-                  <ion-icon name="tv-outline" class="icon-inline"></ion-icon>
-                  {{ reservation.equipmentName }}
-                </h3>
-                <p class="resident" *ngIf="isAdmin && viewMode === 'all' && reservation.kind === 'space'">
-                  <ion-icon name="person-outline" class="icon-inline"></ion-icon>
-                  {{ reservation.user?.name }}
-                </p>
-                <p class="time" *ngIf="reservation.kind === 'space'">
-                  <ion-icon name="time-outline" class="icon-inline"></ion-icon>
-                  Solicitado em {{ formatDate(reservation.createdAt!) }}
-                </p>
-                <p class="time" *ngIf="reservation.kind === 'equipment'">
-                  <ion-icon name="time-outline" class="icon-inline"></ion-icon>
-                  {{ reservation.startTime }} - {{ reservation.endTime }}
-                </p>
-              </div>
-
-              <ion-chip [class]="'chip-' + getStatusClass(reservation.status)">
-                {{ getStatusLabel(reservation.status) }}
-              </ion-chip>
-            </div>
-
-            <div class="equipment-dates" *ngIf="reservation.kind === 'equipment'">
-              <p *ngIf="reservation.pickedUpAt" class="date"><strong>Retirado em:</strong> {{ formatDateTime(reservation.pickedUpAt!) }}</p>
-              <p *ngIf="reservation.returnedAt" class="date"><strong>Devolvido em:</strong> {{ formatDateTime(reservation.returnedAt!) }}</p>
-              <p *ngIf="reservation.canceledAt" class="date"><strong>Cancelado em:</strong> {{ formatDateTime(reservation.canceledAt!) }}</p>
-            </div>
-
-            <div *ngIf="reservation.kind === 'space' && isAdmin && viewMode === 'all' && reservation.status === 'PENDING'"
-                 class="admin-actions">
-              <ion-button
-                expand="block"
-                color="success"
-                [disabled]="processingId === reservation.id"
-                (click)="approveReservation(reservation)">
-                <ion-spinner *ngIf="processingId === reservation.id" name="dots"></ion-spinner>
-                <ng-container *ngIf="processingId !== reservation.id">
-                  <ion-icon slot="start" name="checkmark-circle-outline"></ion-icon>
-                  Aprovar
-                </ng-container>
-              </ion-button>
-              <ion-button
-                expand="block"
-                color="danger"
-                fill="outline"
-                [disabled]="processingId === reservation.id"
-                (click)="rejectReservation(reservation)">
-                <ion-icon slot="start" name="close-circle-outline"></ion-icon>
-                Rejeitar
-              </ion-button>
-            </div>
-
-            <div *ngIf="reservation.kind === 'space' && isAdmin && viewMode === 'all' && reservation.status === 'APPROVED'"
-                 class="admin-actions admin-actions-secondary">
-              <ion-button
-                expand="block"
-                color="medium"
-                fill="outline"
-                size="small"
-                [disabled]="processingId === reservation.id"
-                (click)="cancelSpaceReservation(reservation)">
-                <ion-icon slot="start" name="ban-outline"></ion-icon>
-                Cancelar Reserva
-              </ion-button>
-            </div>
-
-            <div *ngIf="reservation.kind === 'equipment' && reservation.status === 'CONFIRMED'"
-                 class="admin-actions">
-              <ion-button
-                expand="block"
-                color="danger"
-                fill="outline"
-                [disabled]="processingId === reservation.id"
-                (click)="cancelEquipmentReservation(reservation)">
-                <ion-spinner *ngIf="processingId === reservation.id" name="dots"></ion-spinner>
-                <ng-container *ngIf="processingId !== reservation.id">
-                  <ion-icon slot="start" name="ban-outline"></ion-icon>
-                  Cancelar Reserva
-                </ng-container>
-              </ion-button>
-            </div>
-          </ion-card-content>
-        </ion-card>
-      </ion-list>
-
-      <div *ngIf="!isLoading && filteredReservations.length === 0" class="empty-state">
-        <ion-icon name="calendar-outline" class="empty-icon"></ion-icon>
-        <p class="empty-title">Nenhuma reserva encontrada</p>
-        <p class="empty-message">Suas reservas aparecerão aqui</p>
-      </div>
-
-      <ion-fab vertical="bottom" horizontal="end" slot="fixed">
-        <ion-fab-button (click)="openNewReservation()">
-          <ion-icon name="add"></ion-icon>
-        </ion-fab-button>
-      </ion-fab>
-    </ion-content>
-  `,
-  styles: [`
-    .skeleton-list {
-      padding: 0;
-    }
-
-    .skeleton-card {
-      background: rgba(255, 255, 255, 0.12);
-      border: 1px solid rgba(255, 255, 255, 0.22);
-      border-radius: 16px;
-      padding: 16px;
-      margin-bottom: 12px;
-    }
-
-    .reservation-card {
-      margin-bottom: 12px;
-      transition: box-shadow 0.2s ease, border-color 0.2s ease;
-    }
-
-    .reservation-card.pending-highlight {
-      border-left: 4px solid var(--ion-color-warning);
-      box-shadow: 0 6px 20px rgba(255, 196, 9, 0.18);
-    }
-
-    .reservation-card ion-card-content {
-      padding: 16px;
-    }
-
-    .card-row {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-
-    .admin-actions {
-      display: flex;
-      gap: 8px;
-      margin-top: 16px;
-      padding-top: 12px;
-      border-top: 1px solid rgba(255, 255, 255, 0.18);
-    }
-
-    .admin-actions ion-button {
-      flex: 1;
-      --border-radius: 10px;
-      margin: 0;
-    }
-
-    .admin-actions-secondary {
-      border-top: none;
-      padding-top: 0;
-      margin-top: 8px;
-    }
-
-    .equipment-dates p.date {
-      margin: 6px 0 0 0;
-      font-size: 12px;
-      color: var(--ion-color-medium);
-    }
-
-    .pending-banner-content {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      padding: 4px 16px;
-    }
-
-    .pending-banner-content ion-icon {
-      font-size: 20px;
-    }
-
-    .pending-banner-content span {
-      flex: 1;
-      font-size: 13px;
-    }
-
-    .pending-banner-content strong {
-      font-size: 16px;
-      margin-right: 4px;
-    }
-
-    .date-badge {
-      width: 56px;
-      height: 56px;
-      background: var(--ion-color-tertiary);
-      border-radius: 12px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      margin-right: 16px;
-      flex-shrink: 0;
-    }
-
-    .date-badge .day {
-      font-size: 20px;
-      font-weight: 700;
-      color: #000;
-      line-height: 1;
-    }
-
-    .date-badge .month {
-      font-size: 11px;
-      font-weight: 600;
-      color: #000;
-      text-transform: uppercase;
-    }
-
-    .reservation-info {
-      flex: 1;
-      min-width: 0;
-    }
-
-    .reservation-info h3 {
-      margin: 0 0 4px 0;
-      font-size: 16px;
-      font-weight: 600;
-      color: #fff8f0;
-      display: flex;
-      align-items: center;
-      gap: 4px;
-    }
-
-    .reservation-info .time,
-    .reservation-info .resident {
-      margin: 0;
-      font-size: 12px;
-      color: rgba(255, 248, 240, 0.82);
-      display: flex;
-      align-items: center;
-      gap: 4px;
-    }
-
-    .reservation-info .resident {
-      margin-bottom: 2px;
-    }
-
-    .icon-inline {
-      font-size: 14px;
-      color: rgba(255, 248, 240, 0.82);
-      flex-shrink: 0;
-    }
-
-    ion-chip {
-      flex-shrink: 0;
-    }
-
-    .chip-PENDING {
-      --background: var(--ion-color-tertiary);
-      --color: #000;
-    }
-
-    .chip-APPROVED {
-      --background: var(--ion-color-success);
-      --color: #fff;
-    }
-
-    .chip-REJECTED, .chip-CANCELLED, .chip-CANCELED {
-      --background: var(--ion-color-danger);
-      --color: #fff;
-    }
-
-    .chip-CONFIRMED {
-      --background: var(--ion-color-primary);
-      --color: #fff;
-    }
-
-    .chip-IN_USE {
-      --background: var(--ion-color-warning);
-      --color: #000;
-    }
-
-    .chip-RETURNED {
-      --background: var(--ion-color-success);
-      --color: #fff;
-    }
-
-    .tab-filters {
-      display: flex;
-      flex-direction: column;
-      gap: 0;
-      margin: -0.5rem -1rem 0.75rem;
-    }
-
-    .tab-filters ion-toolbar {
-      --background: #fff;
-      --padding-start: 0;
-      --padding-end: 0;
-    }
-
-    ion-fab {
-      bottom: var(--app-fab-bottom, 5rem);
-    }
-  `],
+  templateUrl: './reservations-tab.page.html',
+  styleUrl: './reservations-tab.page.scss',
   standalone: true,
-  imports: [IonicModule, CommonModule, FormsModule]
+  imports: [
+    IonContent,
+    IonRefresher,
+    IonRefresherContent,
+    NgIcon,
+    HlmButtonImports,
+    HlmCardImports,
+    HlmSkeletonImports,
+    HlmSpinnerImports,
+  ],
+  providers: [
+    provideIcons({
+      lucideArrowRight,
+      lucideBan,
+      lucideCalendarOff,
+      lucideCheck,
+      lucideClock,
+      lucideDumbbell,
+      lucideFlame,
+      lucideGoal,
+      lucideLayoutGrid,
+      lucidePartyPopper,
+      lucidePlus,
+      lucideTriangleAlert,
+      lucideTv,
+      lucideUser,
+      lucideUsers,
+      lucideX,
+    }),
+  ],
 })
 export class ReservationsTabPage implements OnInit, ViewWillEnter {
   private reservationService = inject(ReservationService);
@@ -449,25 +110,48 @@ export class ReservationsTabPage implements OnInit, ViewWillEnter {
   private draft = inject(ReservationDraftService);
   private uiService = inject(UiService);
   private alertController = inject(AlertController);
+  private cdr = inject(ChangeDetectorRef);
 
   reservations: ReservationResponseDTO[] = [];
   equipmentReservations: EquipmentReservationResponseDTO[] = [];
   allReservations: UnifiedReservation[] = [];
   filteredReservations: UnifiedReservation[] = [];
-  isLoading = false;
+  isLoading = true;
   isAdmin = false;
   viewMode: 'mine' | 'all' = 'mine';
   typeFilter: TypeFilter = 'ALL';
   statusFilter: StatusFilter = 'ALL';
-  /** id da reserva em ação no momento (bloqueia botões dela). */
   processingId: string | null = null;
+  pendingApprovalCount = 0;
 
-  spaceTypes: Record<string, string> = {
-    'SALAO_FESTAS': 'Salão de Festas',
-    'CHURRASQUEIRA': 'Churrasqueira',
-    'ACADEMIA': 'Academia',
-    'CAMPO_FUTEBOL': 'Campo de Futebol'
-  };
+  readonly skeletonItems = [1, 2, 3, 4];
+
+  readonly typeFilters: { value: TypeFilter; label: string; icon: string }[] = [
+    { value: 'ALL', label: 'Todas', icon: 'lucideLayoutGrid' },
+    { value: 'SALAO_FESTAS', label: 'Salão', icon: 'lucidePartyPopper' },
+    { value: 'CHURRASQUEIRA', label: 'Churrasqueira', icon: 'lucideFlame' },
+    { value: 'ACADEMIA', label: 'Academia', icon: 'lucideDumbbell' },
+    { value: 'CAMPO_FUTEBOL', label: 'Campo', icon: 'lucideGoal' },
+    { value: 'TELEVISAO', label: 'TV', icon: 'lucideTv' },
+  ];
+
+  get statusFilters(): { value: StatusFilter; label: string }[] {
+    if (this.isEquipmentFilter) {
+      return [
+        { value: 'ALL', label: 'Todas' },
+        { value: 'CONFIRMED', label: 'Confirmadas' },
+        { value: 'IN_USE', label: 'Em uso' },
+        { value: 'RETURNED', label: 'Devolvidas' },
+        { value: 'CANCELED', label: 'Canceladas' },
+      ];
+    }
+
+    return [
+      { value: 'ALL', label: 'Todas' },
+      { value: 'PENDING', label: 'Pendentes' },
+      { value: 'APPROVED', label: 'Aprovadas' },
+    ];
+  }
 
   get isEquipmentFilter(): boolean {
     return this.typeFilter === 'TELEVISAO';
@@ -496,7 +180,6 @@ export class ReservationsTabPage implements OnInit, ViewWillEnter {
     this.shell.setExpandContent(null);
   }
 
-  /** Permite chegar via `/app/reservations?view=all&status=PENDING` (atalho da Home). */
   private applyQueryParams(): void {
     const params = this.route.snapshot.queryParamMap;
     if (this.isAdmin && params.get('view') === 'all') {
@@ -510,10 +193,11 @@ export class ReservationsTabPage implements OnInit, ViewWillEnter {
 
   loadReservations(): void {
     this.isLoading = true;
+    this.cdr.markForCheck();
     const currentUser = this.authService.getCurrentUser();
 
     if (!currentUser) {
-      this.isLoading = false;
+      this.stopLoading();
       return;
     }
 
@@ -527,14 +211,39 @@ export class ReservationsTabPage implements OnInit, ViewWillEnter {
       : this.equipmentService.listMine()
     ).pipe(catchError(() => of([] as EquipmentReservationResponseDTO[])));
 
-    combineLatest([spaces$, equipment$]).pipe(
-      finalize(() => this.isLoading = false)
+    forkJoin([spaces$, equipment$]).pipe(
+      finalize(() => this.stopLoading())
     ).subscribe(([spaces, equipment]) => {
       this.reservations = spaces;
       this.equipmentReservations = equipment;
       this.allReservations = this.mergeReservations(spaces, equipment);
       this.filterByStatus();
+      this.syncPendingApprovalCount(isAllMode, spaces);
     });
+  }
+
+  private syncPendingApprovalCount(isAllMode: boolean, spaces: ReservationResponseDTO[]): void {
+    if (!this.isAdmin) {
+      this.pendingApprovalCount = 0;
+      return;
+    }
+
+    if (isAllMode) {
+      this.pendingApprovalCount = spaces.filter(r => r.status === ReservationStatus.PENDING).length;
+      return;
+    }
+
+    this.reservationService.getAll().pipe(
+      catchError(() => of([] as ReservationResponseDTO[]))
+    ).subscribe(all => {
+      this.pendingApprovalCount = all.filter(r => r.status === ReservationStatus.PENDING).length;
+      this.cdr.markForCheck();
+    });
+  }
+
+  private stopLoading(): void {
+    this.isLoading = false;
+    this.cdr.markForCheck();
   }
 
   private mergeReservations(spaces: ReservationResponseDTO[], equipment: EquipmentReservationResponseDTO[]): UnifiedReservation[] {
@@ -568,16 +277,34 @@ export class ReservationsTabPage implements OnInit, ViewWillEnter {
       .sort((a, b) => b.date.localeCompare(a.date) || (b.createdAt ?? '').localeCompare(a.createdAt ?? ''));
   }
 
-  onTypeFilterChange(): void {
+  setTypeFilter(value: TypeFilter): void {
+    this.typeFilter = value;
     this.statusFilter = 'ALL';
     this.filterByStatus();
   }
 
-  onViewModeChange(): void {
+  setStatusFilter(value: StatusFilter): void {
+    this.statusFilter = value;
+    this.filterByStatus();
+  }
+
+  setViewMode(mode: 'mine' | 'all'): void {
+    if (this.viewMode === mode) return;
+    this.viewMode = mode;
+    this.shell.configure({
+      title: this.isAdmin && this.viewMode === 'all' ? 'Reservas do Condomínio' : 'Minhas Reservas',
+      subtitle: '',
+      showBack: false,
+      showLogo: true,
+      showLogout: true,
+      headerState: 'compact',
+      progressStep: null,
+      progressTotal: null,
+    });
     this.loadReservations();
   }
 
-  refresh(event: any): void {
+  refresh(event: { target: { complete: () => void } }): void {
     this.loadReservations();
     setTimeout(() => event.target.complete(), 1000);
   }
@@ -590,13 +317,52 @@ export class ReservationsTabPage implements OnInit, ViewWillEnter {
     });
   }
 
-  get pendingCount(): number {
-    return this.reservations.filter(r => r.status === ReservationStatus.PENDING).length;
+  focusPending(): void {
+    this.typeFilter = 'ALL';
+    this.statusFilter = 'PENDING';
+    if (this.viewMode !== 'all') {
+      this.setViewMode('all');
+      return;
+    }
+    this.filterByStatus();
+    this.cdr.markForCheck();
   }
 
-  focusPending(): void {
-    this.statusFilter = 'PENDING';
-    this.filterByStatus();
+  getSpaceImage(reservation: UnifiedReservation): string | null {
+    if (reservation.kind !== 'space') return null;
+    return getSpaceCatalogEntry(reservation.spaceType)?.imageSrc ?? null;
+  }
+
+  getReservationTitle(reservation: UnifiedReservation): string {
+    if (reservation.kind === 'equipment') {
+      return reservation.equipmentName || 'Televisão';
+    }
+    return getSpaceCatalogEntry(reservation.spaceType)?.name || this.getSpaceTypeLabel(reservation.spaceType!);
+  }
+
+  isPendingHighlight(reservation: UnifiedReservation): boolean {
+    return reservation.kind === 'space'
+      && this.isAdmin
+      && this.viewMode === 'all'
+      && reservation.status === 'PENDING';
+  }
+
+  canApprove(reservation: UnifiedReservation): boolean {
+    return reservation.kind === 'space'
+      && this.isAdmin
+      && this.viewMode === 'all'
+      && reservation.status === 'PENDING';
+  }
+
+  canCancelApprovedSpace(reservation: UnifiedReservation): boolean {
+    return reservation.kind === 'space'
+      && this.isAdmin
+      && this.viewMode === 'all'
+      && reservation.status === 'APPROVED';
+  }
+
+  canCancelEquipment(reservation: UnifiedReservation): boolean {
+    return reservation.kind === 'equipment' && reservation.status === 'CONFIRMED';
   }
 
   approveReservation(reservation: UnifiedReservation): void {
@@ -724,11 +490,11 @@ export class ReservationsTabPage implements OnInit, ViewWillEnter {
   getMonth(dateStr: string): string {
     if (!dateStr) return '';
     const date = new Date(dateStr);
-    return date.toLocaleDateString('pt-BR', { month: 'short' });
+    return date.toLocaleDateString('pt-BR', { month: 'short' }).replace('.', '');
   }
 
   getSpaceTypeLabel(type: string): string {
-    return this.spaceTypes[type] || type;
+    return getSpaceCatalogEntry(type)?.name || type;
   }
 
   getStatusLabel(status: string): string {
@@ -743,10 +509,6 @@ export class ReservationsTabPage implements OnInit, ViewWillEnter {
       CANCELED: 'Cancelado'
     };
     return labels[status] || status;
-  }
-
-  getStatusClass(status: string): string {
-    return status.toLowerCase();
   }
 
   formatDate(dateStr: string): string {

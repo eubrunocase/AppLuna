@@ -2,19 +2,22 @@
   display: contents;
 }
 
-.header-icon-btn {
-  color: #f9f6ee !important;
+.header-icon-btn,
+.shell-icon-btn {
+  color: #ffffff !important;
 
   ng-icon {
+    color: #ffffff !important;
     font-size: 1.2rem;
   }
 }
 
 .home-header__logout {
   flex-shrink: 0;
-  color: #f9f6ee !important;
+  color: #ffffff !important;
 
   ng-icon {
+    color: #ffffff !important;
     font-size: 1.15rem;
   }
 }

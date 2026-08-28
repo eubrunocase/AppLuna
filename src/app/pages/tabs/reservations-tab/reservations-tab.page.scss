@@ -1,0 +1,480 @@
+:host {
+  display: block;
+  height: 100%;
+}
+
+.reservations-content {
+  --background: #f9f6ee;
+}
+
+.reservations-shell {
+  position: relative;
+  min-height: 100%;
+  padding: 0 1rem 5.5rem;
+}
+
+.pending-banner {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  width: 100%;
+  margin: 0 0 0.85rem;
+  padding: 0.75rem 0.85rem;
+  border: 1px solid rgba(194, 65, 12, 0.22);
+  border-radius: 1rem;
+  background: #fff4ed;
+  color: #361a14;
+  text-align: left;
+  cursor: pointer;
+}
+
+.pending-banner__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 0.65rem;
+  background: #c2410c;
+  color: #fff7ed;
+  font-size: 1.05rem;
+}
+
+.pending-banner__text {
+  flex: 1;
+  min-width: 0;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  line-height: 1.35;
+}
+
+.pending-banner__text strong {
+  font-size: 0.95rem;
+  font-weight: 700;
+  margin-right: 0.15rem;
+}
+
+.pending-banner__action {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+  flex-shrink: 0;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #c2410c;
+
+  ng-icon {
+    font-size: 0.95rem;
+  }
+}
+
+.view-toggle {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.4rem;
+  margin-bottom: 0.85rem;
+  padding: 0.3rem;
+  border-radius: 0.95rem;
+  background: rgba(192, 92, 70, 0.08);
+}
+
+.view-toggle__btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  height: 2.2rem;
+  border: 0;
+  border-radius: 0.75rem;
+  background: transparent;
+  color: #8a5a4e;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  cursor: pointer;
+
+  ng-icon {
+    font-size: 0.95rem;
+  }
+
+  &--active {
+    background: #ffffff;
+    color: #c05c46;
+    box-shadow: 0 4px 12px rgba(54, 26, 20, 0.08);
+  }
+}
+
+.chip-row {
+  display: flex;
+  gap: 0.45rem;
+  overflow-x: auto;
+  margin: 0 -1rem 0.65rem;
+  padding: 0.1rem 1rem 0.35rem;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+
+  &--status {
+    margin-bottom: 0.95rem;
+  }
+}
+
+.filter-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  flex-shrink: 0;
+  height: 2.15rem;
+  padding: 0 0.85rem;
+  border: 1px solid rgba(192, 92, 70, 0.16);
+  border-radius: 999px;
+  background: #ffffff;
+  color: #6a3327;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+
+  ng-icon {
+    font-size: 0.9rem;
+  }
+
+  &--active {
+    background: #c05c46;
+    border-color: #c05c46;
+    color: #ffffff;
+  }
+
+  &--status {
+    height: 1.95rem;
+    font-size: 0.72rem;
+  }
+}
+
+.reservation-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.reservation-card {
+  margin: 0;
+  padding: 0 !important;
+  gap: 0 !important;
+  --card-spacing: 0 !important;
+  overflow: hidden;
+  background: #ffffff;
+  border: 1px solid rgba(192, 92, 70, 0.12);
+  box-shadow: 0 8px 22px rgba(54, 26, 20, 0.07);
+
+  &--pending {
+    border-color: rgba(227, 168, 71, 0.55);
+    box-shadow: 0 8px 22px rgba(227, 168, 71, 0.16);
+  }
+
+  &--skeleton {
+    pointer-events: none;
+  }
+}
+
+.reservation-card__inner {
+  display: flex;
+  align-items: stretch;
+  gap: 0.85rem;
+  padding: 0.75rem;
+}
+
+.reservation-card__media {
+  position: relative;
+  flex-shrink: 0;
+  width: 5.4rem;
+  height: 5.4rem;
+  overflow: hidden;
+  border-radius: 0.9rem;
+  background: rgba(192, 92, 70, 0.1);
+
+  img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+}
+
+.reservation-card__fallback {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  background: #c05c46;
+  color: #ffffff;
+  font-size: 1.6rem;
+}
+
+.reservation-card__date {
+  position: absolute;
+  left: 0.3rem;
+  bottom: 0.3rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-width: 2.15rem;
+  padding: 0.18rem 0.3rem;
+  border-radius: 0.45rem;
+  background: rgba(54, 26, 20, 0.82);
+  color: #ffffff;
+  line-height: 1;
+}
+
+.reservation-card__day {
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.reservation-card__month {
+  margin-top: 0.1rem;
+  font-size: 0.58rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.reservation-card__body {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 0.28rem;
+  min-width: 0;
+  flex: 1;
+}
+
+.reservation-card__top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.45rem;
+}
+
+.reservation-card__top h3 {
+  margin: 0;
+  min-width: 0;
+  font-size: 0.95rem;
+  font-weight: 700;
+  line-height: 1.25;
+  color: #361a14;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.reservation-card__meta {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin: 0;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: #8a5a4e;
+  line-height: 1.3;
+
+  ng-icon {
+    flex-shrink: 0;
+    font-size: 0.85rem;
+  }
+}
+
+.reservation-card__extra {
+  padding: 0 0.85rem 0.75rem;
+
+  p {
+    margin: 0 0 0.2rem;
+    font-size: 0.72rem;
+    font-weight: 500;
+    color: #8a6a5f;
+  }
+}
+
+.reservation-card__actions {
+  display: flex;
+  gap: 0.5rem;
+  padding: 0 0.75rem 0.75rem;
+}
+
+.reservation-card__skeleton-media {
+  flex-shrink: 0;
+  width: 5.4rem;
+  height: 5.4rem;
+  border-radius: 0.9rem;
+  background: rgba(192, 92, 70, 0.12) !important;
+}
+
+.reservation-card__skeleton-title {
+  width: 68%;
+  height: 0.95rem;
+  border-radius: 999px;
+  background: rgba(192, 92, 70, 0.14) !important;
+}
+
+.reservation-card__skeleton-line {
+  width: 86%;
+  height: 0.7rem;
+  border-radius: 999px;
+  background: rgba(192, 92, 70, 0.1) !important;
+
+  &--short {
+    width: 54%;
+  }
+}
+
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  flex-shrink: 0;
+  height: 1.45rem;
+  padding: 0 0.55rem 0 0.45rem;
+  border-radius: 999px;
+  background: #f4f0ea;
+  font-size: 0.64rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: #57534e;
+}
+
+.status-pill__dot {
+  width: 0.45rem;
+  height: 0.45rem;
+  border-radius: 999px;
+  background: currentColor;
+  flex-shrink: 0;
+}
+
+.status-pill--PENDING {
+  background: #fff4ed;
+  color: #c2410c;
+}
+
+.status-pill--APPROVED {
+  background: #ecfdf5;
+  color: #047857;
+}
+
+.status-pill--CONFIRMED {
+  background: #fff1ee;
+  color: #c05c46;
+}
+
+.status-pill--IN_USE {
+  background: #eff6ff;
+  color: #1d4ed8;
+}
+
+.status-pill--RETURNED {
+  background: #f4f4f5;
+  color: #52525b;
+}
+
+.status-pill--REJECTED,
+.status-pill--CANCELLED,
+.status-pill--CANCELED {
+  background: #fef2f2;
+  color: #b91c1c;
+}
+
+.action-btn {
+  flex: 1;
+  height: 2.35rem !important;
+  border-radius: 0.75rem !important;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  gap: 0.3rem;
+
+  ng-icon {
+    font-size: 0.95rem;
+  }
+}
+
+.action-btn--approve {
+  background: #3d8b5f !important;
+  color: #ffffff !important;
+}
+
+.action-btn--reject,
+.action-btn--cancel {
+  color: #7d3c2e !important;
+  border-color: rgba(125, 60, 46, 0.35) !important;
+}
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3.5rem 1.25rem;
+  text-align: center;
+}
+
+.empty-state__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 4.25rem;
+  height: 4.25rem;
+  margin-bottom: 0.9rem;
+  border-radius: 1.15rem;
+  background: rgba(192, 92, 70, 0.1);
+  color: #c05c46;
+  font-size: 1.85rem;
+}
+
+.empty-state__title {
+  margin: 0 0 0.3rem;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #361a14;
+}
+
+.empty-state__message {
+  margin: 0;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: #8a5a4e;
+}
+
+.reservations-fab {
+  position: fixed;
+  right: 1rem;
+  bottom: var(--app-fab-bottom, 5rem);
+  z-index: 16;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 3.4rem;
+  height: 3.4rem;
+  border: 0;
+  border-radius: 1.05rem;
+  background: #c05c46;
+  color: #ffffff;
+  box-shadow: 0 10px 24px rgba(192, 92, 70, 0.35);
+  cursor: pointer;
+
+  ng-icon {
+    font-size: 1.45rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pending-banner,
+  .filter-chip,
+  .view-toggle__btn,
+  .reservations-fab {
+    transition: none;
+  }
+}

@@ -125,10 +125,11 @@
 }
 
 .shell-icon-btn {
-  color: #f9f6ee !important;
+  color: #ffffff !important;
 }
 
 .shell-icon-btn ng-icon {
+  color: inherit;
   font-size: 1.2rem;
 }
 

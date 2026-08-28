@@ -1,4 +1,4 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, inject, OnInit } from '@angular/core';
 import {
   IonContent,
   ViewWillEnter,
@@ -6,10 +6,12 @@ import {
 } from '@ionic/angular/standalone';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import {
+  lucideArrowRight,
   lucideCalendar,
   lucideClipboardList,
   lucideInfo,
   lucidePackage,
+  lucideTriangleAlert,
 } from '@ng-icons/lucide';
 import { HlmButtonImports } from '@spartan-ng/helm/button';
 import { HlmCardImports } from '@spartan-ng/helm/card';
@@ -38,10 +40,12 @@ interface HomeQuickAction {
   imports: [IonContent, NgIcon, HlmButtonImports, HlmCardImports, HlmSkeletonImports],
   providers: [
     provideIcons({
+      lucideArrowRight,
       lucideClipboardList,
       lucidePackage,
       lucideCalendar,
       lucideInfo,
+      lucideTriangleAlert,
     }),
   ],
 })
@@ -52,6 +56,7 @@ export class HomeTabPage implements OnInit, ViewWillEnter, ViewWillLeave {
   private navigation = inject(AppNavigationService);
   private shell = inject(AppShellService);
   private draft = inject(ReservationDraftService);
+  private cdr = inject(ChangeDetectorRef);
 
   isAdmin = false;
   isEmployee = false;
@@ -281,6 +286,7 @@ export class HomeTabPage implements OnInit, ViewWillEnter, ViewWillLeave {
 
   private loadStats(): void {
     this.isLoadingStats = true;
+    this.cdr.markForCheck();
 
     const deliveries$ = this.deliveryService.findAll().pipe(
       catchError(() => of([])),
@@ -288,9 +294,7 @@ export class HomeTabPage implements OnInit, ViewWillEnter, ViewWillLeave {
 
     if (!this.canSeeReservationsSummary) {
       deliveries$
-        .pipe(finalize(() => {
-          this.isLoadingStats = false;
-        }))
+        .pipe(finalize(() => this.stopStatsLoading()))
         .subscribe((deliveries) => {
           this.pendingDeliveries = deliveries.filter(
             (d: { status: string }) => d.status === 'PENDING',
@@ -308,9 +312,7 @@ export class HomeTabPage implements OnInit, ViewWillEnter, ViewWillLeave {
       deliveries: deliveries$,
       reservations: reservations$.pipe(catchError(() => of([]))),
     })
-      .pipe(finalize(() => {
-        this.isLoadingStats = false;
-      }))
+      .pipe(finalize(() => this.stopStatsLoading()))
       .subscribe(({ deliveries, reservations }) => {
         this.pendingDeliveries = deliveries.filter(
           (d: { status: string }) => d.status === 'PENDING',
@@ -324,5 +326,10 @@ export class HomeTabPage implements OnInit, ViewWillEnter, ViewWillLeave {
           ).length;
         }
       });
+  }
+
+  private stopStatsLoading(): void {
+    this.isLoadingStats = false;
+    this.cdr.markForCheck();
   }
 }

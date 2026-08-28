@@ -13,34 +13,11 @@ import { AppShellService } from '../../core/shell/app-shell.service';
 import { SpaceService } from '../../services/space.service';
 import { UiService } from '../../shared/services/ui.service';
 import { SpaceInfo } from '../../core/models/reservation.model';
-import { SpaceType } from '../../core/models/enums';
 import {
   ReservationDraftService,
   ReservationSpaceDraft,
 } from './reservation-draft.service';
-
-const SPACE_CATALOG: Record<string, Omit<ReservationSpaceDraft, 'id' | 'type'>> = {
-  [SpaceType.SALAO_FESTAS]: {
-    name: 'Salão de Festas',
-    description: 'Para eventos e comemorações',
-    imageSrc: 'assets/images/spaces/salao-festas.jpg',
-  },
-  [SpaceType.CHURRASQUEIRA]: {
-    name: 'Churrasqueira',
-    description: 'Para confraternizações',
-    imageSrc: 'assets/images/spaces/churrasqueira.jpg',
-  },
-  [SpaceType.ACADEMIA]: {
-    name: 'Academia',
-    description: 'Treinos e exercícios',
-    imageSrc: 'assets/images/spaces/academia.jpg',
-  },
-  [SpaceType.CAMPO_FUTEBOL]: {
-    name: 'Campo de Futebol',
-    description: 'Jogos e esportes',
-    imageSrc: 'assets/images/spaces/campo-futebol.jpg',
-  },
-};
+import { getSpaceCatalogEntry } from './space-catalog';
 
 @Component({
   selector: 'app-reservation-space-step',
@@ -151,7 +128,7 @@ export class ReservationSpaceStepPage implements ViewWillEnter {
 
   private toSpaceOption(id: number, type: string): ReservationSpaceDraft | null {
     const normalizedType = type.trim().toUpperCase();
-    const catalog = SPACE_CATALOG[normalizedType];
+    const catalog = getSpaceCatalogEntry(normalizedType);
     if (!catalog) return null;
     return { id, type: normalizedType, ...catalog };
   }
