@@ -26,6 +26,10 @@
   border-radius: 1rem;
   background: #fff;
   border: 1px solid rgba(54, 26, 20, 0.08);
+
+  &--hidden {
+    display: none;
+  }
 }
 
 .luna-time-slot-picker__wheel-col {
@@ -156,5 +160,9 @@
   &:disabled {
     opacity: 0.35;
     cursor: not-allowed;
+  }
+
+  &--all-day {
+    grid-column: 1 / -1;
   }
 }

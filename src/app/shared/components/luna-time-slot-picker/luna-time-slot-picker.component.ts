@@ -18,6 +18,7 @@ export interface LunaTimeSlotSelection {
   startTime: string;
   endTime: string;
   durationHours: number;
+  allDay: boolean;
 }
 
 const DURATION_OPTIONS = [1, 2, 3, 4] as const;
@@ -41,6 +42,7 @@ export class LunaTimeSlotPickerComponent implements AfterViewInit {
   readonly selectedHour = signal(10);
   readonly selectedMinute = signal(0);
   readonly selectedDuration = signal(2);
+  readonly allDay = signal(false);
 
   readonly durationOptions = DURATION_OPTIONS;
 
@@ -53,6 +55,9 @@ export class LunaTimeSlotPickerComponent implements AfterViewInit {
   readonly endTimeLabel = computed(() => this.addHours(this.startTimeLabel(), this.selectedDuration()));
 
   readonly slotSummary = computed(() => {
+    if (this.allDay()) {
+      return 'Dia inteiro · 00:00 – 23:59';
+    }
     const duration = this.selectedDuration();
     const durationLabel = duration === 1 ? '1 hora' : `${duration} horas`;
     return `${this.startTimeLabel()} – ${this.endTimeLabel()} · ${durationLabel}`;
@@ -91,7 +96,13 @@ export class LunaTimeSlotPickerComponent implements AfterViewInit {
     if (!this.isDurationAvailable(hours)) {
       return;
     }
+    this.allDay.set(false);
     this.selectedDuration.set(hours);
+    this.emitSlot();
+  }
+
+  setAllDay(): void {
+    this.allDay.set(true);
     this.emitSlot();
   }
 
@@ -124,6 +135,9 @@ export class LunaTimeSlotPickerComponent implements AfterViewInit {
 
         this.clampDuration();
         this.syncAllWheels(true);
+        if (this.allDay()) {
+          this.allDay.set(false);
+        }
         this.emitSlot();
       }, 80),
     );
@@ -141,6 +155,9 @@ export class LunaTimeSlotPickerComponent implements AfterViewInit {
   }
 
   private clampDuration(): void {
+    if (this.allDay()) {
+      return;
+    }
     const current = this.selectedDuration();
     if (this.isDurationAvailable(current)) {
       return;
@@ -194,10 +211,21 @@ export class LunaTimeSlotPickerComponent implements AfterViewInit {
   }
 
   private emitSlot(): void {
+    if (this.allDay()) {
+      this.slotChange.emit({
+        startTime: '00:00',
+        endTime: '23:59',
+        durationHours: 24,
+        allDay: true,
+      });
+      return;
+    }
+
     this.slotChange.emit({
       startTime: this.startTimeLabel(),
       endTime: this.endTimeLabel(),
       durationHours: this.selectedDuration(),
+      allDay: false,
     });
   }
 

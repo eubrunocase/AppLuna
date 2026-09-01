@@ -1,7 +1,10 @@
 <div class="luna-time-slot-picker" role="group" aria-label="Selecione o horário">
   <p class="luna-time-slot-picker__summary">{{ slotSummary() }}</p>
 
-  <div class="luna-time-slot-picker__wheels">
+  <div
+    class="luna-time-slot-picker__wheels"
+    [class.luna-time-slot-picker__wheels--hidden]="allDay()"
+  >
     <div class="luna-time-slot-picker__wheel-col">
       <span class="luna-time-slot-picker__wheel-label">Início</span>
       <div class="luna-time-slot-picker__wheel-mask">
@@ -45,14 +48,24 @@
           type="button"
           role="radio"
           class="duration-chip"
-          [class.duration-chip--active]="selectedDuration() === hours"
-          [attr.aria-checked]="selectedDuration() === hours"
+          [class.duration-chip--active]="!allDay() && selectedDuration() === hours"
+          [attr.aria-checked]="!allDay() && selectedDuration() === hours"
           [disabled]="!isDurationAvailable(hours)"
           (click)="setDuration(hours)"
         >
           {{ hours }}h
         </button>
       }
+      <button
+        type="button"
+        role="radio"
+        class="duration-chip duration-chip--all-day"
+        [class.duration-chip--active]="allDay()"
+        [attr.aria-checked]="allDay()"
+        (click)="setAllDay()"
+      >
+        Dia inteiro
+      </button>
     </div>
   </div>
 </div>
