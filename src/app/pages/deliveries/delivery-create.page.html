@@ -1,84 +1,297 @@
-<ion-content class="shell-page-content delivery-create-content">
-  <div class="delivery-create-shell">
-    <form [formGroup]="form" (ngSubmit)="onSubmit()" novalidate>
-      <hlm-field-group>
-        <hlm-field>
-          <label hlmFieldLabel for="delivery-user">Destinatário</label>
-          <app-searchable-combobox
-            inputId="delivery-user"
-            formControlName="user"
-            [options]="residentOptions()"
-            placeholder="Buscar morador pelo nome"
-            emptyMessage="Nenhum morador encontrado"
-            [invalid]="!!(form.get('user')?.touched && form.get('user')?.invalid)"
-          />
-          @if (form.get('user')?.touched && form.get('user')?.invalid) {
-            <hlm-field-error [forceShow]="true">Selecione o destinatário</hlm-field-error>
+<ion-content class="shell-page-content delivery-flow-content">
+  <div class="delivery-flow-shell">
+    @switch (step()) {
+      @case (1) {
+        <section class="delivery-step" aria-labelledby="delivery-step-1-title">
+          <header class="section-header">
+            <span class="section-step" aria-hidden="true">1</span>
+            <div>
+              <h2 id="delivery-step-1-title" class="section-title">Quem vai receber?</h2>
+              <p class="section-subtitle">Busque o morador destinatário da encomenda</p>
+            </div>
+          </header>
+
+          <div class="recipient-mode" role="tablist" aria-label="Tipo de destinatário">
+            <button
+              type="button"
+              role="tab"
+              class="recipient-mode__btn"
+              [class.recipient-mode__btn--active]="recipientMode() === 'resident'"
+              [attr.aria-selected]="recipientMode() === 'resident'"
+              (click)="setRecipientMode('resident')"
+            >
+              <ng-icon name="lucideUser" />
+              Morador
+            </button>
+            <button
+              type="button"
+              role="tab"
+              class="recipient-mode__btn"
+              [class.recipient-mode__btn--active]="recipientMode() === 'custom'"
+              [attr.aria-selected]="recipientMode() === 'custom'"
+              (click)="setRecipientMode('custom')"
+            >
+              <ng-icon name="lucideUserPlus" />
+              Nome avulso
+            </button>
+          </div>
+
+          <div class="recipient-field">
+            <label hlmFieldLabel for="delivery-recipient">
+              {{ recipientMode() === 'resident' ? 'Destinatário' : 'Nome do destinatário' }}
+            </label>
+
+            @if (recipientMode() === 'resident') {
+              <app-searchable-combobox
+                inputId="delivery-recipient"
+                [formControl]="recipientControl"
+                [options]="residentOptions()"
+                placeholder="Buscar morador pelo nome"
+                emptyMessage="Nenhum morador encontrado"
+              />
+            } @else {
+              <input
+                hlmInput
+                id="delivery-recipient"
+                type="text"
+                class="delivery-input"
+                placeholder="Ex: João Silva, visitante…"
+                [value]="customRecipientName()"
+                (input)="customRecipientName.set($any($event.target).value)"
+              />
+            }
+          </div>
+
+          <div class="delivery-hero" aria-hidden="true">
+            <img
+              class="delivery-hero__image"
+              src="assets/icons/quick-access/encomendas.svg"
+              alt=""
+            />
+            <p class="delivery-hero__title">Entrega registrada, morador avisado</p>
+            <p class="delivery-hero__text">
+              Ao concluir o cadastro, o destinatário recebe a notificação e pode retirar a encomenda na portaria.
+            </p>
+          </div>
+        </section>
+      }
+
+      @case (2) {
+        <section class="delivery-step" aria-labelledby="delivery-step-2-title">
+          <header class="section-header">
+            <span class="section-step" aria-hidden="true">2</span>
+            <div>
+              <h2 id="delivery-step-2-title" class="section-title">Dados da encomenda</h2>
+              <p class="section-subtitle">Protocolo e descrição são opcionais — pode pular se quiser</p>
+            </div>
+          </header>
+
+          @if (recipientLabel(); as label) {
+            <div hlmCard size="sm" class="selected-resident-summary">
+              <div hlmCardContent class="selected-resident-summary__inner">
+                <span class="selected-resident-summary__label">Destinatário</span>
+                <span class="selected-resident-summary__name">{{ label }}</span>
+                @if (recipientMode() === 'custom') {
+                  <span class="selected-resident-summary__tag">Nome avulso</span>
+                }
+              </div>
+            </div>
           }
-        </hlm-field>
 
-        <hlm-field>
-          <label hlmFieldLabel for="delivery-protocol">Número de Protocolo</label>
-          <div class="input-with-icon">
-            <ng-icon name="lucideBarcode" class="field-icon" aria-hidden="true" />
-            <input
-              hlmInput
-              id="delivery-protocol"
-              type="text"
-              formControlName="protocolNumber"
-              placeholder="Ex: 202406001 (opcional)"
-              class="delivery-input pl-9"
-            />
+          <form [formGroup]="detailsForm" class="delivery-form">
+            <hlm-field>
+              <label hlmFieldLabel for="delivery-protocol">Número de protocolo (opcional)</label>
+              <div class="input-with-icon">
+                <ng-icon name="lucideBarcode" class="field-icon" aria-hidden="true" />
+                <input
+                  hlmInput
+                  id="delivery-protocol"
+                  type="text"
+                  formControlName="protocolNumber"
+                  placeholder="Ex: 202406001"
+                  class="delivery-input pl-9"
+                />
+              </div>
+            </hlm-field>
+
+            <hlm-field>
+              <label hlmFieldLabel for="delivery-description">Descrição (opcional)</label>
+              <div class="input-with-icon">
+                <ng-icon name="lucidePackage" class="field-icon" aria-hidden="true" />
+                <input
+                  hlmInput
+                  id="delivery-description"
+                  type="text"
+                  formControlName="discrimination"
+                  placeholder="Ex: Caixa, envelope, sacola…"
+                  class="delivery-input pl-9"
+                />
+              </div>
+            </hlm-field>
+          </form>
+        </section>
+      }
+
+      @case (3) {
+        <section class="delivery-step" aria-labelledby="delivery-step-3-title">
+          <header class="section-header">
+            <span class="section-step" aria-hidden="true">3</span>
+            <div>
+              <h2 id="delivery-step-3-title" class="section-title">Foto da encomenda</h2>
+              <p class="section-subtitle">Registre uma foto para comprovação na portaria</p>
+            </div>
+          </header>
+
+          <div class="photo-panel">
+            @if (photoPreview()) {
+              <div class="photo-preview">
+                <img [src]="photoPreview()" alt="Prévia da encomenda" />
+                <div class="photo-actions">
+                  <button
+                    hlmBtn
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    class="photo-actions__btn"
+                    [disabled]="isCapturingPhoto()"
+                    (click)="capturePhoto()"
+                  >
+                    <ng-icon name="lucideCamera" />
+                    Nova foto
+                  </button>
+                  <button
+                    hlmBtn
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    class="photo-actions__btn"
+                    [disabled]="isCapturingPhoto()"
+                    (click)="pickPhotoFromGallery()"
+                  >
+                    <ng-icon name="lucideImage" />
+                    Galeria
+                  </button>
+                </div>
+              </div>
+            } @else {
+              <div class="photo-upload-options">
+                <button
+                  type="button"
+                  class="photo-upload"
+                  [disabled]="isCapturingPhoto()"
+                  (click)="capturePhoto()"
+                >
+                  <span class="photo-upload__icon" aria-hidden="true">
+                    @if (isCapturingPhoto()) {
+                      <hlm-spinner aria-label="Abrindo câmera" />
+                    } @else {
+                      <ng-icon name="lucideCamera" />
+                    }
+                  </span>
+                  <span class="photo-upload__title">Tirar foto</span>
+                  <span class="photo-upload__hint">Usa a câmera nativa do dispositivo</span>
+                </button>
+
+                <button
+                  type="button"
+                  class="photo-upload photo-upload--secondary"
+                  [disabled]="isCapturingPhoto()"
+                  (click)="pickPhotoFromGallery()"
+                >
+                  <span class="photo-upload__icon" aria-hidden="true">
+                    <ng-icon name="lucideImage" />
+                  </span>
+                  <span class="photo-upload__title">Escolher da galeria</span>
+                  <span class="photo-upload__hint">Selecione uma foto existente</span>
+                </button>
+              </div>
+            }
           </div>
-        </hlm-field>
+        </section>
+      }
 
-        <hlm-field>
-          <label hlmFieldLabel for="delivery-description">Descrição</label>
-          <div class="input-with-icon">
-            <ng-icon name="lucidePackage" class="field-icon" aria-hidden="true" />
-            <input
-              hlmInput
-              id="delivery-description"
-              type="text"
-              formControlName="discrimination"
-              placeholder="Ex: Caixa, envelope, sacola… (opcional)"
-              class="delivery-input pl-9"
-            />
+      @case (4) {
+        <section class="delivery-step delivery-step--success" role="status">
+          <div class="success-panel">
+            <span class="success-panel__icon" aria-hidden="true">
+              <ng-icon name="lucideCircleCheck" />
+            </span>
+            <h2 class="success-panel__title">Encomenda registrada!</h2>
+            <p class="success-panel__text">
+              O morador foi notificado. Deseja registrar outra encomenda ou voltar à gestão?
+            </p>
           </div>
-        </hlm-field>
+        </section>
+      }
+    }
+  </div>
 
-        <hlm-field>
-          <label hlmFieldLabel for="delivery-recipient">Recebido por (portaria)</label>
-          <div class="input-with-icon">
-            <ng-icon name="lucideShieldCheck" class="field-icon" aria-hidden="true" />
-            <input
-              hlmInput
-              id="delivery-recipient"
-              type="text"
-              formControlName="otherRecipient"
-              placeholder="Nome de quem recebeu (opcional)"
-              class="delivery-input pl-9"
-            />
-          </div>
-        </hlm-field>
-      </hlm-field-group>
-
-      <div class="form-actions">
+  <div slot="fixed" class="delivery-actions">
+    @switch (step()) {
+      @case (1) {
         <button
           hlmBtn
-          type="submit"
+          type="button"
           class="submit-btn"
-          [disabled]="isSubmitting || form.invalid"
+          [disabled]="!canProceedStep1()"
+          (click)="goToStep(2)"
         >
-          @if (isSubmitting) {
-            <hlm-spinner aria-label="Registrando encomenda" />
-            Registrando...
-          } @else {
-            <ng-icon name="lucidePlusCircle" />
-            Registrar Encomenda
-          }
+          <span>Continuar</span>
+          <ng-icon name="lucideArrowRight" />
         </button>
-      </div>
-    </form>
+      }
+      @case (2) {
+        <div class="form-footer form-footer--split">
+          <button hlmBtn type="button" variant="outline" class="back-btn" (click)="goToStep(1)">
+            <ng-icon name="lucideArrowLeft" />
+            <span>Voltar</span>
+          </button>
+          <button
+            hlmBtn
+            type="button"
+            class="submit-btn submit-btn--compact"
+            (click)="goToStep(3)"
+          >
+            <span>Continuar</span>
+            <ng-icon name="lucideArrowRight" />
+          </button>
+        </div>
+      }
+      @case (3) {
+        <div class="form-footer form-footer--split">
+          <button hlmBtn type="button" variant="outline" class="back-btn" (click)="goToStep(2)">
+            <ng-icon name="lucideArrowLeft" />
+            <span>Voltar</span>
+          </button>
+          <button
+            hlmBtn
+            type="button"
+            class="submit-btn submit-btn--compact"
+            [disabled]="!photoBase64() || isSubmitting()"
+            (click)="submitDelivery()"
+          >
+            @if (isSubmitting()) {
+              <hlm-spinner aria-label="Registrando encomenda" />
+              <span>Registrando...</span>
+            } @else {
+              <ng-icon name="lucideCheck" />
+              <span>Registrar</span>
+            }
+          </button>
+        </div>
+      }
+      @case (4) {
+        <div class="form-footer form-footer--split">
+          <button hlmBtn type="button" variant="outline" class="back-btn" (click)="registerAnother()">
+            <ng-icon name="lucidePlus" />
+            <span>Nova encomenda</span>
+          </button>
+          <button hlmBtn type="button" class="submit-btn submit-btn--compact" (click)="finish()">
+            <ng-icon name="lucideCheck" />
+            <span>Finalizar</span>
+          </button>
+        </div>
+      }
+    }
   </div>
 </ion-content>

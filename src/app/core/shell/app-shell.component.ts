@@ -126,18 +126,26 @@ export class AppShellComponent implements OnInit, AfterViewInit, OnDestroy {
     return this.activeTab === tab;
   }
 
+  progressSteps(): number[] {
+    const total = this.shell.progressTotal();
+    if (!total || total < 1) return [];
+    return Array.from({ length: total }, (_, index) => index + 1);
+  }
+
   private syncFromUrl(url: string): void {
     this.activeTab = resolveTabFromUrl(url);
     this.tabStacks.setActiveTab(this.activeTab);
     this.tabStacks.remember(url);
-    if (!this.isReservationFlowUrl(url)) {
+    if (!this.isFlowWithProgress(url)) {
       this.shell.clearProgress();
     }
   }
 
-  private isReservationFlowUrl(url: string): boolean {
+  private isFlowWithProgress(url: string): boolean {
     const path = url.split('?')[0];
-    return /\/reservation(s)?\/new\/(space|date)/.test(path);
+    return /\/reservation(s)?\/new\/(space|date)/.test(path)
+      || /\/deliveries\/new/.test(path)
+      || /\/home\/deliveries\/manage\/new/.test(path);
   }
 
   private refreshRoleVisibility(): void {

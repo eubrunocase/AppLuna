@@ -5,7 +5,7 @@ import { DeliveryStatus } from './enums';
  * Both POST /delivery/create and PUT /delivery/update/{id} use this shape.
  */
 export interface RequestDeliveryDTO {
-  user: string;
+  user?: string | null;
   protocolNumber?: string | null;
   discrimination?: string | null;
   /** Sent as base64 string — Jackson decodes to byte[]. */

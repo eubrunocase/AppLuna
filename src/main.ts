@@ -1,4 +1,7 @@
+import { defineCustomElements } from '@ionic/pwa-elements/loader';
 import { bootstrapApplication } from '@angular/platform-browser';
+
+defineCustomElements(window);
 import { RouteReuseStrategy, provideRouter, withPreloading, PreloadAllModules } from '@angular/router';
 import { IonicRouteStrategy, provideIonicAngular } from '@ionic/angular/standalone';
 import { provideHttpClient, withInterceptors } from '@angular/common/http';

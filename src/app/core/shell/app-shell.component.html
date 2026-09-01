@@ -50,23 +50,27 @@
     </div>
 
     @if (shell.progressStep() !== null && shell.progressTotal() !== null) {
-      <div class="shell-header__progress" aria-hidden="true">
-        <span
-          class="shell-header__progress-item"
-          [class.shell-header__progress-item--active]="shell.progressStep()! >= 1"
-        >
-          1
-        </span>
-        <span
-          class="shell-header__progress-line"
-          [class.shell-header__progress-line--active]="shell.progressStep()! >= 2"
-        ></span>
-        <span
-          class="shell-header__progress-item"
-          [class.shell-header__progress-item--active]="shell.progressStep()! >= 2"
-        >
-          2
-        </span>
+      <div
+        class="shell-header__progress"
+        [attr.aria-valuenow]="shell.progressStep()"
+        [attr.aria-valuemax]="shell.progressTotal()"
+        role="progressbar"
+        [attr.aria-label]="'Etapa ' + shell.progressStep() + ' de ' + shell.progressTotal()"
+      >
+        @for (step of progressSteps(); track step; let last = $last) {
+          <span
+            class="shell-header__progress-item"
+            [class.shell-header__progress-item--active]="shell.progressStep()! >= step"
+          >
+            {{ step }}
+          </span>
+          @if (!last) {
+            <span
+              class="shell-header__progress-line"
+              [class.shell-header__progress-line--active]="shell.progressStep()! >= step + 1"
+            ></span>
+          }
+        }
       </div>
     }
 
