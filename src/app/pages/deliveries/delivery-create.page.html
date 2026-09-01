@@ -1,0 +1,84 @@
+<ion-content class="shell-page-content delivery-create-content">
+  <div class="delivery-create-shell">
+    <form [formGroup]="form" (ngSubmit)="onSubmit()" novalidate>
+      <hlm-field-group>
+        <hlm-field>
+          <label hlmFieldLabel for="delivery-user">Destinatário</label>
+          <app-searchable-combobox
+            inputId="delivery-user"
+            formControlName="user"
+            [options]="residentOptions()"
+            placeholder="Buscar morador pelo nome"
+            emptyMessage="Nenhum morador encontrado"
+            [invalid]="!!(form.get('user')?.touched && form.get('user')?.invalid)"
+          />
+          @if (form.get('user')?.touched && form.get('user')?.invalid) {
+            <hlm-field-error [forceShow]="true">Selecione o destinatário</hlm-field-error>
+          }
+        </hlm-field>
+
+        <hlm-field>
+          <label hlmFieldLabel for="delivery-protocol">Número de Protocolo</label>
+          <div class="input-with-icon">
+            <ng-icon name="lucideBarcode" class="field-icon" aria-hidden="true" />
+            <input
+              hlmInput
+              id="delivery-protocol"
+              type="text"
+              formControlName="protocolNumber"
+              placeholder="Ex: 202406001 (opcional)"
+              class="delivery-input pl-9"
+            />
+          </div>
+        </hlm-field>
+
+        <hlm-field>
+          <label hlmFieldLabel for="delivery-description">Descrição</label>
+          <div class="input-with-icon">
+            <ng-icon name="lucidePackage" class="field-icon" aria-hidden="true" />
+            <input
+              hlmInput
+              id="delivery-description"
+              type="text"
+              formControlName="discrimination"
+              placeholder="Ex: Caixa, envelope, sacola… (opcional)"
+              class="delivery-input pl-9"
+            />
+          </div>
+        </hlm-field>
+
+        <hlm-field>
+          <label hlmFieldLabel for="delivery-recipient">Recebido por (portaria)</label>
+          <div class="input-with-icon">
+            <ng-icon name="lucideShieldCheck" class="field-icon" aria-hidden="true" />
+            <input
+              hlmInput
+              id="delivery-recipient"
+              type="text"
+              formControlName="otherRecipient"
+              placeholder="Nome de quem recebeu (opcional)"
+              class="delivery-input pl-9"
+            />
+          </div>
+        </hlm-field>
+      </hlm-field-group>
+
+      <div class="form-actions">
+        <button
+          hlmBtn
+          type="submit"
+          class="submit-btn"
+          [disabled]="isSubmitting || form.invalid"
+        >
+          @if (isSubmitting) {
+            <hlm-spinner aria-label="Registrando encomenda" />
+            Registrando...
+          } @else {
+            <ng-icon name="lucidePlusCircle" />
+            Registrar Encomenda
+          }
+        </button>
+      </div>
+    </form>
+  </div>
+</ion-content>

@@ -1,0 +1,137 @@
+<ion-content class="shell-page-content deliveries-content">
+  <ion-refresher slot="fixed" (ionRefresh)="refresh($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+
+  <div class="deliveries-shell">
+    <div class="chip-row" role="tablist" aria-label="Status da entrega">
+      @for (filter of statusFilters; track filter.value) {
+        <button
+          type="button"
+          class="filter-chip"
+          [class.filter-chip--active]="statusFilter === filter.value"
+          (click)="setStatusFilter(filter.value)"
+        >
+          <ng-icon [name]="filter.icon" />
+          {{ filter.label }}
+        </button>
+      }
+    </div>
+
+    @if (isLoading) {
+      <div class="delivery-list" role="status" aria-label="Carregando entregas">
+        @for (item of skeletonItems; track item) {
+          <div hlmCard size="sm" class="delivery-card delivery-card--skeleton" aria-hidden="true">
+            <div class="delivery-card__inner">
+              <span hlmSkeleton class="delivery-card__skeleton-icon"></span>
+              <div class="delivery-card__body">
+                <span hlmSkeleton class="delivery-card__skeleton-title"></span>
+                <span hlmSkeleton class="delivery-card__skeleton-line"></span>
+                <span hlmSkeleton class="delivery-card__skeleton-line delivery-card__skeleton-line--short"></span>
+              </div>
+            </div>
+          </div>
+        }
+      </div>
+    } @else if (filteredDeliveries.length > 0) {
+      <div class="delivery-list">
+        @for (delivery of filteredDeliveries; track delivery.id) {
+          <article
+            hlmCard
+            size="sm"
+            class="delivery-card"
+            [class.delivery-card--pending]="delivery.status === 'PENDING'"
+          >
+            <div class="delivery-card__inner">
+              <div
+                class="delivery-card__icon"
+                [class.delivery-card__icon--pending]="delivery.status === 'PENDING'"
+                aria-hidden="true"
+              >
+                <ng-icon name="lucidePackage" />
+              </div>
+
+              <div class="delivery-card__body">
+                <div class="delivery-card__top">
+                  <h3>{{ delivery.discrimination || 'Encomenda' }}</h3>
+                  <span [class]="'status-pill status-pill--' + delivery.status">
+                    <span class="status-pill__dot" aria-hidden="true"></span>
+                    {{ getStatusLabel(delivery.status) }}
+                  </span>
+                </div>
+
+                @if (delivery.protocolNumber) {
+                  <p class="delivery-card__meta">
+                    <ng-icon name="lucideBarcode" />
+                    {{ delivery.protocolNumber }}
+                  </p>
+                }
+
+                <p class="delivery-card__meta">
+                  <ng-icon name="lucideClock" />
+                  {{ formatDate(delivery.createdAt) }}
+                </p>
+
+                @if (delivery.pickedUpBy) {
+                  <p class="delivery-card__meta delivery-card__meta--success">
+                    <ng-icon name="lucideCircleCheck" />
+                    Retirado por {{ delivery.pickedUpBy }}
+                  </p>
+                }
+              </div>
+            </div>
+
+            @if (canConfirm && delivery.status === 'PENDING') {
+              <div class="delivery-card__actions">
+                <button
+                  hlmBtn
+                  type="button"
+                  class="action-btn action-btn--confirm"
+                  [disabled]="processingId === delivery.id"
+                  (click)="confirmReceipt(delivery)"
+                >
+                  @if (processingId === delivery.id) {
+                    <hlm-spinner aria-label="Confirmando recebimento" />
+                    Confirmando...
+                  } @else {
+                    <ng-icon name="lucideCheck" />
+                    Marcar como recebida
+                  }
+                </button>
+              </div>
+            }
+          </article>
+        }
+      </div>
+    } @else {
+      <div class="empty-state" role="status">
+        <span class="empty-state__icon" aria-hidden="true">
+          <ng-icon name="lucidePackageOpen" />
+        </span>
+        <p class="empty-state__title">Nenhuma entrega</p>
+        <p class="empty-state__message">Suas encomendas aparecerão aqui</p>
+      </div>
+    }
+  </div>
+
+  <app-confirm-dialog
+    #confirmDialog
+    [title]="confirmTitle"
+    [description]="confirmDescription"
+    [confirmLabel]="confirmLabel"
+    [icon]="confirmIcon"
+    (confirmed)="confirmDialogAction()"
+  />
+
+  @if (canCreate) {
+    <button
+      slot="fixed"
+      type="button"
+      class="deliveries-fab"
+      aria-label="Nova encomenda"
+      (click)="openCreate()"
+    >
+      <ng-icon name="lucidePlus" />
+    </button>
+  }
+</ion-content>

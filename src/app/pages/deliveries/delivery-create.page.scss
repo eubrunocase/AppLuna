@@ -1,0 +1,82 @@
+:host {
+  display: block;
+  height: 100%;
+}
+
+.delivery-create-content {
+  --background: #f9f6ee;
+}
+
+.delivery-create-shell {
+  padding: 0 1rem 2rem;
+}
+
+.input-with-icon {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.field-icon {
+  position: absolute;
+  left: 0.85rem;
+  z-index: 1;
+  font-size: 1rem;
+  color: #c05c46;
+  pointer-events: none;
+}
+
+.delivery-input {
+  width: 100%;
+  height: 2.85rem;
+  border-radius: 0.85rem !important;
+  background: #ffffff !important;
+  border: 1px solid rgba(192, 92, 70, 0.18) !important;
+  color: #361a14 !important;
+  font-size: 0.9375rem;
+
+  &::placeholder {
+    color: #a89088;
+  }
+}
+
+.form-actions {
+  margin-top: 1.75rem;
+}
+
+.submit-btn {
+  width: 100%;
+  height: 3.1rem !important;
+  border-radius: 0.85rem !important;
+  background: #c05c46 !important;
+  color: #f9f6ee !important;
+  font-size: 1rem;
+  font-weight: 700;
+  gap: 0.45rem;
+
+  &:disabled {
+    opacity: 0.55;
+  }
+
+  ng-icon {
+    font-size: 1.1rem;
+  }
+}
+
+::ng-deep hlm-field-label {
+  margin-bottom: 0.4rem;
+  font-size: 0.8125rem !important;
+  font-weight: 700 !important;
+  color: #6a3327 !important;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+::ng-deep hlm-field {
+  margin-bottom: 1.1rem;
+}
+
+::ng-deep hlm-field-error {
+  margin-top: 0.35rem;
+  font-size: 0.75rem;
+}

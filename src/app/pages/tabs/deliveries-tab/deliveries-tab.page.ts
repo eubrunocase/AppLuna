@@ -1,7 +1,26 @@
-import { Component, inject, OnInit } from '@angular/core';
-import { IonicModule, ViewWillEnter } from '@ionic/angular';
-import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+import { ChangeDetectorRef, Component, inject, OnInit, viewChild } from '@angular/core';
+import {
+  IonContent,
+  IonRefresher,
+  IonRefresherContent,
+  ViewWillEnter,
+} from '@ionic/angular/standalone';
+import { NgIcon, provideIcons } from '@ng-icons/core';
+import {
+  lucideBarcode,
+  lucideCheck,
+  lucideCircleCheck,
+  lucideClock,
+  lucideLayoutGrid,
+  lucidePackage,
+  lucidePackageCheck,
+  lucidePackageOpen,
+  lucidePlus,
+} from '@ng-icons/lucide';
+import { HlmButtonImports } from '@spartan-ng/helm/button';
+import { HlmCardImports } from '@spartan-ng/helm/card';
+import { HlmSkeletonImports } from '@spartan-ng/helm/skeleton';
+import { HlmSpinnerImports } from '@spartan-ng/helm/spinner';
 import { DeliveryService } from '../../../services/delivery.service';
 import { AuthService } from '../../../services/auth.service';
 import { UiService } from '../../../shared/services/ui.service';
@@ -9,192 +28,40 @@ import { ResponseDeliveryDTO, DeliveryStatus } from '../../../core/models';
 import { AppNavigationService } from '../../../core/navigation/app-navigation.service';
 import { APP_ROUTES } from '../../../core/navigation/app-routes';
 import { AppShellService } from '../../../core/shell/app-shell.service';
+import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog.component';
 import { catchError, finalize, of } from 'rxjs';
+
+type StatusFilter = 'ALL' | 'PENDING' | 'DELIVERED';
 
 @Component({
   selector: 'app-deliveries-tab',
-  template: `
-    <ion-content class="shell-page-content ion-padding">
-      <div class="tab-filters">
-      <ion-toolbar>
-        <ion-segment [(ngModel)]="statusFilter" (ionChange)="filterByStatus()">
-          <ion-segment-button value="ALL">
-            <ion-label>Todas</ion-label>
-          </ion-segment-button>
-          <ion-segment-button value="PENDING">
-            <ion-label>Pendentes</ion-label>
-          </ion-segment-button>
-          <ion-segment-button value="DELIVERED">
-            <ion-label>Retiradas</ion-label>
-          </ion-segment-button>
-        </ion-segment>
-      </ion-toolbar>
-      </div>
-
-      <ion-refresher slot="fixed" (ionRefresh)="refresh($event)">
-        <ion-refresher-content></ion-refresher-content>
-      </ion-refresher>
-
-      <div *ngIf="isLoading" class="skeleton-list">
-        <div *ngFor="let item of [1,2,3]" class="skeleton-card">
-          <ion-skeleton-text animated style="width: 40%; height: 16px;"></ion-skeleton-text>
-          <ion-skeleton-text animated style="width: 80%; height: 20px; margin-top: 8px;"></ion-skeleton-text>
-          <ion-skeleton-text animated style="width: 60%; height: 14px; margin-top: 8px;"></ion-skeleton-text>
-        </div>
-      </div>
-
-      <ion-list *ngIf="!isLoading && filteredDeliveries.length > 0">
-        <ion-card *ngFor="let delivery of filteredDeliveries" class="delivery-card">
-          <ion-card-content>
-            <div class="delivery-icon" [class.pending]="delivery.status === 'PENDING'">
-              <ion-icon name="cube-outline"></ion-icon>
-            </div>
-
-            <div class="delivery-info">
-              <h3>{{ delivery.discrimination || 'Encomenda' }}</h3>
-              <p *ngIf="delivery.protocolNumber" class="with-icon">
-                <ion-icon name="barcode-outline" class="icon-inline"></ion-icon>
-                {{ delivery.protocolNumber }}
-              </p>
-              <p class="date">
-                <ion-icon name="time-outline" class="icon-inline"></ion-icon>
-                {{ formatDate(delivery.createdAt) }}
-              </p>
-              <p *ngIf="delivery.pickedUpBy" class="picked-up">
-                <ion-icon name="checkmark-circle-outline" class="icon-inline"></ion-icon>
-                Retirado por {{ delivery.pickedUpBy }}
-              </p>
-
-              <ion-button
-                *ngIf="canConfirm && delivery.status === 'PENDING'"
-                size="small"
-                color="success"
-                class="confirm-btn"
-                (click)="confirmReceipt(delivery)">
-                <ion-icon slot="start" name="checkmark-done-outline"></ion-icon>
-                Marcar como recebida
-              </ion-button>
-            </div>
-
-            <ion-chip [class]="'chip-' + getStatusClass(delivery.status)">
-              {{ getStatusLabel(delivery.status) }}
-            </ion-chip>
-          </ion-card-content>
-        </ion-card>
-      </ion-list>
-
-      <div *ngIf="!isLoading && filteredDeliveries.length === 0" class="empty-state">
-        <ion-icon name="cube-outline" class="empty-icon"></ion-icon>
-        <p class="empty-title">Nenhuma entrega</p>
-        <p class="empty-message">Suas encomendas aparecerão aqui</p>
-      </div>
-
-      <ion-fab vertical="bottom" horizontal="end" slot="fixed" *ngIf="canCreate">
-        <ion-fab-button (click)="openCreate()">
-          <ion-icon name="add"></ion-icon>
-        </ion-fab-button>
-      </ion-fab>
-    </ion-content>
-  `,
-  styles: [`
-    .skeleton-list { padding: 0; }
-
-    .skeleton-card {
-      background: rgba(255, 255, 255, 0.12);
-      border: 1px solid rgba(255, 255, 255, 0.22);
-      border-radius: 16px;
-      padding: 16px;
-      margin-bottom: 12px;
-    }
-
-    .delivery-card { margin-bottom: 12px; }
-
-    .delivery-card ion-card-content {
-      display: flex;
-      align-items: flex-start;
-      padding: 16px;
-    }
-
-    .delivery-icon {
-      width: 48px;
-      height: 48px;
-      border-radius: 12px;
-      background: var(--ion-color-success);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin-right: 16px;
-      flex-shrink: 0;
-    }
-
-    .delivery-icon.pending { background: var(--ion-color-warning); }
-
-    .delivery-icon ion-icon { font-size: 24px; color: white; }
-    .delivery-icon.pending ion-icon { color: #000; }
-
-    .delivery-info {
-      flex: 1;
-      min-width: 0;
-    }
-
-    .delivery-info h3 {
-      margin: 0 0 4px 0;
-      font-size: 16px;
-      font-weight: 600;
-      color: #fff8f0;
-    }
-
-    .delivery-info p {
-      margin: 0 0 2px 0;
-      font-size: 13px;
-      color: rgba(255, 248, 240, 0.82);
-      display: flex;
-      align-items: center;
-      gap: 4px;
-    }
-
-    .delivery-info p.with-icon { color: #fff8f0; }
-
-    .icon-inline {
-      font-size: 14px;
-      color: rgba(255, 248, 240, 0.82);
-      flex-shrink: 0;
-    }
-
-    .delivery-info p.with-icon .icon-inline { color: var(--ion-color-primary); }
-
-    .delivery-info .picked-up {
-      color: var(--ion-color-success);
-      font-weight: 500;
-    }
-
-    .confirm-btn {
-      margin-top: 10px;
-      --border-radius: 8px;
-    }
-
-    ion-chip { flex-shrink: 0; }
-
-    .chip-PENDING {
-      --background: var(--ion-color-warning);
-      --color: #000;
-    }
-
-    .chip-DELIVERED {
-      --background: var(--ion-color-success);
-      --color: #fff;
-    }
-
-    .tab-filters {
-      margin: -0.5rem -1rem 0.75rem;
-    }
-
-    ion-fab {
-      bottom: var(--app-fab-bottom, 5rem);
-    }
-  `],
+  templateUrl: './deliveries-tab.page.html',
+  styleUrl: './deliveries-tab.page.scss',
   standalone: true,
-  imports: [IonicModule, CommonModule, FormsModule]
+  imports: [
+    IonContent,
+    IonRefresher,
+    IonRefresherContent,
+    NgIcon,
+    HlmButtonImports,
+    HlmCardImports,
+    HlmSkeletonImports,
+    HlmSpinnerImports,
+    ConfirmDialogComponent,
+  ],
+  providers: [
+    provideIcons({
+      lucideBarcode,
+      lucideCheck,
+      lucideCircleCheck,
+      lucideClock,
+      lucideLayoutGrid,
+      lucidePackage,
+      lucidePackageCheck,
+      lucidePackageOpen,
+      lucidePlus,
+    }),
+  ],
 })
 export class DeliveriesTabPage implements OnInit, ViewWillEnter {
   private deliveryService = inject(DeliveryService);
@@ -202,13 +69,30 @@ export class DeliveriesTabPage implements OnInit, ViewWillEnter {
   private uiService = inject(UiService);
   private navigation = inject(AppNavigationService);
   private shell = inject(AppShellService);
+  private cdr = inject(ChangeDetectorRef);
 
   deliveries: ResponseDeliveryDTO[] = [];
   filteredDeliveries: ResponseDeliveryDTO[] = [];
-  isLoading = false;
-  statusFilter: 'ALL' | 'PENDING' | 'DELIVERED' = 'ALL';
+  isLoading = true;
+  statusFilter: StatusFilter = 'ALL';
   canConfirm = false;
   canCreate = false;
+  processingId: string | null = null;
+
+  confirmTitle = '';
+  confirmDescription = '';
+  confirmLabel = 'Confirmar';
+  confirmIcon = 'lucideCheck';
+  private pendingDelivery: ResponseDeliveryDTO | null = null;
+  private readonly confirmDialog = viewChild.required<ConfirmDialogComponent>('confirmDialog');
+
+  readonly skeletonItems = [1, 2, 3];
+
+  readonly statusFilters: { value: StatusFilter; label: string; icon: string }[] = [
+    { value: 'ALL', label: 'Todas', icon: 'lucideLayoutGrid' },
+    { value: 'PENDING', label: 'Pendentes', icon: 'lucideClock' },
+    { value: 'DELIVERED', label: 'Retiradas', icon: 'lucidePackageCheck' },
+  ];
 
   private currentUserId: string | null = null;
 
@@ -238,19 +122,28 @@ export class DeliveriesTabPage implements OnInit, ViewWillEnter {
     if (!this.currentUserId) return;
 
     this.isLoading = true;
+    this.cdr.markForCheck();
 
     this.deliveryService.findByUser(this.currentUserId).pipe(
       catchError(() => of([])),
-      finalize(() => this.isLoading = false)
+      finalize(() => {
+        this.isLoading = false;
+        this.cdr.markForCheck();
+      })
     ).subscribe(deliveries => {
       this.deliveries = deliveries;
       this.filterByStatus();
     });
   }
 
-  refresh(event: any): void {
+  refresh(event: { target: { complete: () => void } }): void {
     this.loadDeliveries();
     setTimeout(() => event.target.complete(), 1000);
+  }
+
+  setStatusFilter(value: StatusFilter): void {
+    this.statusFilter = value;
+    this.filterByStatus();
   }
 
   filterByStatus(): void {
@@ -261,23 +154,35 @@ export class DeliveriesTabPage implements OnInit, ViewWillEnter {
     }
   }
 
-  async confirmReceipt(delivery: ResponseDeliveryDTO): Promise<void> {
-    const confirmed = await this.uiService.showConfirm(
-      'Confirmar Recebimento',
-      'Deseja marcar esta encomenda como recebida?',
-      'Sim, recebi',
-      'Cancelar'
-    );
+  confirmReceipt(delivery: ResponseDeliveryDTO): void {
+    if (this.processingId) return;
 
-    if (!confirmed) return;
+    this.pendingDelivery = delivery;
+    this.confirmTitle = 'Confirmar Recebimento';
+    this.confirmDescription = 'Deseja marcar esta encomenda como recebida?';
+    this.confirmLabel = 'Sim, recebi';
+    this.confirmIcon = 'lucideCheck';
+    this.cdr.detectChanges();
+    this.confirmDialog().open();
+  }
+
+  confirmDialogAction(): void {
+    const delivery = this.pendingDelivery;
+    this.pendingDelivery = null;
+    if (!delivery) return;
 
     const currentUser = this.authService.getCurrentUser();
     const pickedUpBy = currentUser?.name ?? 'Morador';
 
+    this.processingId = delivery.id;
     this.deliveryService.confirmReceipt(delivery.id, pickedUpBy).pipe(
       catchError(() => {
         this.uiService.showError('Erro ao confirmar recebimento');
         return of(null);
+      }),
+      finalize(() => {
+        this.processingId = null;
+        this.cdr.markForCheck();
       })
     ).subscribe(async result => {
       if (result) {
@@ -293,10 +198,6 @@ export class DeliveriesTabPage implements OnInit, ViewWillEnter {
 
   getStatusLabel(status: DeliveryStatus): string {
     return status === DeliveryStatus.DELIVERED ? 'Retirada' : 'Pendente';
-  }
-
-  getStatusClass(status: DeliveryStatus): string {
-    return status === DeliveryStatus.PENDING ? 'PENDING' : 'DELIVERED';
   }
 
   formatDate(dateStr: string): string {

@@ -1,0 +1,287 @@
+:host {
+  display: block;
+  height: 100%;
+}
+
+.deliveries-content {
+  --background: #f9f6ee;
+}
+
+.deliveries-shell {
+  position: relative;
+  min-height: 100%;
+  padding: 0 1rem 2rem;
+}
+
+.chip-row {
+  display: flex;
+  gap: 0.45rem;
+  overflow-x: auto;
+  margin: 0 -1rem 0.85rem;
+  padding: 0.1rem 1rem 0.35rem;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+.filter-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  flex-shrink: 0;
+  height: 2.15rem;
+  padding: 0 0.85rem;
+  border: 1px solid rgba(192, 92, 70, 0.16);
+  border-radius: 999px;
+  background: #ffffff;
+  color: #6a3327;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+
+  ng-icon {
+    font-size: 0.9rem;
+  }
+
+  &--active {
+    background: #c05c46;
+    border-color: #c05c46;
+    color: #ffffff;
+  }
+}
+
+.create-btn {
+  width: 100%;
+  height: 2.75rem !important;
+  margin-bottom: 0.85rem;
+  border-radius: 0.85rem !important;
+  background: #c05c46 !important;
+  color: #ffffff !important;
+  font-size: 0.875rem;
+  font-weight: 700;
+  gap: 0.4rem;
+
+  ng-icon {
+    font-size: 1rem;
+  }
+}
+
+.delivery-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.delivery-card {
+  margin: 0;
+  padding: 0.85rem !important;
+  gap: 0.65rem !important;
+  --card-spacing: 0 !important;
+  background: #ffffff;
+  border: 1px solid rgba(192, 92, 70, 0.12);
+  box-shadow: 0 8px 22px rgba(54, 26, 20, 0.07);
+
+  &--pending {
+    border-color: rgba(227, 168, 71, 0.55);
+    box-shadow: 0 8px 22px rgba(227, 168, 71, 0.16);
+  }
+
+  &--skeleton {
+    pointer-events: none;
+  }
+}
+
+.delivery-card__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.delivery-card__protocol {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  min-width: 0;
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: #361a14;
+
+  ng-icon {
+    flex-shrink: 0;
+    font-size: 0.95rem;
+    color: #c05c46;
+  }
+}
+
+.delivery-card__details {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.delivery-card__meta {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.35rem;
+  margin: 0;
+  font-size: 0.78rem;
+  font-weight: 500;
+  color: #8a5a4e;
+  line-height: 1.35;
+
+  ng-icon {
+    flex-shrink: 0;
+    margin-top: 0.1rem;
+    font-size: 0.85rem;
+  }
+
+  strong {
+    font-weight: 700;
+    color: #6a3327;
+    margin-right: 0.15rem;
+  }
+
+  &--success {
+    color: #047857;
+
+    strong {
+      color: #047857;
+    }
+  }
+}
+
+.delivery-card__actions {
+  padding-top: 0.15rem;
+}
+
+.action-btn {
+  width: 100%;
+  height: 2.35rem !important;
+  border-radius: 0.75rem !important;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  gap: 0.3rem;
+
+  ng-icon {
+    font-size: 0.95rem;
+  }
+}
+
+.action-btn--confirm {
+  background: #3d8b5f !important;
+  color: #ffffff !important;
+}
+
+.delivery-card__skeleton-protocol {
+  width: 45%;
+  height: 0.95rem;
+  border-radius: 999px;
+  background: rgba(192, 92, 70, 0.14) !important;
+}
+
+.delivery-card__skeleton-badge {
+  width: 4.5rem;
+  height: 1.45rem;
+  border-radius: 999px;
+  background: rgba(192, 92, 70, 0.1) !important;
+}
+
+.delivery-card__skeleton-line {
+  width: 90%;
+  height: 0.7rem;
+  border-radius: 999px;
+  background: rgba(192, 92, 70, 0.1) !important;
+
+  &--short {
+    width: 60%;
+  }
+}
+
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  flex-shrink: 0;
+  height: 1.45rem;
+  padding: 0 0.55rem 0 0.45rem;
+  border-radius: 999px;
+  background: #f4f0ea;
+  font-size: 0.64rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: #57534e;
+}
+
+.status-pill__dot {
+  width: 0.45rem;
+  height: 0.45rem;
+  border-radius: 999px;
+  background: currentColor;
+  flex-shrink: 0;
+}
+
+.status-pill--PENDING {
+  background: #fff4ed;
+  color: #c2410c;
+}
+
+.status-pill--DELIVERED {
+  background: #ecfdf5;
+  color: #047857;
+}
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3.5rem 1.25rem;
+  text-align: center;
+}
+
+.empty-state__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 4.25rem;
+  height: 4.25rem;
+  margin-bottom: 0.9rem;
+  border-radius: 1.15rem;
+  background: rgba(192, 92, 70, 0.1);
+  color: #c05c46;
+  font-size: 1.85rem;
+}
+
+.empty-state__title {
+  margin: 0 0 0.3rem;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #361a14;
+}
+
+.empty-state__message {
+  margin: 0;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: #8a5a4e;
+}
+
+.pickup-dialog__field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  padding: 0 1.5rem 0.5rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .filter-chip,
+  .create-btn {
+    transition: none;
+  }
+}

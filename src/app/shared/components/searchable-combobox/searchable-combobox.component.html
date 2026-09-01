@@ -1,0 +1,69 @@
+<div
+  class="combobox"
+  [class.combobox--open]="isOpen()"
+  [class.combobox--invalid]="invalid()"
+>
+  <div class="combobox__control">
+    <ng-icon name="lucideSearch" class="combobox__icon combobox__icon--start" aria-hidden="true" />
+
+    <input
+      #searchInput
+      hlmInput
+      class="combobox__input"
+      type="text"
+      role="combobox"
+      aria-autocomplete="list"
+      [attr.aria-expanded]="isOpen()"
+      [attr.aria-controls]="inputId() ? inputId() + '-listbox' : null"
+      [id]="inputId()"
+      [placeholder]="placeholder()"
+      [value]="searchText()"
+      [attr.aria-invalid]="invalid()"
+      (input)="onInput($any($event.target).value)"
+      (focus)="openDropdown()"
+      (blur)="onBlur()"
+      (keydown)="onKeydown($event)"
+    />
+
+    @if (searchText()) {
+      <button
+        type="button"
+        class="combobox__action"
+        aria-label="Limpar seleção"
+        (mousedown)="$event.preventDefault()"
+        (click)="clearSelection($event)"
+      >
+        <ng-icon name="lucideX" />
+      </button>
+    } @else {
+      <span class="combobox__action combobox__action--static" aria-hidden="true">
+        <ng-icon name="lucideChevronDown" />
+      </span>
+    }
+  </div>
+
+  @if (isOpen()) {
+    @if (filteredOptions.length > 0) {
+      <ul
+        class="combobox__list"
+        role="listbox"
+        [id]="inputId() ? inputId() + '-listbox' : null"
+      >
+        @for (option of filteredOptions; track option.value; let index = $index) {
+          <li
+            role="option"
+            class="combobox__option"
+            [class.combobox__option--active]="highlightedIndex() === index"
+            [attr.aria-selected]="highlightedIndex() === index"
+            (mousedown)="$event.preventDefault()"
+            (click)="selectOption(option)"
+          >
+            {{ option.label }}
+          </li>
+        }
+      </ul>
+    } @else {
+      <div class="combobox__empty" role="status">{{ emptyMessage() }}</div>
+    }
+  }
+</div>
