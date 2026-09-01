@@ -1,0 +1,28 @@
+---
+description: Consultar docs/frontend antes de criar ou alterar telas; avisar se o pedido contradizer requisitos
+alwaysApply: true
+---
+
+# LunaLink — Documentação de frontend (obrigatório)
+
+Fonte: `docs/frontend/` (derivada do Documento de Requisitos v1.0).
+
+## Antes de criar ou modificar qualquer tela
+
+1. Consulte `docs/frontend/README.md` e o módulo correspondente (`05`–`11`)
+2. Verifique papéis e guards em `docs/frontend/02-atores-permissoes.md`
+3. Siga `docs/frontend/03-design-system.md` (Spartan + Lucide)
+4. Leia `docs/frontend/13-pendencias-gaps-implementacao.md`
+
+## Se o pedido contradizer a documentação
+
+**Não implemente silenciosamente.** Avise o usuário **antes** de codar:
+
+- Cite o requisito (ex.: `RF-ENC-03`, `US-12`)
+- Explique o conflito em português
+- Proponha: alinhar ao requisito, exceção consciente, ou atualizar a doc
+
+## UI
+
+- Telas novas/refatoradas: Spartan NG + Lucide + fundo `#F9F6EE`, primária `#C05C46`
+- Evitar `hlm-select` com portal em `ion-content`; usar `app-searchable-combobox` ou select nativo estilizado

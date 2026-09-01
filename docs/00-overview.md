@@ -20,6 +20,7 @@
 
 | File | Contents |
 |------|----------|
+| **[frontend/README.md](./frontend/README.md)** | **Documentação de telas e requisitos do frontend (consultar antes de implementar UI)** |
 | [01-authentication.md](./01-authentication.md) | Login, JWT, token handling, roles |
 | [02-api-reference.md](./02-api-reference.md) | All endpoints with request/response shapes |
 | [03-data-models.md](./03-data-models.md) | TypeScript-ready types for all entities |
