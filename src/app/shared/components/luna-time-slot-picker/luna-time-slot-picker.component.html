@@ -1,0 +1,58 @@
+<div class="luna-time-slot-picker" role="group" aria-label="Selecione o horário">
+  <p class="luna-time-slot-picker__summary">{{ slotSummary() }}</p>
+
+  <div class="luna-time-slot-picker__wheels">
+    <div class="luna-time-slot-picker__wheel-col">
+      <span class="luna-time-slot-picker__wheel-label">Início</span>
+      <div class="luna-time-slot-picker__wheel-mask">
+        <div #wheel class="luna-time-slot-picker__wheel" (scroll)="onWheelScroll('hour', $event)">
+          @for (hour of hourOptions(); track hour) {
+            <div
+              class="luna-time-slot-picker__wheel-item"
+              [class.luna-time-slot-picker__wheel-item--active]="hour === selectedHour()"
+            >
+              {{ hour | number: '2.0-0' }}
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+
+    <div class="luna-time-slot-picker__wheel-col">
+      <span class="luna-time-slot-picker__wheel-label">Min</span>
+      <div class="luna-time-slot-picker__wheel-mask">
+        <div #wheel class="luna-time-slot-picker__wheel" (scroll)="onWheelScroll('minute', $event)">
+          @for (minute of minuteOptions(); track minute) {
+            <div
+              class="luna-time-slot-picker__wheel-item"
+              [class.luna-time-slot-picker__wheel-item--active]="minute === selectedMinute()"
+            >
+              {{ minute | number: '2.0-0' }}
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+
+    <div class="luna-time-slot-picker__highlight" aria-hidden="true"></div>
+  </div>
+
+  <div class="luna-time-slot-picker__duration" role="radiogroup" aria-label="Duração do uso">
+    <span class="luna-time-slot-picker__duration-label">Duração</span>
+    <div class="duration-chips">
+      @for (hours of durationOptions; track hours) {
+        <button
+          type="button"
+          role="radio"
+          class="duration-chip"
+          [class.duration-chip--active]="selectedDuration() === hours"
+          [attr.aria-checked]="selectedDuration() === hours"
+          [disabled]="!isDurationAvailable(hours)"
+          (click)="setDuration(hours)"
+        >
+          {{ hours }}h
+        </button>
+      }
+    </div>
+  </div>
+</div>

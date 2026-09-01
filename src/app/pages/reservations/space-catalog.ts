@@ -27,6 +27,11 @@ export const SPACE_CATALOG: Record<string, SpaceCatalogEntry> = {
     description: 'Jogos e esportes',
     imageSrc: 'assets/images/spaces/campo-futebol.jpg',
   },
+  TELEVISAO: {
+    name: 'Televisão Comunitária',
+    description: 'Uso comunitário gratuito',
+    imageSrc: 'assets/images/spaces/televisao.jpg',
+  },
 };
 
 export function getSpaceCatalogEntry(type: string | null | undefined): SpaceCatalogEntry | null {

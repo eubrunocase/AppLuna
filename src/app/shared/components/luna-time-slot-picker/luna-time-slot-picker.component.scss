@@ -1,0 +1,160 @@
+:host {
+  display: block;
+}
+
+.luna-time-slot-picker {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.luna-time-slot-picker__summary {
+  margin: 0;
+  text-align: center;
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: #361a14;
+  line-height: 1.35;
+}
+
+.luna-time-slot-picker__wheels {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.35rem;
+  padding: 0.35rem;
+  border-radius: 1rem;
+  background: #fff;
+  border: 1px solid rgba(54, 26, 20, 0.08);
+}
+
+.luna-time-slot-picker__wheel-col {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  min-width: 0;
+}
+
+.luna-time-slot-picker__wheel-label {
+  text-align: center;
+  font-size: 0.625rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #8a5a4e;
+}
+
+.luna-time-slot-picker__wheel-mask {
+  position: relative;
+  height: 156px;
+  overflow: hidden;
+  border-radius: 0.75rem;
+  background: #f3efe4;
+
+  &::before,
+  &::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    z-index: 2;
+    height: 52px;
+    pointer-events: none;
+  }
+
+  &::before {
+    top: 0;
+    background: linear-gradient(180deg, #f3efe4 10%, rgba(243, 239, 228, 0));
+  }
+
+  &::after {
+    bottom: 0;
+    background: linear-gradient(0deg, #f3efe4 10%, rgba(243, 239, 228, 0));
+  }
+}
+
+.luna-time-slot-picker__wheel {
+  height: 100%;
+  overflow-y: auto;
+  scroll-snap-type: y mandatory;
+  scrollbar-width: none;
+  padding: 52px 0;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+.luna-time-slot-picker__wheel-item {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 52px;
+  scroll-snap-align: center;
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: rgba(54, 26, 20, 0.35);
+  transition: color 0.15s ease, transform 0.15s ease;
+
+  &--active {
+    color: #361a14;
+    font-size: 1.2rem;
+    font-weight: 800;
+    transform: scale(1.04);
+  }
+}
+
+.luna-time-slot-picker__highlight {
+  position: absolute;
+  left: 0.35rem;
+  right: 0.35rem;
+  top: calc(0.35rem + 1.35rem + 52px);
+  height: 52px;
+  border-radius: 0.55rem;
+  border: 1.5px solid rgba(192, 92, 70, 0.35);
+  background: rgba(192, 92, 70, 0.06);
+  pointer-events: none;
+}
+
+.luna-time-slot-picker__duration {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.luna-time-slot-picker__duration-label {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #6a3327;
+  text-align: center;
+}
+
+.duration-chips {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.4rem;
+}
+
+.duration-chip {
+  height: 2.35rem;
+  border: 1px solid rgba(192, 92, 70, 0.18);
+  border-radius: 0.75rem;
+  background: #fff;
+  color: #8a5a4e;
+  font-size: 0.875rem;
+  font-weight: 700;
+  cursor: pointer;
+
+  &--active {
+    border-color: #c05c46;
+    background: rgba(192, 92, 70, 0.1);
+    color: #c05c46;
+  }
+
+  &:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+  }
+}

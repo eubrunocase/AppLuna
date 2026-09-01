@@ -1,0 +1,56 @@
+<ion-content class="shell-page-content tv-reservation-content">
+  <div class="tv-reservation-shell">
+    <form class="tv-reservation-form" (ngSubmit)="onSubmit()">
+      <section class="tv-section" aria-labelledby="tv-schedule-title">
+        <header class="section-header">
+          <span class="section-step" aria-hidden="true">1</span>
+          <div>
+            <h2 id="tv-schedule-title" class="section-title">Quando vai usar?</h2>
+            <p class="section-subtitle">Escolha a data e o período de uso</p>
+          </div>
+        </header>
+
+        <div class="picker-panel">
+          <div class="picker-panel__top">
+            <span class="picker-panel__eyebrow">Data</span>
+            <p class="picker-panel__hint">Role para selecionar o dia</p>
+          </div>
+          <app-luna-date-picker
+            [minDate]="minPickerDate"
+            (dateChange)="onDateChange($event)"
+          />
+        </div>
+
+        <div class="picker-panel">
+          <div class="picker-panel__top">
+            <span class="picker-panel__eyebrow">Horário</span>
+            <p class="picker-panel__hint">Defina o início e quanto tempo vai usar</p>
+          </div>
+          <app-luna-time-slot-picker
+            [startTime]="startTime()"
+            [durationHours]="durationHours()"
+            (slotChange)="onSlotChange($event)"
+          />
+        </div>
+      </section>
+    </form>
+  </div>
+
+  <div slot="fixed" class="tv-reservation-actions">
+    <button
+      hlmBtn
+      type="button"
+      class="submit-btn"
+      [disabled]="!canSubmit() || isSubmitting()"
+      (click)="onSubmit()"
+    >
+      @if (isSubmitting()) {
+        <hlm-spinner aria-label="Confirmando reserva" />
+        <span>Confirmando...</span>
+      } @else {
+        <ng-icon name="lucideCalendarCheck" />
+        <span>Confirmar reserva</span>
+      }
+    </button>
+  </div>
+</ion-content>

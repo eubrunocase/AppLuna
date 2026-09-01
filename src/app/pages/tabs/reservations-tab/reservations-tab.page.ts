@@ -194,6 +194,17 @@ export class ReservationsTabPage implements OnInit, ViewWillEnter {
     if (this.isAdmin && params.get('view') === 'all') {
       this.viewMode = 'all';
     }
+    const type = params.get('type')?.toUpperCase();
+    if (
+      type === 'TELEVISAO'
+      || type === 'SALAO_FESTAS'
+      || type === 'CHURRASQUEIRA'
+      || type === 'ACADEMIA'
+      || type === 'CAMPO_FUTEBOL'
+    ) {
+      this.typeFilter = type as TypeFilter;
+      this.statusFilter = 'ALL';
+    }
     const status = params.get('status');
     if (status === 'PENDING' || status === 'APPROVED' || status === 'ALL') {
       this.statusFilter = status as StatusFilter;
@@ -338,13 +349,15 @@ export class ReservationsTabPage implements OnInit, ViewWillEnter {
   }
 
   getSpaceImage(reservation: UnifiedReservation): string | null {
-    if (reservation.kind !== 'space') return null;
+    if (reservation.kind === 'equipment') {
+      return getSpaceCatalogEntry('TELEVISAO')?.imageSrc ?? null;
+    }
     return getSpaceCatalogEntry(reservation.spaceType)?.imageSrc ?? null;
   }
 
   getReservationTitle(reservation: UnifiedReservation): string {
     if (reservation.kind === 'equipment') {
-      return reservation.equipmentName || 'Televisão';
+      return getSpaceCatalogEntry('TELEVISAO')?.name || reservation.equipmentName || 'Televisão';
     }
     return getSpaceCatalogEntry(reservation.spaceType)?.name || this.getSpaceTypeLabel(reservation.spaceType!);
   }
@@ -549,6 +562,11 @@ export class ReservationsTabPage implements OnInit, ViewWillEnter {
   }
 
   openNewReservation(): void {
+    if (this.typeFilter === 'TELEVISAO') {
+      void this.navigation.push(APP_ROUTES.homeTvNew);
+      return;
+    }
+
     this.draft.reset();
     this.draft.setStackPrefix('reservations');
     void this.navigation.push(APP_ROUTES.reservationsSpace);

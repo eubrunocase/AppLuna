@@ -1,7 +1,7 @@
 import { inject, Injectable } from '@angular/core';
 import { NavigationExtras, Router } from '@angular/router';
 import { NavController } from '@ionic/angular/standalone';
-import { APP_ROUTES, AppTabId, TAB_ROOTS } from './app-routes';
+import { APP_ROUTES, AppTabId, TAB_ROOTS, resolveTabFromUrl } from './app-routes';
 import { TabStackService } from './tab-stack.service';
 
 @Injectable({ providedIn: 'root' })
@@ -55,6 +55,11 @@ export class AppNavigationService {
 
   /** Conclui fluxo e vai para destino com pilha limpa na aba alvo. */
   completeFlow(url: string): Promise<boolean> {
+    const originTab = this.tabStacks.getActiveTab();
+    const destTab = resolveTabFromUrl(url);
+    if (originTab !== destTab) {
+      this.tabStacks.resetTab(originTab);
+    }
     this.tabStacks.remember(url);
     return this.navController.navigateRoot(url, {
       replaceUrl: true,
