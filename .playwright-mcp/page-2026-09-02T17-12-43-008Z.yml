@@ -1,0 +1,55 @@
+- generic [ref=e5]:
+  - banner [ref=e6]:
+    - generic [ref=e8]:
+      - button "Voltar" [ref=e127] [cursor=pointer]
+      - generic [ref=e13]:
+        - heading "Relatórios" [level=1] [ref=e128]
+        - paragraph [ref=e129]: Etapa 1 de 3 — escolha o período
+    - progressbar "Etapa 1 de 3" [ref=e130]:
+      - generic [ref=e131]: "1"
+      - generic [ref=e133]: "2"
+      - generic [ref=e135]: "3"
+  - main [ref=e25]:
+    - main [ref=e137]:
+      - region [ref=e141]:
+        - generic [ref=e142]:
+          - generic [aria-hidden] [ref=e143]: "1"
+          - generic [ref=e144]:
+            - heading "Qual o período?" [level=2] [ref=e145]
+            - paragraph [ref=e146]: Escolha o mês das reservas consumadas
+        - generic [ref=e147]:
+          - generic [ref=e148]:
+            - generic [ref=e149]: Mês
+            - paragraph [ref=e150]: Role para selecionar mês e ano
+          - group "Selecione o mês" [ref=e152]:
+            - paragraph [ref=e153]: setembro de 2026
+            - generic [ref=e154]:
+              - generic [ref=e155]:
+                - generic [ref=e156]: Mês
+                - generic [ref=e158]:
+                  - generic [ref=e159]: Jan
+                  - generic [ref=e160]: Fev
+                  - generic [ref=e161]: Mar
+                  - generic [ref=e162]: Abr
+                  - generic [ref=e163]: Mai
+                  - generic [ref=e164]: Jun
+                  - generic [ref=e165]: Jul
+                  - generic [ref=e166]: Ago
+                  - generic [ref=e167]: Set
+              - generic [ref=e168]:
+                - generic [ref=e169]: Ano
+                - generic [ref=e171]:
+                  - generic [ref=e172]: "2021"
+                  - generic [ref=e173]: "2022"
+                  - generic [ref=e174]: "2023"
+                  - generic [ref=e175]: "2024"
+                  - generic [ref=e176]: "2025"
+                  - generic [ref=e177]: "2026"
+        - complementary [ref=e178]:
+          - paragraph [ref=e183]: Entram só reservas consumadas de Salão, Churrasqueira e Campo. Reprovadas, canceladas e TV ficam de fora.
+      - button "Continuar" [ref=e184] [cursor=pointer]
+  - navigation "Navegação principal" [ref=e73]:
+    - button "Início" [ref=e74] [cursor=pointer]
+    - button "Reservas" [ref=e80] [cursor=pointer]
+    - button "Entregas" [ref=e85] [cursor=pointer]
+    - button "Ocorrências" [ref=e92] [cursor=pointer]

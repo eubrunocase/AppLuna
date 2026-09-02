@@ -1,0 +1,75 @@
+- generic [ref=f1e5]:
+  - banner [ref=f1e6]:
+    - generic [ref=f1e8]:
+      - button "Voltar" [ref=f1e9] [cursor=pointer]
+      - generic [ref=f1e10]:
+        - heading "Relatórios" [level=1] [ref=f1e11]
+        - paragraph [ref=f1e12]: Reservas consumadas do condomínio
+  - main [ref=f1e13]:
+    - main [ref=f1e16]:
+      - generic [ref=f1e19]:
+        - region [ref=f1e20]:
+          - generic [ref=f1e21]:
+            - generic [aria-hidden] [ref=f1e22]: "1"
+            - generic [ref=f1e23]:
+              - heading "Qual o período?" [level=2] [ref=f1e24]
+              - paragraph [ref=f1e25]: Escolha o mês das reservas consumadas
+          - generic [ref=f1e26]:
+            - group [ref=f1e27]:
+              - generic [ref=f1e28]: Mês
+              - combobox "Mês" [ref=f1e30]:
+                - option "Janeiro"
+                - option "Fevereiro"
+                - option "Março"
+                - option "Abril"
+                - option "Maio"
+                - option "Junho"
+                - option "Julho"
+                - option "Agosto"
+                - option "Setembro" [selected]
+                - option "Outubro"
+                - option "Novembro"
+                - option "Dezembro"
+            - group [ref=f1e31]:
+              - generic [ref=f1e32]: Ano
+              - combobox "Ano" [ref=f1e34]:
+                - option "2026" [selected]
+                - option "2025"
+                - option "2024"
+                - option "2023"
+                - option "2022"
+                - option "2021"
+          - complementary [ref=f1e35]:
+            - paragraph [ref=f1e40]: Entram só reservas consumadas de Salão, Churrasqueira e Campo. Reprovadas, canceladas e TV ficam de fora.
+        - region [ref=f1e41]:
+          - generic [ref=f1e42]:
+            - generic [aria-hidden] [ref=f1e43]: "2"
+            - generic [ref=f1e44]:
+              - heading "Reservas do período" [level=2] [ref=f1e45]
+              - paragraph [ref=f1e46]: Setembro de 2026
+          - status [ref=f1e106]:
+            - paragraph [ref=f1e107]: Nenhuma reserva neste período
+            - paragraph [ref=f1e108]: Escolha outro mês para gerar o relatório
+        - region [ref=f1e48]:
+          - generic [ref=f1e49]:
+            - generic [aria-hidden] [ref=f1e50]: "3"
+            - generic [ref=f1e51]:
+              - heading "Como exportar?" [level=2] [ref=f1e52]
+              - paragraph [ref=f1e53]: PDF para enviar ou DOCX para editar
+          - radiogroup "Como exportar?" [ref=f1e54]:
+            - generic [ref=f1e55] [cursor=pointer]:
+              - radio "PDF Pronto para imprimir ou enviar" [checked] [ref=f1e58]
+              - generic [ref=f1e64]:
+                - generic [ref=f1e65]: PDF
+                - generic [ref=f1e66]: Pronto para imprimir ou enviar
+            - generic [ref=f1e67] [cursor=pointer]:
+              - radio "DOCX Editável no Word" [ref=f1e70]
+              - generic [ref=f1e77]:
+                - generic [ref=f1e78]: DOCX
+                - generic [ref=f1e79]: Editável no Word
+      - button "Exportar PDF" [disabled] [ref=f1e80]
+  - navigation "Navegação principal" [ref=f1e82]:
+    - button "Início" [ref=f1e83] [cursor=pointer]
+    - button "Reservas" [ref=f1e89] [cursor=pointer]
+    - button "Entregas" [ref=f1e94] [cursor=pointer]
+    - button "Ocorrências" [ref=f1e101] [cursor=pointer]

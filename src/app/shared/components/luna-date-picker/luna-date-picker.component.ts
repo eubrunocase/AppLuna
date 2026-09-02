@@ -12,6 +12,7 @@ import {
 } from '@angular/core';
 
 type WheelKind = 'day' | 'month' | 'year';
+export type LunaDatePickerMode = 'date' | 'month';
 
 const MONTHS_SHORT = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
 
@@ -27,6 +28,7 @@ export class LunaDatePickerComponent implements AfterViewInit {
   readonly minDate = input<Date>(this.startOfDay(new Date()));
   readonly maxDate = input<Date | undefined>(undefined);
   readonly date = input<Date | undefined>();
+  readonly mode = input<LunaDatePickerMode>('date');
   readonly dateChange = output<Date>();
 
   readonly wheels = viewChildren<ElementRef<HTMLElement>>('wheel');
@@ -36,9 +38,12 @@ export class LunaDatePickerComponent implements AfterViewInit {
   readonly selectedYear = signal(new Date().getFullYear());
 
   readonly formattedDateLabel = computed(() => {
-    const date = new Date(this.selectedYear(), this.selectedMonth() - 1, this.selectedDay());
+    const month = new Date(this.selectedYear(), this.selectedMonth() - 1, 1)
+      .toLocaleDateString('pt-BR', { month: 'long' });
+    if (this.mode() === 'month') {
+      return `${month} de ${this.selectedYear()}`;
+    }
     const day = String(this.selectedDay()).padStart(2, '0');
-    const month = date.toLocaleDateString('pt-BR', { month: 'long' });
     return `${day} de ${month} de ${this.selectedYear()}`;
   });
 
@@ -82,10 +87,13 @@ export class LunaDatePickerComponent implements AfterViewInit {
     this.selectedYear.set(initial.getFullYear());
     this.clampToRange();
 
-    queueMicrotask(() => {
+    requestAnimationFrame(() => {
       this.syncAllWheels(false);
-      this.initialized = true;
-      this.emitIfValid();
+      requestAnimationFrame(() => {
+        this.syncAllWheels(false);
+        this.initialized = true;
+        this.emitIfValid();
+      });
     });
 
     this.destroyRef.onDestroy(() => {
@@ -160,14 +168,15 @@ export class LunaDatePickerComponent implements AfterViewInit {
   }
 
   private syncAllWheels(animated: boolean): void {
-    this.scrollWheelTo('day', this.dayOptions().indexOf(this.selectedDay()), animated);
+    if (this.mode() === 'date') {
+      this.scrollWheelTo('day', this.dayOptions().indexOf(this.selectedDay()), animated);
+    }
     this.scrollWheelTo('month', this.monthOptions().indexOf(this.selectedMonth()), animated);
     this.scrollWheelTo('year', this.yearOptions().indexOf(this.selectedYear()), animated);
   }
 
   private scrollWheelTo(kind: WheelKind, index: number, animated: boolean): void {
-    const wheelIndex = kind === 'day' ? 0 : kind === 'month' ? 1 : 2;
-    const element = this.wheels()[wheelIndex]?.nativeElement;
+    const element = this.wheels().find((wheel) => wheel.nativeElement.dataset['kind'] === kind)?.nativeElement;
     if (!element || index < 0) return;
 
     element.scrollTo({

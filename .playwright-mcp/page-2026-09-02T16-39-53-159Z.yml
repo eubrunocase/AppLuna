@@ -1,0 +1,53 @@
+- generic [ref=f2e5]:
+  - banner [ref=f2e6]:
+    - generic [ref=f2e7]:
+      - heading "Lunalink" [level=1] [ref=f2e181]
+      - generic [ref=f2e183]:
+        - generic "Confirmar saída"
+        - button "Sair" [ref=f2e184] [cursor=pointer]
+    - generic [ref=f2e187]:
+      - paragraph [ref=f2e188]: Boa tarde, Otavio
+      - generic [ref=f2e189]:
+        - generic [ref=f2e190]: ADM
+        - generic [ref=f2e191]: Administrador
+  - main [ref=f2e13]:
+    - main [ref=f2e193]:
+      - generic [ref=f2e196]:
+        - region "Resumo rápido" [ref=f2e197]:
+          - button "7 Aprovações pendentes" [ref=f2e198] [cursor=pointer]:
+            - generic [ref=f2e199]:
+              - generic [ref=f2e200]: "7"
+              - generic [ref=f2e207]: Aprovações pendentes
+          - button "0 Encomendas" [ref=f2e208] [cursor=pointer]:
+            - generic [ref=f2e209]:
+              - generic [ref=f2e210]: "0"
+              - generic [ref=f2e218]: Encomendas
+          - button "2 Reservas" [ref=f2e219] [cursor=pointer]:
+            - generic [ref=f2e220]:
+              - generic [ref=f2e221]: "2"
+              - generic [ref=f2e227]: Reservas
+        - generic [ref=f2e228]:
+          - region [ref=f2e229]:
+            - generic [ref=f2e230]:
+              - heading "Acesso Rápido" [level=2] [ref=f2e231]
+              - paragraph [ref=f2e232]: Atalhos para as ações mais usadas
+            - generic [ref=f2e233]:
+              - button "Nova Reserva" [ref=f2e234] [cursor=pointer]
+              - button "Reservar TV" [ref=f2e237] [cursor=pointer]
+              - button "Reportar Ocorrência" [ref=f2e240] [cursor=pointer]
+              - button "Registrar Entrega" [ref=f2e243] [cursor=pointer]
+              - button "Equipamentos" [ref=f2e246] [cursor=pointer]
+              - button "Usuários" [ref=f2e249] [cursor=pointer]
+              - button "Relatórios" [ref=f2e252] [cursor=pointer]
+          - region [ref=f2e255]:
+            - generic [ref=f2e256]:
+              - heading "Avisos" [level=2] [ref=f2e257]
+              - paragraph [ref=f2e258]: Informações importantes do condomínio
+            - generic [ref=f2e265]:
+              - paragraph [ref=f2e266]: Mantenha seus dados atualizados
+              - paragraph [ref=f2e267]: Revise suas informações na área de gerenciamento para receber avisos e entregas corretamente.
+  - navigation "Navegação principal" [ref=f2e82]:
+    - button "Início" [ref=f2e83] [cursor=pointer]
+    - button "Reservas" [ref=f2e89] [cursor=pointer]
+    - button "Entregas" [ref=f2e94] [cursor=pointer]
+    - button "Ocorrências" [ref=f2e101] [cursor=pointer]

@@ -1,0 +1,53 @@
+- generic [ref=e5]:
+  - banner [ref=e6]:
+    - generic [ref=e7]:
+      - heading "Lunalink" [level=1] [ref=e14]
+      - generic [ref=e16]:
+        - generic "Confirmar saída"
+        - button "Sair" [ref=e17] [cursor=pointer]
+    - generic [ref=e20]:
+      - paragraph [ref=e21]: Boa tarde, Otavio
+      - generic [ref=e22]:
+        - generic [ref=e23]: ADM
+        - generic [ref=e24]: Administrador
+  - main [ref=e25]:
+    - main [ref=e28]:
+      - generic [ref=e31]:
+        - region "Resumo rápido" [ref=e32]:
+          - button "0 Aprovações pendentes" [ref=e33] [cursor=pointer]:
+            - generic [ref=e34]:
+              - generic [ref=e35]: "0"
+              - generic [ref=e42]: Aprovações pendentes
+          - button "0 Encomendas" [ref=e43] [cursor=pointer]:
+            - generic [ref=e44]:
+              - generic [ref=e45]: "0"
+              - generic [ref=e53]: Encomendas
+          - button "9 Reservas" [ref=e54] [cursor=pointer]:
+            - generic [ref=e55]:
+              - generic [ref=e56]: "9"
+              - generic [ref=e62]: Reservas
+        - generic [ref=e63]:
+          - region [ref=e64]:
+            - generic [ref=e65]:
+              - heading "Acesso Rápido" [level=2] [ref=e66]
+              - paragraph [ref=e67]: Atalhos para as ações mais usadas
+            - generic [ref=e68]:
+              - button "Nova Reserva" [ref=e69] [cursor=pointer]
+              - button "Reservar TV" [ref=e72] [cursor=pointer]
+              - button "Reportar Ocorrência" [ref=e75] [cursor=pointer]
+              - button "Registrar Entrega" [ref=e78] [cursor=pointer]
+              - button "Equipamentos" [ref=e81] [cursor=pointer]
+              - button "Usuários" [ref=e84] [cursor=pointer]
+              - button "Relatórios" [ref=e87] [cursor=pointer]
+          - region [ref=e90]:
+            - generic [ref=e91]:
+              - heading "Avisos" [level=2] [ref=e92]
+              - paragraph [ref=e93]: Informações importantes do condomínio
+            - generic [ref=e100]:
+              - paragraph [ref=e101]: Mantenha seus dados atualizados
+              - paragraph [ref=e102]: Revise suas informações na área de gerenciamento para receber avisos e entregas corretamente.
+  - navigation "Navegação principal" [ref=e103]:
+    - button "Início" [ref=e104] [cursor=pointer]
+    - button "Reservas" [ref=e110] [cursor=pointer]
+    - button "Entregas" [ref=e115] [cursor=pointer]
+    - button "Ocorrências" [ref=e122] [cursor=pointer]

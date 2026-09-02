@@ -9,6 +9,8 @@
       class="home-stats home-enter home-enter--stats"
       role="region"
       aria-label="Resumo rápido"
+      [class.home-stats--few]="statColumns <= 2"
+      [class.home-stats--single]="statColumns === 1"
       [style.--stat-cols]="statColumns"
     >
       @if (isLoadingStats) {

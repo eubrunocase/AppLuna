@@ -1,0 +1,104 @@
+- generic [ref=e5]:
+  - banner [ref=e6]:
+    - generic [ref=e8]:
+      - button "Voltar" [ref=e127] [cursor=pointer]
+      - generic [ref=e13]:
+        - heading "Relatórios" [level=1] [ref=e128]
+        - paragraph [ref=e129]: Etapa 1 de 3 — escolha o período
+    - progressbar "Etapa 1 de 3" [ref=e130]:
+      - generic [ref=e131]: "1"
+      - generic [ref=e133]: "2"
+      - generic [ref=e135]: "3"
+  - main [ref=e25]:
+    - generic [ref=e26]:
+      - generic:
+        - generic:
+          - main:
+            - generic:
+              - generic:
+                - generic:
+                  - region "Resumo rápido":
+                    - button "0 Aprovações pendentes":
+                      - generic:
+                        - generic: "0"
+                        - generic: Aprovações pendentes
+                    - button "0 Encomendas":
+                      - generic:
+                        - generic: "0"
+                        - generic: Encomendas
+                    - button "9 Reservas":
+                      - generic:
+                        - generic: "9"
+                        - generic: Reservas
+                  - generic:
+                    - region "Acesso Rápido":
+                      - generic:
+                        - heading "Acesso Rápido" [level=2]
+                        - paragraph: Atalhos para as ações mais usadas
+                      - generic:
+                        - button "Nova Reserva"
+                        - button "Reservar TV"
+                        - button "Reportar Ocorrência"
+                        - button "Registrar Entrega"
+                        - button "Equipamentos"
+                        - button "Usuários"
+                        - button "Relatórios" [active]
+                    - region "Avisos":
+                      - generic:
+                        - heading "Avisos" [level=2]
+                        - paragraph: Informações importantes do condomínio
+                      - generic:
+                        - generic:
+                          - generic:
+                            - paragraph: Mantenha seus dados atualizados
+                            - paragraph: Revise suas informações na área de gerenciamento para receber avisos e entregas corretamente.
+        - generic:
+          - main:
+            - generic:
+              - generic:
+                - generic:
+                  - region "Qual o período?":
+                    - generic:
+                      - generic [aria-hidden]: "1"
+                      - generic:
+                        - heading "Qual o período?" [level=2]
+                        - paragraph: Escolha o mês das reservas consumadas
+                    - generic:
+                      - generic:
+                        - generic: Mês
+                        - paragraph: Role para selecionar mês e ano
+                      - generic:
+                        - group "Selecione o mês":
+                          - paragraph: setembro de 2026
+                          - generic:
+                            - generic:
+                              - generic: Mês
+                              - generic:
+                                - generic:
+                                  - generic: Jan
+                                  - generic: Fev
+                                  - generic: Mar
+                                  - generic: Abr
+                                  - generic: Mai
+                                  - generic: Jun
+                                  - generic: Jul
+                                  - generic: Ago
+                                  - generic: Set
+                            - generic:
+                              - generic: Ano
+                              - generic:
+                                - generic:
+                                  - generic: "2021"
+                                  - generic: "2022"
+                                  - generic: "2023"
+                                  - generic: "2024"
+                                  - generic: "2025"
+                                  - generic: "2026"
+                    - complementary:
+                      - paragraph: Entram só reservas consumadas de Salão, Churrasqueira e Campo. Reprovadas, canceladas e TV ficam de fora.
+            - button "Continuar" [ref=e136] [cursor=pointer]
+  - navigation "Navegação principal" [ref=e103]:
+    - button "Início" [ref=e104] [cursor=pointer]
+    - button "Reservas" [ref=e110] [cursor=pointer]
+    - button "Entregas" [ref=e115] [cursor=pointer]
+    - button "Ocorrências" [ref=e122] [cursor=pointer]

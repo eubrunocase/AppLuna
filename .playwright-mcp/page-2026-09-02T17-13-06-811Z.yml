@@ -1,0 +1,49 @@
+- generic [ref=e5]:
+  - banner [ref=e6]:
+    - generic [ref=e8]:
+      - button "Voltar" [ref=e127] [cursor=pointer]
+      - generic [ref=e13]:
+        - heading "Relatórios" [level=1] [ref=e128]
+        - paragraph [ref=e129]: Etapa 2 de 3 — confira as reservas
+    - progressbar "Etapa 2 de 3" [ref=e186]:
+      - generic [ref=e131]: "1"
+      - generic [ref=e133]: "2"
+      - generic [ref=e135]: "3"
+  - main [ref=e25]:
+    - main [ref=e137]:
+      - region [ref=e187]:
+        - generic [ref=e188]:
+          - generic [aria-hidden] [ref=e189]: "2"
+          - generic [ref=e190]:
+            - heading "Reservas do período" [level=2] [ref=e191]
+            - paragraph [ref=e192]: Agosto de 2026
+          - paragraph [ref=e193]: "Total de reservas: 4"
+        - generic [ref=e194]:
+          - article [ref=e195]:
+            - generic [ref=e205]:
+              - heading "Otavio" [level=3] [ref=e206]
+              - paragraph [ref=e207]: Apto ADM
+              - paragraph [ref=e213]: 27/08/2026 · Salão de Festas
+          - article [ref=e217]:
+            - generic [ref=e227]:
+              - heading "Otavio" [level=3] [ref=e228]
+              - paragraph [ref=e229]: Apto ADM
+              - paragraph [ref=e235]: 28/08/2026 · Salão de Festas
+          - article [ref=e239]:
+            - generic [ref=e245]:
+              - heading "Otavio" [level=3] [ref=e246]
+              - paragraph [ref=e247]: Apto ADM
+              - paragraph [ref=e253]: 30/08/2026 · Churrasqueira
+          - article [ref=e257]:
+            - generic [ref=e267]:
+              - heading "Otavio" [level=3] [ref=e268]
+              - paragraph [ref=e269]: Apto ADM
+              - paragraph [ref=e275]: 31/08/2026 · Salão de Festas
+      - generic [ref=e279]:
+        - button "Voltar" [ref=e280] [cursor=pointer]
+        - button "Continuar" [ref=e282] [cursor=pointer]
+  - navigation "Navegação principal" [ref=e73]:
+    - button "Início" [ref=e74] [cursor=pointer]
+    - button "Reservas" [ref=e80] [cursor=pointer]
+    - button "Entregas" [ref=e85] [cursor=pointer]
+    - button "Ocorrências" [ref=e92] [cursor=pointer]

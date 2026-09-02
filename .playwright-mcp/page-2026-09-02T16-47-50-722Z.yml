@@ -1,0 +1,38 @@
+- generic [ref=f1e5]:
+  - banner [ref=f1e6]:
+    - generic [ref=f1e8]:
+      - button "Voltar" [ref=f1e9] [cursor=pointer]
+      - generic [ref=f1e10]:
+        - heading "Relatórios" [level=1] [ref=f1e11]
+        - paragraph [ref=f1e12]: Etapa 3 de 3 — exporte o arquivo
+    - progressbar "Etapa 3 de 3" [ref=f1e132]:
+      - generic [ref=f1e14]: "1"
+      - generic [ref=f1e16]: "2"
+      - generic [ref=f1e18]: "3"
+  - main [ref=f1e19]:
+    - main [ref=f1e170]:
+      - region [ref=f1e174]:
+        - generic [ref=f1e175]:
+          - generic [aria-hidden] [ref=f1e176]: "3"
+          - generic [ref=f1e177]:
+            - heading "Como exportar?" [level=2] [ref=f1e178]
+            - paragraph [ref=f1e179]: PDF para enviar ou DOCX para editar
+        - radiogroup "Como exportar?" [ref=f1e180]:
+          - generic [ref=f1e181] [cursor=pointer]:
+            - radio "PDF Pronto para imprimir ou enviar" [checked] [ref=f1e184]
+            - generic [ref=f1e190]:
+              - generic [ref=f1e191]: PDF
+              - generic [ref=f1e192]: Pronto para imprimir ou enviar
+          - generic [ref=f1e193] [cursor=pointer]:
+            - radio "DOCX Editável no Word" [ref=f1e196]
+            - generic [ref=f1e203]:
+              - generic [ref=f1e204]: DOCX
+              - generic [ref=f1e205]: Editável no Word
+      - generic [ref=f1e206]:
+        - button "Voltar" [ref=f1e207] [cursor=pointer]
+        - button "Exportar PDF" [ref=f1e209] [cursor=pointer]
+  - navigation "Navegação principal" [ref=f1e71]:
+    - button "Início" [ref=f1e72] [cursor=pointer]
+    - button "Reservas" [ref=f1e78] [cursor=pointer]
+    - button "Entregas" [ref=f1e83] [cursor=pointer]
+    - button "Ocorrências" [ref=f1e90] [cursor=pointer]

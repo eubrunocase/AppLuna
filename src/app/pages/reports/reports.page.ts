@@ -1,236 +1,97 @@
-import { Component, inject, OnDestroy, OnInit } from '@angular/core';
-import { IonicModule, ToastController, ViewWillEnter } from '@ionic/angular';
-import { CommonModule } from '@angular/common';
+import { ChangeDetectorRef, Component, computed, inject, OnDestroy, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { ReservationService } from '../../services/reservation.service';
-import { MonthlyReservationReportDTO, ReportExportStatus, ReportFormat } from '../../core/models';
+import { IonContent, ViewWillEnter } from '@ionic/angular/standalone';
+import { NgIcon, provideIcons } from '@ng-icons/core';
+import {
+  lucideArrowLeft,
+  lucideArrowRight,
+  lucideBuilding2,
+  lucideCalendar,
+  lucideDownload,
+  lucideDumbbell,
+  lucideFileText,
+  lucideFileType,
+  lucideFlame,
+  lucideInfo,
+  lucideLandPlot,
+  lucidePartyPopper,
+} from '@ng-icons/lucide';
+import { HlmButtonImports } from '@spartan-ng/helm/button';
+import { HlmCardImports } from '@spartan-ng/helm/card';
+import { HlmRadioGroupImports } from '@spartan-ng/helm/radio-group';
+import { HlmSkeletonImports } from '@spartan-ng/helm/skeleton';
+import { HlmSpinnerImports } from '@spartan-ng/helm/spinner';
+import { EMPTY, Subscription, catchError, finalize, forkJoin, interval, map, of, startWith, switchMap, takeWhile } from 'rxjs';
+import {
+  MonthlyReservationReportDTO,
+  ReportExportStatus,
+  ReportFormat,
+  ReservationResponseDTO,
+  ReservationStatus,
+  SpaceType,
+  UserSummaryDTO,
+} from '../../core/models';
 import { AppShellService } from '../../core/shell/app-shell.service';
-import { EMPTY, Subscription, catchError, finalize, interval, of, startWith, switchMap, takeWhile } from 'rxjs';
+import { ReservationService } from '../../services/reservation.service';
+import { UserService } from '../../services/user.service';
+import { getSpaceCatalogEntry } from '../reservations/space-catalog';
+import { LunaDatePickerComponent } from '../../shared/components/luna-date-picker/luna-date-picker.component';
+import { CelebrationService } from '../../shared/services/celebration.service';
+import { UiService } from '../../shared/services/ui.service';
+
+type ReportStep = 1 | 2 | 3;
 
 @Component({
   selector: 'app-reports',
-  template: `
-    <ion-content class="shell-page-content ion-padding">
-      <ion-card class="filter-card">
-        <ion-card-content>
-          <ion-list lines="none">
-            <ion-item>
-              <ion-select 
-                label="Mês" 
-                labelPlacement="floating"
-                [(ngModel)]="selectedMonth"
-                (ionChange)="loadReport()">
-                <ion-select-option *ngFor="let month of months" [value]="month.value">
-                  {{ month.label }}
-                </ion-select-option>
-              </ion-select>
-            </ion-item>
-            <ion-item>
-              <ion-input 
-                label="Ano" 
-                labelPlacement="floating"
-                type="number"
-                [(ngModel)]="selectedYear"
-                (ionChange)="loadReport()">
-              </ion-input>
-            </ion-item>
-          </ion-list>
-        </ion-card-content>
-      </ion-card>
-
-      <ion-card class="export-card">
-        <ion-card-content>
-          <ion-label class="export-title">Exportar relatório</ion-label>
-          <div class="export-actions">
-            <ion-button color="secondary" expand="block" [disabled]="isExporting || isLoading"
-              (click)="exportReport(ReportFormat.PDF)">
-              <ion-icon name="document-outline" slot="start"></ion-icon>
-              PDF
-            </ion-button>
-            <ion-button color="secondary" expand="block" [disabled]="isExporting || isLoading"
-              (click)="exportReport(ReportFormat.DOCX)">
-              <ion-icon name="document-text-outline" slot="start"></ion-icon>
-              DOCX
-            </ion-button>
-          </div>
-          <div *ngIf="isExporting" class="export-status">
-            <ion-spinner name="crescent" color="secondary"></ion-spinner>
-            <p>Gerando relatório, aguarde...</p>
-          </div>
-          <p *ngIf="exportError" class="export-error">{{ exportError }}</p>
-        </ion-card-content>
-      </ion-card>
-
-      <div *ngIf="isLoading" class="loading-container">
-        <ion-spinner name="crescent"></ion-spinner>
-      </div>
-
-      <div *ngIf="!isLoading && report.length > 0" class="report-summary">
-        <ion-card class="summary-card">
-          <ion-card-content>
-            <h2>Total de Reservas</h2>
-            <p class="total">{{ report.length }}</p>
-          </ion-card-content>
-        </ion-card>
-      </div>
-
-      <ion-list *ngIf="!isLoading && report.length > 0">
-        <ion-list-header>
-          <ion-label>Reservas do Mês</ion-label>
-        </ion-list-header>
-        
-        <ion-item *ngFor="let item of report" class="report-item">
-          <ion-icon name="calendar-outline" slot="start" color="primary"></ion-icon>
-          <ion-label>
-            <h3>{{ item.residentName }}</h3>
-            <p>{{ item.apartment }} - {{ getSpaceTypeLabel(item.spaceType) }}</p>
-            <p class="date">{{ formatDate(item.date) }}</p>
-          </ion-label>
-        </ion-item>
-      </ion-list>
-
-      <div *ngIf="!isLoading && report.length === 0 && !initialLoad" class="empty-state">
-        <ion-icon name="document-text-outline" class="empty-icon"></ion-icon>
-        <p>Nenhuma reserva neste período</p>
-      </div>
-    </ion-content>
-  `,
-  styles: [`
-    .filter-card {
-      margin-bottom: 16px;
-      border-radius: 12px;
-    }
-    
-    ion-item {
-      --background: rgba(255, 255, 255, 0.16);
-      --border-radius: 8px;
-      border: 1px solid rgba(255, 255, 255, 0.24);
-      margin-bottom: 8px;
-    }
-    
-    .loading-container {
-      display: flex;
-      justify-content: center;
-      padding: 48px;
-    }
-    
-    .report-summary {
-      margin-bottom: 16px;
-    }
-    
-    .summary-card {
-      background: rgba(255, 122, 0, 0.78);
-      color: #1d1109;
-      border-radius: 12px;
-    }
-    
-    .summary-card h2 {
-      font-size: 14px;
-      margin: 0;
-      opacity: 0.9;
-    }
-    
-    .summary-card .total {
-      font-size: 48px;
-      font-weight: bold;
-      margin: 8px 0 0 0;
-    }
-    
-    .report-item h3 {
-      font-weight: 600;
-    }
-    
-    .report-item p {
-      color: rgba(255, 248, 240, 0.82);
-      font-size: 13px;
-    }
-    
-    .report-item .date {
-      font-size: 12px;
-      margin-top: 4px;
-    }
-    
-    .empty-state {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      padding: 48px;
-      color: rgba(255, 248, 240, 0.82);
-    }
-    
-    .empty-icon {
-      font-size: 64px;
-      margin-bottom: 16px;
-    }
-
-    .export-card {
-      margin-bottom: 16px;
-      border-radius: 12px;
-    }
-
-    .export-title {
-      font-size: 14px;
-      font-weight: 600;
-      display: block;
-      margin-bottom: 12px;
-    }
-
-    .export-actions {
-      display: flex;
-      gap: 8px;
-    }
-
-    .export-actions ion-button {
-      flex: 1;
-      margin: 0;
-    }
-
-    .export-status {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 8px;
-      padding: 12px 0 4px;
-      color: rgba(255, 248, 240, 0.82);
-    }
-
-    .export-status p {
-      margin: 0;
-      font-size: 13px;
-    }
-
-    .export-error {
-      color: #ff6b6b;
-      font-size: 13px;
-      margin: 8px 0 0;
-    }
-  `],
+  templateUrl: './reports.page.html',
+  styleUrl: './reports.page.scss',
   standalone: true,
-  imports: [IonicModule, CommonModule, FormsModule]
+  imports: [
+    IonContent,
+    FormsModule,
+    NgIcon,
+    HlmButtonImports,
+    HlmCardImports,
+    HlmRadioGroupImports,
+    HlmSkeletonImports,
+    HlmSpinnerImports,
+    LunaDatePickerComponent,
+  ],
+  providers: [
+    provideIcons({
+      lucideArrowLeft,
+      lucideArrowRight,
+      lucideBuilding2,
+      lucideCalendar,
+      lucideDownload,
+      lucideDumbbell,
+      lucideFileText,
+      lucideFileType,
+      lucideFlame,
+      lucideInfo,
+      lucideLandPlot,
+      lucidePartyPopper,
+    }),
+  ],
 })
-export class ReportsPage implements OnInit, OnDestroy, ViewWillEnter {
+export class ReportsPage implements OnDestroy, ViewWillEnter {
   private reservationService = inject(ReservationService);
-  private toastController = inject(ToastController);
+  private userService = inject(UserService);
   private shell = inject(AppShellService);
+  private uiService = inject(UiService);
+  private celebration = inject(CelebrationService);
+  private cdr = inject(ChangeDetectorRef);
 
-  report: MonthlyReservationReportDTO[] = [];
-  isLoading = false;
-  initialLoad = true;
+  readonly step = signal<ReportStep>(1);
+  readonly selectedMonth = signal(new Date().getMonth() + 1);
+  readonly selectedYear = signal(new Date().getFullYear());
+  readonly selectedFormat = signal(ReportFormat.PDF);
+  readonly report = signal<MonthlyReservationReportDTO[]>([]);
+  readonly isLoading = signal(false);
+  readonly isExporting = signal(false);
 
-  isExporting = false;
-  exportError = '';
-
-  readonly ReportFormat = ReportFormat;
-
-  private exportSub: Subscription | undefined;
-  private readonly exportPollIntervalMs = 1500;
-  private readonly exportTimeoutMs = 5 * 60 * 1000;
-
-  selectedMonth = new Date().getMonth() + 1;
-  selectedYear = new Date().getFullYear();
-
-  months = [
+  readonly skeletonItems = [1, 2, 3];
+  readonly months = [
     { value: 1, label: 'Janeiro' },
     { value: 2, label: 'Fevereiro' },
     { value: 3, label: 'Março' },
@@ -242,28 +103,62 @@ export class ReportsPage implements OnInit, OnDestroy, ViewWillEnter {
     { value: 9, label: 'Setembro' },
     { value: 10, label: 'Outubro' },
     { value: 11, label: 'Novembro' },
-    { value: 12, label: 'Dezembro' }
+    { value: 12, label: 'Dezembro' },
   ];
 
-  spaceTypes: Record<string, string> = {
-    'SALAO_FESTAS': 'Salão de Festas',
-    'CHURRASQUEIRA': 'Churrasqueira',
-    'ACADEMIA': 'Academia',
-    'CAMPO_FUTEBOL': 'Campo de Futebol'
-  };
+  readonly formatOptions = [
+    {
+      value: ReportFormat.PDF,
+      label: 'PDF',
+      hint: 'Pronto para imprimir ou enviar',
+      icon: 'lucideFileText',
+      inputId: 'report-format-pdf',
+    },
+    {
+      value: ReportFormat.DOCX,
+      label: 'DOCX',
+      hint: 'Editável no Word',
+      icon: 'lucideFileType',
+      inputId: 'report-format-docx',
+    },
+  ];
 
-  ngOnInit(): void {
-    this.loadReport();
-  }
+  readonly minPickerDate = (() => {
+    const date = new Date();
+    date.setFullYear(date.getFullYear() - 5, 0, 1);
+    date.setHours(0, 0, 0, 0);
+    return date;
+  })();
+
+  readonly maxPickerDate = (() => {
+    const date = new Date();
+    date.setHours(0, 0, 0, 0);
+    return date;
+  })();
+
+  readonly pickerDate = computed(() => new Date(this.selectedYear(), this.selectedMonth() - 1, 1));
+  readonly canContinuePreview = computed(() => !this.isLoading() && this.report().length > 0);
+  readonly periodLabel = computed(() => {
+    const month = this.months.find((item) => item.value === this.selectedMonth())?.label ?? '';
+    return `${month} de ${this.selectedYear()}`;
+  });
+
+  private exportSub: Subscription | undefined;
+  private readonly exportPollIntervalMs = 1500;
+  private readonly exportTimeoutMs = 5 * 60 * 1000;
+  /** RF-REL-02: consumadas (aprovadas/confirmadas) de Salão, Churrasqueira e Campo. */
+  private readonly reportStatuses = new Set<string>([
+    ReservationStatus.APPROVED,
+    'CONFIRMED',
+  ]);
+  private readonly reportSpaceTypes = new Set<string>([
+    SpaceType.SALAO_FESTAS,
+    SpaceType.CHURRASQUEIRA,
+    SpaceType.CAMPO_FUTEBOL,
+  ]);
 
   ionViewWillEnter(): void {
-    this.shell.configure({
-      title: 'Relatório de Reservas',
-      showBack: true,
-      showLogo: false,
-      showLogout: false,
-      headerState: 'compact',
-    });
+    this.updateShell();
     this.shell.setExpandContent(null);
   }
 
@@ -271,53 +166,160 @@ export class ReportsPage implements OnInit, OnDestroy, ViewWillEnter {
     this.exportSub?.unsubscribe();
   }
 
-  loadReport(): void {
-    this.isLoading = true;
-    this.initialLoad = false;
-
-    this.reservationService.getMonthlyReport(this.selectedMonth, this.selectedYear).pipe(
-      catchError(() => of([])),
-      finalize(() => this.isLoading = false)
-    ).subscribe(report => {
-      this.report = report;
-    });
+  onPeriodChange(date: Date): void {
+    this.selectedMonth.set(date.getMonth() + 1);
+    this.selectedYear.set(date.getFullYear());
   }
 
-  exportReport(format: ReportFormat): void {
-    if (this.isExporting || this.isLoading) {
+  goToStep(next: ReportStep): void {
+    if (next === 2) {
+      this.loadReport();
+    }
+    this.step.set(next);
+    this.updateShell();
+  }
+
+  exportReport(): void {
+    if (this.isExporting() || this.isLoading() || this.report().length === 0) {
       return;
     }
 
-    this.isExporting = true;
-    this.exportError = '';
+    this.exportSub?.unsubscribe();
+    this.isExporting.set(true);
+    this.cdr.markForCheck();
+    const format = this.selectedFormat();
 
     this.exportSub = this.reservationService
-      .createMonthlyReportExport(this.selectedMonth, this.selectedYear, format)
+      .createMonthlyReportExport(this.selectedMonth(), this.selectedYear(), format)
       .pipe(
-        switchMap(job => this.pollUntilReady(job, format)),
-        finalize(() => this.isExporting = false)
+        switchMap((job) => this.pollUntilReady(job)),
+        finalize(() => {
+          this.isExporting.set(false);
+          this.cdr.markForCheck();
+        }),
       )
       .subscribe({
-        next: blob => this.downloadReport(blob, format),
+        next: (blob) => this.downloadReport(blob, format),
         error: (err: unknown) => {
-          this.exportError = this.extractErrorMessage(err);
-          void this.presentToast(this.exportError, 'danger');
-        }
+          void this.uiService.showError(this.extractErrorMessage(err));
+        },
       });
   }
 
-  private pollUntilReady(job: { jobId: string; status: ReportExportStatus },
-                         format: ReportFormat) {
+  getSpaceTypeLabel(type: string): string {
+    return getSpaceCatalogEntry(type)?.name || type;
+  }
+
+  getSpaceIcon(type: string): string {
+    const normalized = (type || '').toUpperCase();
+    if (normalized === 'SALAO_FESTAS') return 'lucidePartyPopper';
+    if (normalized === 'CHURRASQUEIRA') return 'lucideFlame';
+    if (normalized === 'CAMPO_FUTEBOL') return 'lucideLandPlot';
+    if (normalized === 'ACADEMIA') return 'lucideDumbbell';
+    return 'lucideCalendar';
+  }
+
+  formatDate(dateStr: string): string {
+    if (!dateStr) return '';
+    const date = new Date(`${dateStr}T00:00:00`);
+    if (Number.isNaN(date.getTime())) {
+      return new Date(dateStr).toLocaleDateString('pt-BR');
+    }
+    return date.toLocaleDateString('pt-BR');
+  }
+
+  private loadReport(): void {
+    this.isLoading.set(true);
+    this.cdr.markForCheck();
+    const month = this.selectedMonth();
+    const year = this.selectedYear();
+
+    forkJoin({
+      reservations: this.reservationService.getAll(),
+      users: this.userService.getSummary(),
+    }).pipe(
+      map(({ reservations, users }) => this.toMonthlyReport(reservations, users, month, year)),
+      catchError(() => {
+        void this.uiService.showError('Erro ao carregar o relatório');
+        return of([] as MonthlyReservationReportDTO[]);
+      }),
+      finalize(() => {
+        this.isLoading.set(false);
+        this.cdr.markForCheck();
+      }),
+    ).subscribe((report) => {
+      this.report.set(report);
+    });
+  }
+
+  private toMonthlyReport(
+    reservations: ReservationResponseDTO[],
+    users: UserSummaryDTO[],
+    month: number,
+    year: number,
+  ): MonthlyReservationReportDTO[] {
+    const apartments = new Map(users.map((user) => [user.id, user.apartment?.trim() ?? '']));
+
+    return reservations
+      .filter((item) => this.isReportEligible(item, month, year))
+      .map((item) => ({
+        residentName: item.user?.name ?? '',
+        apartment: apartments.get(item.user?.id) ?? '',
+        date: item.date,
+        spaceType: item.space?.type ?? '',
+      }))
+      .sort((a, b) => a.date.localeCompare(b.date));
+  }
+
+  private isReportEligible(item: ReservationResponseDTO, month: number, year: number): boolean {
+    const date = this.parseIsoDate(item.date);
+    if (!date || date.getMonth() + 1 !== month || date.getFullYear() !== year) {
+      return false;
+    }
+
+    const status = String(item.status ?? '').toUpperCase();
+    const spaceType = String(item.space?.type ?? '').toUpperCase();
+    return this.reportStatuses.has(status) && this.reportSpaceTypes.has(spaceType);
+  }
+
+  private parseIsoDate(value: string): Date | null {
+    if (!value) {
+      return null;
+    }
+    const date = new Date(`${value.slice(0, 10)}T00:00:00`);
+    return Number.isNaN(date.getTime()) ? null : date;
+  }
+
+  private updateShell(): void {
+    const subtitles: Record<ReportStep, string> = {
+      1: 'Etapa 1 de 3 — escolha o período',
+      2: 'Etapa 2 de 3 — confira as reservas',
+      3: 'Etapa 3 de 3 — exporte o arquivo',
+    };
+
+    this.shell.configure({
+      title: 'Relatórios',
+      subtitle: subtitles[this.step()],
+      showBack: true,
+      showLogo: false,
+      showLogout: false,
+      headerState: 'compact',
+      progressStep: this.step(),
+      progressTotal: 3,
+    });
+  }
+
+  private pollUntilReady(job: { jobId: string; status: ReportExportStatus }) {
     const startedAt = Date.now();
     return interval(this.exportPollIntervalMs).pipe(
       startWith(0),
       switchMap(() => this.reservationService.getMonthlyReportExportStatus(job.jobId)),
       takeWhile(
-        current => current.status === ReportExportStatus.PROCESSING
+        (current) => current.status === ReportExportStatus.PROCESSING
           && Date.now() - startedAt < this.exportTimeoutMs,
-        true
+        true,
       ),
-      switchMap(current => {
+      switchMap((current) => {
         if (Date.now() - startedAt >= this.exportTimeoutMs) {
           throw new Error('Tempo de geração do relatório excedido.');
         }
@@ -328,49 +330,36 @@ export class ReportsPage implements OnInit, OnDestroy, ViewWillEnter {
           return this.reservationService.downloadMonthlyReportExport(current.jobId);
         }
         return EMPTY;
-      })
+      }),
     );
   }
 
   private downloadReport(blob: Blob, format: ReportFormat): void {
-    const fileName = `relatorio-reservas-${this.padMonth(this.selectedMonth)}-${this.selectedYear}.${format.toLowerCase()}`;
+    const fileName = `relatorio-reservas-${this.padMonth(this.selectedMonth())}-${this.selectedYear()}.${format.toLowerCase()}`;
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
     link.download = fileName;
     link.click();
     URL.revokeObjectURL(url);
-    void this.presentToast('Relatório exportado com sucesso.', 'success');
+    this.celebration.celebrateSuccess();
+    void this.uiService.showSuccess('Relatório exportado');
   }
 
   private extractErrorMessage(err: unknown): string {
     if (err instanceof Error) {
       return err.message;
     }
+    if (typeof err === 'object' && err !== null && 'message' in err) {
+      const message = (err as { message: unknown }).message;
+      if (typeof message === 'string' && message.trim()) {
+        return message;
+      }
+    }
     return 'Não foi possível exportar o relatório.';
   }
 
   private padMonth(month: number): string {
     return month.toString().padStart(2, '0');
-  }
-
-  private async presentToast(message: string, color: 'success' | 'danger'): Promise<void> {
-    const toast = await this.toastController.create({
-      message,
-      duration: 3000,
-      color,
-      position: 'bottom'
-    });
-    await toast.present();
-  }
-
-  getSpaceTypeLabel(type: string): string {
-    return this.spaceTypes[type] || type;
-  }
-
-  formatDate(dateStr: string): string {
-    if (!dateStr) return '';
-    const date = new Date(dateStr);
-    return date.toLocaleDateString('pt-BR');
   }
 }
