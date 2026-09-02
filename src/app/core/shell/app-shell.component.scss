@@ -14,7 +14,8 @@
   );
   --app-dock-height: var(--shell-dock-height);
   --app-content-gap: 8px;
-  --app-content-top: calc(var(--app-header-height) + var(--app-content-gap));
+  --app-header-gap: 32px;
+  --app-content-top: calc(var(--app-header-height) + var(--app-header-gap));
   --app-content-bottom: calc(var(--app-dock-height) + var(--app-content-gap));
   --app-fab-bottom: calc(var(--app-content-bottom) + 0.75rem);
 
