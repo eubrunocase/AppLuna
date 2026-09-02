@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, tap, BehaviorSubject, switchMap, of, map } from 'rxjs';
-import { AuthenticationDTO, UserRoles, ResponseUserDTO, TokenDTO, RefreshRequestDTO, RefreshResponseDTO, LogoutRequestDTO } from '../core/models';
+import { AuthenticationDTO, UserRoles, ResponseUserDTO, TokenDTO, RefreshRequestDTO, RefreshResponseDTO, LogoutRequestDTO, isResidentRole } from '../core/models';
 import { TokenStorageService } from '../core/storage/token-storage.service';
 import { ApiConfigService } from '../core/api-config.service';
 import { AppNavigationService } from '../core/navigation/app-navigation.service';
@@ -125,6 +125,6 @@ export class AuthService {
 
   isResident(): boolean {
     const user = this.tokenStorage.getUser();
-    return user?.role === UserRoles.RESIDENT_ROLE || user?.role === UserRoles.RESIDENTE_ROLE;
+    return isResidentRole(user?.role);
   }
 }

@@ -16,6 +16,8 @@ export const APP_ROUTES = {
   homeDeliveriesNew: '/app/home/deliveries/manage/new',
   homeEquipmentManage: '/app/home/equipment/manage',
   homeAdminUsers: '/app/home/admin/users',
+  homeAdminUsersNew: '/app/home/admin/users/new',
+  homeAdminUsersEdit: (id: string) => `/app/home/admin/users/${id}`,
   homeAdminReports: '/app/home/admin/reports',
   homeNotifications: '/app/home/settings/notifications',
 

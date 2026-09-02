@@ -28,7 +28,7 @@ import { AppShellService } from '../../core/shell/app-shell.service';
 import { UserService } from '../../services/user.service';
 import { UiService } from '../../shared/services/ui.service';
 import { NativeCameraService } from '../../shared/services/native-camera.service';
-import { ResponseUserDTO, UserRoles } from '../../core/models';
+import { isResidentRole, ResponseUserDTO } from '../../core/models';
 import {
   SearchableComboboxComponent,
   SearchableComboboxOption,
@@ -118,7 +118,7 @@ export class DeliveryCreatePage implements OnInit, ViewWillEnter {
 
   ngOnInit(): void {
     this.userService.getAll().pipe(
-      map(users => users.filter(u => u.role === UserRoles.RESIDENTE_ROLE)),
+      map(users => users.filter(u => isResidentRole(u.role))),
       catchError(() => of([]))
     ).subscribe(users => {
       this.users.set(users);

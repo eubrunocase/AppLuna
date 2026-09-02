@@ -83,6 +83,16 @@ export const routes: Routes = [
         canActivate: [adminGuard],
       },
       {
+        path: 'home/admin/users/new',
+        loadComponent: () => import('./pages/users/user-form.page').then((m) => m.UserFormPage),
+        canActivate: [adminGuard],
+      },
+      {
+        path: 'home/admin/users/:id',
+        loadComponent: () => import('./pages/users/user-form.page').then((m) => m.UserFormPage),
+        canActivate: [adminGuard],
+      },
+      {
         path: 'home/admin/reports',
         loadComponent: () => import('./pages/reports/reports.page').then((m) => m.ReportsPage),
         canActivate: [adminGuard],

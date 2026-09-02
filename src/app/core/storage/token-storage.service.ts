@@ -91,16 +91,17 @@ export class TokenStorageService {
   normalizeRole(role: string | null | undefined): string {
     const normalized = (role || '').trim().toUpperCase();
 
-    if (normalized === 'RESIDENT_ROLE') {
-      return 'RESIDENTE_ROLE';
+    if (
+      normalized === 'RESIDENT_ROLE' ||
+      normalized === 'RESIDENTE_ROLE' ||
+      normalized === 'ROLE_RESIDENT_ROLE' ||
+      normalized === 'ROLE_RESIDENTE_ROLE'
+    ) {
+      return 'RESIDENT_ROLE';
     }
 
     if (normalized === 'ROLE_ADMIN_ROLE' || normalized === 'ROLE_ADMIN') {
       return 'ADMIN_ROLE';
-    }
-
-    if (normalized === 'ROLE_RESIDENTE_ROLE' || normalized === 'ROLE_RESIDENT_ROLE') {
-      return 'RESIDENTE_ROLE';
     }
 
     if (normalized === 'ROLE_EMPLOYEE') {

@@ -1,276 +1,253 @@
-import { Component, inject, OnInit } from '@angular/core';
-import { IonicModule, ViewWillEnter } from '@ionic/angular';
-import { CommonModule } from '@angular/common';
+import { ChangeDetectorRef, Component, inject, OnInit, viewChild } from '@angular/core';
+import { FormsModule } from '@angular/forms';
+import {
+  IonContent,
+  IonRefresher,
+  IonRefresherContent,
+  ViewWillEnter,
+} from '@ionic/angular/standalone';
+import { NgIcon, provideIcons } from '@ng-icons/core';
+import {
+  lucideBriefcase,
+  lucideBuilding2,
+  lucideLayoutGrid,
+  lucideMail,
+  lucidePencil,
+  lucidePlus,
+  lucideSearch,
+  lucideShieldCheck,
+  lucideTrash2,
+  lucideTriangleAlert,
+  lucideUser,
+  lucideUsers,
+} from '@ng-icons/lucide';
+import { HlmButtonImports } from '@spartan-ng/helm/button';
+import { HlmCardImports } from '@spartan-ng/helm/card';
+import { HlmInputImports } from '@spartan-ng/helm/input';
+import { HlmSkeletonImports } from '@spartan-ng/helm/skeleton';
+import { HlmSpinnerImports } from '@spartan-ng/helm/spinner';
 import { UserService } from '../../services/user.service';
-import { ResponseUserDTO, UserRoles } from '../../core/models';
-import { AlertController } from '@ionic/angular';
+import { AuthService } from '../../services/auth.service';
+import { isResidentRole, ResponseUserDTO, UserRoles } from '../../core/models';
+import { AppNavigationService } from '../../core/navigation/app-navigation.service';
+import { APP_ROUTES } from '../../core/navigation/app-routes';
 import { AppShellService } from '../../core/shell/app-shell.service';
-import { catchError, finalize, of } from 'rxjs';
+import { UiService } from '../../shared/services/ui.service';
+import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog/confirm-dialog.component';
+import { catchError, EMPTY, finalize, of } from 'rxjs';
+
+type RoleFilter = 'ALL' | UserRoles.ADMIN_ROLE | UserRoles.EMPLOYEE | UserRoles.RESIDENT_ROLE;
 
 @Component({
   selector: 'app-users',
-  template: `
-    <ion-content class="shell-page-content ion-padding">
-      <ion-button expand="block" class="create-top-btn" (click)="openCreateModal()">
-        <ion-icon slot="start" name="person-add-outline"></ion-icon>
-        Novo usuário
-      </ion-button>
-
-      <ion-refresher slot="fixed" (ionRefresh)="refresh($event)">
-        <ion-refresher-content></ion-refresher-content>
-      </ion-refresher>
-
-      <div *ngIf="isLoading" class="loading-container">
-        <ion-spinner name="crescent"></ion-spinner>
-      </div>
-
-      <ion-list *ngIf="!isLoading && users.length > 0">
-        <ion-item *ngFor="let user of users" class="user-item">
-          <ion-avatar slot="start">
-            <ion-icon name="person-circle-outline" class="avatar-icon"></ion-icon>
-          </ion-avatar>
-          <ion-label>
-            <h2>{{ user.name }}</h2>
-            <p>{{ user.apartment }} - {{ user.email }}</p>
-            <ion-chip [color]="getRoleColor(user.role)" size="small">
-              {{ getRoleLabel(user.role) }}
-            </ion-chip>
-          </ion-label>
-          <ion-buttons slot="end">
-            <ion-button (click)="openEditModal(user)">
-              <ion-icon slot="icon-only" name="create-outline"></ion-icon>
-            </ion-button>
-          </ion-buttons>
-        </ion-item>
-      </ion-list>
-
-      <div *ngIf="!isLoading && users.length === 0" class="empty-state">
-        <ion-icon name="people-outline" class="empty-icon"></ion-icon>
-        <p>Nenhum usuário encontrado</p>
-      </div>
-    </ion-content>
-  `,
-  styles: [`
-    .loading-container {
-      display: flex;
-      justify-content: center;
-      padding: 48px;
-    }
-    
-    .user-item {
-      --padding-start: 8px;
-      --inner-padding-end: 8px;
-    }
-    
-    .avatar-icon {
-      font-size: 40px;
-      color: var(--ion-color-medium);
-    }
-    
-    ion-label h2 {
-      font-weight: 600;
-    }
-    
-    ion-label p {
-      color: var(--ion-color-medium);
-      font-size: 13px;
-    }
-    
-    ion-chip {
-      margin-top: 4px;
-    }
-    
-    .empty-state {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      padding: 48px;
-      color: var(--ion-color-medium);
-    }
-    
-    .empty-icon {
-      font-size: 64px;
-      margin-bottom: 16px;
-    }
-  `],
+  templateUrl: './users.page.html',
+  styleUrl: './users.page.scss',
   standalone: true,
-  imports: [IonicModule, CommonModule]
+  imports: [
+    IonContent,
+    IonRefresher,
+    IonRefresherContent,
+    FormsModule,
+    NgIcon,
+    HlmButtonImports,
+    HlmCardImports,
+    HlmInputImports,
+    HlmSkeletonImports,
+    HlmSpinnerImports,
+    ConfirmDialogComponent,
+  ],
+  providers: [
+    provideIcons({
+      lucideBriefcase,
+      lucideBuilding2,
+      lucideLayoutGrid,
+      lucideMail,
+      lucidePencil,
+      lucidePlus,
+      lucideSearch,
+      lucideShieldCheck,
+      lucideTrash2,
+      lucideTriangleAlert,
+      lucideUser,
+      lucideUsers,
+    }),
+  ],
 })
 export class UsersPage implements OnInit, ViewWillEnter {
   private userService = inject(UserService);
-  private alertController = inject(AlertController);
+  private authService = inject(AuthService);
+  private navigation = inject(AppNavigationService);
   private shell = inject(AppShellService);
+  private uiService = inject(UiService);
+  private cdr = inject(ChangeDetectorRef);
+
+  private readonly confirmDialog = viewChild.required<ConfirmDialogComponent>('confirmDialog');
 
   users: ResponseUserDTO[] = [];
-  isLoading = false;
+  filteredUsers: ResponseUserDTO[] = [];
+  isLoading = true;
+  roleFilter: RoleFilter = 'ALL';
+  searchQuery = '';
+  processingId: string | null = null;
+
+  confirmTitle = 'Excluir usuário';
+  confirmDescription = '';
+  confirmLabel = 'Excluir';
+  private pendingDelete: ResponseUserDTO | null = null;
+
+  readonly skeletonItems = [1, 2, 3];
+  readonly compactSkeletonItems = [1, 2, 3, 4, 5, 6];
+
+  get isCompactList(): boolean {
+    return this.roleFilter !== 'ALL';
+  }
+
+  readonly roleFilters: { value: RoleFilter; label: string; icon: string }[] = [
+    { value: 'ALL', label: 'Todos', icon: 'lucideLayoutGrid' },
+    { value: UserRoles.RESIDENT_ROLE, label: 'Moradores', icon: 'lucideUser' },
+    { value: UserRoles.EMPLOYEE, label: 'Funcionários', icon: 'lucideBriefcase' },
+    { value: UserRoles.ADMIN_ROLE, label: 'Síndicos', icon: 'lucideShieldCheck' },
+  ];
 
   ngOnInit(): void {
     this.loadUsers();
   }
 
   ionViewWillEnter(): void {
+    this.loadUsers();
     this.shell.configure({
-      title: 'Gerenciar Usuários',
+      title: 'Usuários',
+      subtitle: 'Gestão de moradores e equipe',
       showBack: true,
       showLogo: false,
       showLogout: false,
       headerState: 'compact',
+      progressStep: null,
+      progressTotal: null,
     });
     this.shell.setExpandContent(null);
   }
 
   loadUsers(): void {
     this.isLoading = true;
-    
+    this.cdr.markForCheck();
+
     this.userService.getAll().pipe(
-      catchError(() => of([])),
-      finalize(() => this.isLoading = false)
+      catchError(() => {
+        void this.uiService.showError('Erro ao carregar usuários');
+        return of([] as ResponseUserDTO[]);
+      }),
+      finalize(() => {
+        this.isLoading = false;
+        this.cdr.markForCheck();
+      }),
     ).subscribe(users => {
       this.users = users;
+      this.applyFilters();
     });
   }
 
-  refresh(event: any): void {
+  refresh(event: { target: { complete: () => void } }): void {
     this.loadUsers();
     setTimeout(() => event.target.complete(), 1000);
   }
 
-  getRoleColor(role: string): string {
-    const colors: Record<string, string> = {
-      [UserRoles.ADMIN_ROLE]: 'danger',
-      [UserRoles.EMPLOYEE]: 'warning',
-      [UserRoles.RESIDENT_ROLE]: 'primary'
-    };
-    return colors[role] || 'medium';
+  setRoleFilter(value: RoleFilter): void {
+    this.roleFilter = value;
+    this.applyFilters();
+  }
+
+  setSearchQuery(value: string): void {
+    this.searchQuery = value;
+    this.applyFilters();
   }
 
   getRoleLabel(role: string): string {
-    const labels: Record<string, string> = {
-      [UserRoles.ADMIN_ROLE]: 'Administrador',
-      [UserRoles.EMPLOYEE]: 'Funcionário',
-      [UserRoles.RESIDENT_ROLE]: 'Morador'
-    };
-    return labels[role] || role;
+    if (role === UserRoles.ADMIN_ROLE) return 'Síndico';
+    if (role === UserRoles.EMPLOYEE) return 'Funcionário';
+    if (isResidentRole(role)) return 'Morador';
+    return role;
   }
 
-  async openCreateModal(): Promise<void> {
-    const alert = await this.alertController.create({
-      header: 'Novo Usuário',
-      inputs: [
-        { name: 'name', type: 'text', placeholder: 'Nome completo' },
-        { name: 'apartment', type: 'text', placeholder: 'Apartamento (ex: 101)' },
-        { name: 'email', type: 'email', placeholder: 'Email' },
-        { name: 'password', type: 'password', placeholder: 'Senha' }
-      ],
-      buttons: [
-        { text: 'Cancelar', role: 'cancel' },
-        {
-          text: 'Avançar',
-          handler: (data) => {
-            if (data.name && data.apartment && data.email && data.password) {
-              this.selectRole(data);
-              return true;
-            }
-            return false;
-          }
-        }
-      ]
-    });
-    await alert.present();
+  getRoleModifier(role: string): string {
+    if (role === UserRoles.ADMIN_ROLE) return UserRoles.ADMIN_ROLE;
+    if (role === UserRoles.EMPLOYEE) return UserRoles.EMPLOYEE;
+    if (isResidentRole(role)) return UserRoles.RESIDENT_ROLE;
+    return role;
   }
 
-  private async selectRole(basicData: any): Promise<void> {
-    const alert = await this.alertController.create({
-      header: 'Selecione o Perfil',
-      inputs: [
-        {
-          name: 'role',
-          type: 'radio',
-          label: 'Morador',
-          value: UserRoles.RESIDENT_ROLE
-        },
-        {
-          name: 'role',
-          type: 'radio',
-          label: 'Funcionário',
-          value: UserRoles.EMPLOYEE
-        },
-        {
-          name: 'role',
-          type: 'radio',
-          label: 'Administrador',
-          value: UserRoles.ADMIN_ROLE
-        }
-      ],
-      buttons: [
-        { text: 'Cancelar', role: 'cancel' },
-        {
-          text: 'Criar',
-          handler: (roleData) => {
-            if (roleData.role) {
-              this.createUser({ ...basicData, role: roleData.role });
-              return true;
-            }
-            return false;
-          }
-        }
-      ]
-    });
-    await alert.present();
+  getRoleIcon(role: string): string {
+    if (role === UserRoles.ADMIN_ROLE) return 'lucideShieldCheck';
+    if (role === UserRoles.EMPLOYEE) return 'lucideBriefcase';
+    return 'lucideUser';
   }
 
-  async openEditModal(user: ResponseUserDTO): Promise<void> {
-    const alert = await this.alertController.create({
-      header: 'Editar Usuário',
-      message: user.email,
-      inputs: [
-        { name: 'name', type: 'text', placeholder: 'Nome completo', value: user.name },
-        { name: 'apartment', type: 'text', placeholder: 'Apartamento', value: user.apartment },
-        { name: 'password', type: 'password', placeholder: 'Nova senha (deixe em branco para manter)' }
-      ],
-      buttons: [
-        { text: 'Cancelar', role: 'cancel' },
-        {
-          text: 'Salvar',
-          handler: (data) => {
-            if (data.name && data.apartment) {
-              this.updateUser(user, data);
-              return true;
-            }
-            return false;
-          }
-        }
-      ]
-    });
-    await alert.present();
+  isCurrentUser(user: ResponseUserDTO): boolean {
+    return this.authService.getCurrentUser()?.id === user.id;
   }
 
-  private createUser(data: any): void {
-    this.userService.create({
-      name: data.name,
-      apartment: data.apartment,
-      email: data.email,
-      password: data.password,
-      role: data.role
-    }).pipe(
-      catchError(() => of(null))
-    ).subscribe(() => {
+  openCreate(): void {
+    void this.navigation.push(APP_ROUTES.homeAdminUsersNew);
+  }
+
+  openEdit(user: ResponseUserDTO): void {
+    void this.navigation.push(APP_ROUTES.homeAdminUsersEdit(user.id));
+  }
+
+  askDelete(user: ResponseUserDTO): void {
+    if (this.isCurrentUser(user) || this.processingId) {
+      return;
+    }
+
+    this.pendingDelete = user;
+    this.confirmTitle = 'Excluir usuário';
+    this.confirmDescription = `Excluir ${user.name}? Esta ação não pode ser desfeita.`;
+    this.confirmLabel = 'Excluir';
+    this.cdr.detectChanges();
+    this.confirmDialog().open();
+  }
+
+  confirmDelete(): void {
+    const user = this.pendingDelete;
+    this.pendingDelete = null;
+    if (!user) {
+      return;
+    }
+
+    this.processingId = user.id;
+    this.userService.delete(user.id).pipe(
+      catchError(() => {
+        void this.uiService.showError('Erro ao excluir usuário');
+        return EMPTY;
+      }),
+      finalize(() => {
+        this.processingId = null;
+        this.cdr.markForCheck();
+      }),
+    ).subscribe(async () => {
+      await this.uiService.showSuccess('Usuário excluído');
       this.loadUsers();
     });
   }
 
-  private updateUser(user: ResponseUserDTO, data: any): void {
-    this.userService.update(user.id, {
-      name: data.name,
-      apartment: data.apartment,
-      email: user.email,
-      password: data.password || '',
-      role: user.role
-    }).pipe(
-      catchError(() => of(null))
-    ).subscribe(() => {
-      this.loadUsers();
+  private applyFilters(): void {
+    const query = this.searchQuery.trim().toLowerCase();
+
+    this.filteredUsers = this.users.filter(user => {
+      const matchesRole =
+        this.roleFilter === 'ALL' ||
+        (this.roleFilter === UserRoles.RESIDENT_ROLE
+          ? isResidentRole(user.role)
+          : user.role === this.roleFilter);
+      if (!matchesRole) {
+        return false;
+      }
+      if (!query) {
+        return true;
+      }
+      return [user.name, user.email, user.apartment].some(value =>
+        value.toLowerCase().includes(query),
+      );
     });
   }
 }

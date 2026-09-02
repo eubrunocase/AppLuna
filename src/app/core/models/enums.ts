@@ -1,8 +1,19 @@
 export enum UserRoles {
   ADMIN_ROLE = 'ADMIN_ROLE',
-  RESIDENT_ROLE = 'RESIDENTE_ROLE',
-  RESIDENTE_ROLE = 'RESIDENTE_ROLE',
+  RESIDENT_ROLE = 'RESIDENT_ROLE',
+  /** Alias legado; o backend usa `RESIDENT_ROLE`. */
+  RESIDENTE_ROLE = 'RESIDENT_ROLE',
   EMPLOYEE = 'EMPLOYEE'
+}
+
+export function isResidentRole(role: string | null | undefined): boolean {
+  const normalized = (role || '').trim().toUpperCase();
+  return (
+    normalized === 'RESIDENT_ROLE' ||
+    normalized === 'RESIDENTE_ROLE' ||
+    normalized === 'ROLE_RESIDENT_ROLE' ||
+    normalized === 'ROLE_RESIDENTE_ROLE'
+  );
 }
 
 export enum SpaceType {
