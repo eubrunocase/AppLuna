@@ -2,8 +2,10 @@ import { Component, input, output, viewChild } from '@angular/core';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import {
   lucideBan,
+  lucideKeyRound,
   lucideLogOut,
   lucideTriangleAlert,
+  lucideUndo2,
   lucideX,
 } from '@ng-icons/lucide';
 import { HlmAlertDialog, HlmAlertDialogImports } from '@spartan-ng/helm/alert-dialog';
@@ -18,8 +20,10 @@ import { HlmButtonImports } from '@spartan-ng/helm/button';
   providers: [
     provideIcons({
       lucideBan,
+      lucideKeyRound,
       lucideLogOut,
       lucideTriangleAlert,
+      lucideUndo2,
       lucideX,
     }),
   ],

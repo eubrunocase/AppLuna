@@ -1,283 +1,288 @@
-import { Component, inject, OnInit } from '@angular/core';
-import { IonicModule, ViewWillEnter } from '@ionic/angular';
-import { CommonModule } from '@angular/common';
-import { AlertController } from '@ionic/angular';
-import { EquipmentReservationService } from '../../services/equipment-reservation.service';
+import { ChangeDetectorRef, Component, inject, OnInit, viewChild } from '@angular/core';
+import { FormsModule } from '@angular/forms';
+import {
+  IonContent,
+  IonRefresher,
+  IonRefresherContent,
+  ViewWillEnter,
+} from '@ionic/angular/standalone';
+import { NgIcon, provideIcons } from '@ng-icons/core';
+import {
+  lucideBan,
+  lucideBuilding2,
+  lucideCalendar,
+  lucideCircleCheck,
+  lucideClock,
+  lucideKeyRound,
+  lucideLayoutGrid,
+  lucidePlay,
+  lucidePlus,
+  lucideSearch,
+  lucideTv,
+  lucideUndo2,
+  lucideUser,
+} from '@ng-icons/lucide';
+import { HlmButtonImports } from '@spartan-ng/helm/button';
+import { HlmCardImports } from '@spartan-ng/helm/card';
+import { HlmInputImports } from '@spartan-ng/helm/input';
+import { HlmSkeletonImports } from '@spartan-ng/helm/skeleton';
+import { HlmSpinnerImports } from '@spartan-ng/helm/spinner';
+import { catchError, EMPTY, finalize, of } from 'rxjs';
 import { EquipmentReservationResponseDTO, EquipmentReservationStatus, UserRoles } from '../../core/models';
-import { AuthService } from '../../services/auth.service';
+import { AppNavigationService } from '../../core/navigation/app-navigation.service';
+import { APP_ROUTES } from '../../core/navigation/app-routes';
 import { AppShellService } from '../../core/shell/app-shell.service';
-import { catchError, finalize, of } from 'rxjs';
+import { AuthService } from '../../services/auth.service';
+import { EquipmentReservationService } from '../../services/equipment-reservation.service';
+import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog/confirm-dialog.component';
+import { UiService } from '../../shared/services/ui.service';
+
+type StatusFilter = 'ALL' | EquipmentReservationStatus;
 
 @Component({
   selector: 'app-equipment-reservations',
-  template: `
-    <ion-content class="shell-page-content ion-padding">
-      <ion-button expand="block" class="create-top-btn" (click)="openCreateModal()">
-        <ion-icon slot="start" name="add"></ion-icon>
-        Novo empréstimo
-      </ion-button>
-
-      <ion-refresher slot="fixed" (ionRefresh)="refresh($event)">
-        <ion-refresher-content></ion-refresher-content>
-      </ion-refresher>
-
-      <div *ngIf="isLoading" class="loading-container">
-        <ion-spinner name="crescent"></ion-spinner>
-      </div>
-
-      <ion-list *ngIf="!isLoading && reservations.length > 0">
-        <ion-card *ngFor="let reservation of reservations" class="equipment-card">
-          <ion-card-header>
-            <ion-card-title>
-              <ion-icon name="tv-outline" class="card-icon"></ion-icon>
-              {{ reservation.equipmentName }}
-            </ion-card-title>
-            <ion-chip [color]="getStatusColor(reservation.status)">
-              {{ getStatusLabel(reservation.status) }}
-            </ion-chip>
-          </ion-card-header>
-          
-          <ion-card-content>
-            <div class="equipment-info">
-              <p><strong>Solicitante:</strong> {{ reservation.userName }} ({{ reservation.userApartment }})</p>
-              <p><strong>Data:</strong> {{ formatDate(reservation.date) }}</p>
-              <p><strong>Horário:</strong> {{ reservation.startTime }} - {{ reservation.endTime }}</p>
-              <p class="date"><strong>Criado em:</strong> {{ formatDateTime(reservation.createdAt) }}</p>
-              <p *ngIf="reservation.pickedUpAt" class="date"><strong>Retirado em:</strong> {{ formatDateTime(reservation.pickedUpAt) }}</p>
-              <p *ngIf="reservation.returnedAt" class="date"><strong>Devolvido em:</strong> {{ formatDateTime(reservation.returnedAt) }}</p>
-            </div>
-            
-            <div *ngIf="canManage" class="action-buttons">
-              <ng-container [ngSwitch]="reservation.status">
-                <ion-button 
-                  *ngSwitchCase="'CONFIRMED'"
-                  expand="block" 
-                  color="primary"
-                  (click)="handover(reservation)">
-                  <ion-icon slot="start" name="hand-right-outline"></ion-icon>
-                  Entregar
-                </ion-button>
-                <ion-button 
-                  *ngSwitchCase="'IN_USE'"
-                  expand="block" 
-                  color="success"
-                  (click)="returnItem(reservation)">
-                  <ion-icon slot="start" name="checkmark-circle-outline"></ion-icon>
-                  Devolver
-                </ion-button>
-              </ng-container>
-            </div>
-          </ion-card-content>
-        </ion-card>
-      </ion-list>
-
-      <div *ngIf="!isLoading && reservations.length === 0" class="empty-state">
-        <ion-icon name="tv-outline" class="empty-icon"></ion-icon>
-        <p>Nenhum empréstimo encontrado</p>
-      </div>
-    </ion-content>
-  `,
-  styles: [`
-    .loading-container {
-      display: flex;
-      justify-content: center;
-      padding: 48px;
-    }
-    
-    .equipment-card {
-      margin-bottom: 16px;
-      border-radius: 12px;
-    }
-    
-    ion-card-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    
-    ion-card-title {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      font-size: 16px;
-    }
-    
-    .card-icon {
-      color: var(--ion-color-primary);
-      font-size: 20px;
-    }
-    
-    .equipment-info p {
-      margin: 4px 0;
-      color: var(--ion-color-medium);
-    }
-    
-    .action-buttons {
-      margin-top: 12px;
-    }
-    
-    .empty-state {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      padding: 48px;
-      color: var(--ion-color-medium);
-    }
-    
-    .empty-icon {
-      font-size: 64px;
-      margin-bottom: 16px;
-    }
-    .create-top-btn {
-      margin-bottom: 0.75rem;
-    }
-  `],
+  templateUrl: './equipment-reservations.page.html',
+  styleUrl: './equipment-reservations.page.scss',
   standalone: true,
-  imports: [IonicModule, CommonModule]
+  imports: [
+    IonContent,
+    IonRefresher,
+    IonRefresherContent,
+    FormsModule,
+    NgIcon,
+    HlmButtonImports,
+    HlmCardImports,
+    HlmInputImports,
+    HlmSkeletonImports,
+    HlmSpinnerImports,
+    ConfirmDialogComponent,
+  ],
+  providers: [
+    provideIcons({
+      lucideBan,
+      lucideBuilding2,
+      lucideCalendar,
+      lucideCircleCheck,
+      lucideClock,
+      lucideKeyRound,
+      lucideLayoutGrid,
+      lucidePlay,
+      lucidePlus,
+      lucideSearch,
+      lucideTv,
+      lucideUndo2,
+      lucideUser,
+    }),
+  ],
 })
 export class EquipmentReservationsPage implements OnInit, ViewWillEnter {
   private equipmentService = inject(EquipmentReservationService);
   private authService = inject(AuthService);
-  private alertController = inject(AlertController);
+  private navigation = inject(AppNavigationService);
   private shell = inject(AppShellService);
+  private uiService = inject(UiService);
+  private cdr = inject(ChangeDetectorRef);
+
+  private readonly confirmDialog = viewChild.required<ConfirmDialogComponent>('confirmDialog');
 
   reservations: EquipmentReservationResponseDTO[] = [];
-  isLoading = false;
+  filteredReservations: EquipmentReservationResponseDTO[] = [];
+  isLoading = true;
+  statusFilter: StatusFilter = 'ALL';
+  searchQuery = '';
+  processingId: string | null = null;
+  canCreate = false;
   canManage = false;
 
+  confirmTitle = 'Confirmar ação';
+  confirmDescription = '';
+  confirmLabel = 'Confirmar';
+  confirmIcon = 'lucideKeyRound';
+  private pendingAction: { type: 'handover' | 'return'; reservation: EquipmentReservationResponseDTO } | null = null;
+
+  readonly skeletonItems = [1, 2, 3];
+
+  readonly statusFilters: { value: StatusFilter; label: string; icon: string }[] = [
+    { value: 'ALL', label: 'Todos', icon: 'lucideLayoutGrid' },
+    { value: EquipmentReservationStatus.CONFIRMED, label: 'Confirmados', icon: 'lucideClock' },
+    { value: EquipmentReservationStatus.IN_USE, label: 'Em uso', icon: 'lucidePlay' },
+    { value: EquipmentReservationStatus.RETURNED, label: 'Devolvidos', icon: 'lucideCircleCheck' },
+    { value: EquipmentReservationStatus.CANCELED, label: 'Cancelados', icon: 'lucideBan' },
+  ];
+
   ngOnInit(): void {
+    const role = this.authService.getCurrentUser()?.role;
     this.canManage = this.authService.isAdmin() || this.authService.isEmployee();
+    this.canCreate = role === UserRoles.ADMIN_ROLE;
     this.loadReservations();
   }
 
   ionViewWillEnter(): void {
+    this.loadReservations();
     this.shell.configure({
-      title: 'Empréstimo de Equipamentos',
+      title: 'Equipamentos',
+      subtitle: 'Controle da TV comunitária',
       showBack: true,
       showLogo: false,
       showLogout: false,
       headerState: 'compact',
+      progressStep: null,
+      progressTotal: null,
     });
     this.shell.setExpandContent(null);
   }
 
   loadReservations(): void {
     this.isLoading = true;
-    
+    this.cdr.markForCheck();
+
     this.equipmentService.list().pipe(
-      catchError(() => of([])),
-      finalize(() => this.isLoading = false)
+      catchError(() => {
+        void this.uiService.showError('Erro ao carregar empréstimos');
+        return of([] as EquipmentReservationResponseDTO[]);
+      }),
+      finalize(() => {
+        this.isLoading = false;
+        this.cdr.markForCheck();
+      }),
     ).subscribe(reservations => {
-      this.reservations = reservations;
+      this.reservations = this.sortReservations(reservations);
+      this.applyFilters();
     });
   }
 
-  refresh(event: any): void {
+  refresh(event: { target: { complete: () => void } }): void {
     this.loadReservations();
     setTimeout(() => event.target.complete(), 1000);
   }
 
-  getStatusColor(status: EquipmentReservationStatus): string {
-    const colors: Record<EquipmentReservationStatus, string> = {
-      [EquipmentReservationStatus.CONFIRMED]: 'primary',
-      [EquipmentReservationStatus.IN_USE]: 'warning',
-      [EquipmentReservationStatus.RETURNED]: 'success',
-      [EquipmentReservationStatus.CANCELED]: 'medium'
-    };
-    return colors[status] || 'medium';
+  setStatusFilter(value: StatusFilter): void {
+    this.statusFilter = value;
+    this.applyFilters();
   }
 
-  getStatusLabel(status: EquipmentReservationStatus): string {
-    const labels: Record<EquipmentReservationStatus, string> = {
-      [EquipmentReservationStatus.CONFIRMED]: 'Confirmado',
-      [EquipmentReservationStatus.IN_USE]: 'Em Uso',
-      [EquipmentReservationStatus.RETURNED]: 'Devolvido',
-      [EquipmentReservationStatus.CANCELED]: 'Cancelado'
-    };
-    return labels[status] || status;
+  setSearchQuery(value: string): void {
+    this.searchQuery = value;
+    this.applyFilters();
+  }
+
+  getStatusLabel(status: string): string {
+    if (status === EquipmentReservationStatus.CONFIRMED) return 'Confirmado';
+    if (status === EquipmentReservationStatus.IN_USE) return 'Em uso';
+    if (status === EquipmentReservationStatus.RETURNED) return 'Devolvido';
+    if (status === EquipmentReservationStatus.CANCELED) return 'Cancelado';
+    return status;
   }
 
   formatDate(dateStr: string): string {
     if (!dateStr) return '';
-    const date = new Date(dateStr);
+    const date = new Date(`${dateStr}T00:00:00`);
+    if (Number.isNaN(date.getTime())) {
+      return new Date(dateStr).toLocaleDateString('pt-BR');
+    }
     return date.toLocaleDateString('pt-BR');
   }
 
-  formatDateTime(dateStr: string): string {
+  formatDateTime(dateStr: string | null | undefined): string {
     if (!dateStr) return '';
-    const date = new Date(dateStr);
-    return date.toLocaleString('pt-BR');
-  }
-
-  async openCreateModal(): Promise<void> {
-    const alert = await this.alertController.create({
-      header: 'Novo Empréstimo',
-      inputs: [
-        {
-          name: 'equipmentId',
-          type: 'number',
-          placeholder: 'ID do Equipamento'
-        },
-        {
-          name: 'date',
-          type: 'date',
-          placeholder: 'Data'
-        },
-        {
-          name: 'startTime',
-          type: 'time',
-          placeholder: 'Hora início'
-        },
-        {
-          name: 'endTime',
-          type: 'time',
-          placeholder: 'Hora fim'
-        }
-      ],
-      buttons: [
-        { text: 'Cancelar', role: 'cancel' },
-        {
-          text: 'Reservar',
-          handler: (data) => {
-            if (data.equipmentId && data.date && data.startTime && data.endTime) {
-              this.createReservation(data);
-              return true;
-            }
-            return false;
-          }
-        }
-      ]
+    return new Date(dateStr).toLocaleString('pt-BR', {
+      day: '2-digit',
+      month: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
     });
-    await alert.present();
   }
 
-  private createReservation(data: any): void {
-    this.equipmentService.create({
-      equipmentId: parseInt(data.equipmentId),
-      date: data.date,
-      startTime: data.startTime,
-      endTime: data.endTime
-    }).pipe(
-      catchError(() => of(null))
-    ).subscribe(() => {
+  openCreate(): void {
+    void this.navigation.push(APP_ROUTES.homeTvNew);
+  }
+
+  askHandover(reservation: EquipmentReservationResponseDTO): void {
+    if (!this.canManage || this.processingId) {
+      return;
+    }
+    this.pendingAction = { type: 'handover', reservation };
+    this.confirmTitle = 'Entregar controle';
+    this.confirmDescription = `Entregar o controle da TV para ${reservation.userName} (apto ${reservation.userApartment})?`;
+    this.confirmLabel = 'Entregar';
+    this.confirmIcon = 'lucideKeyRound';
+    this.cdr.detectChanges();
+    this.confirmDialog().open();
+  }
+
+  askReturn(reservation: EquipmentReservationResponseDTO): void {
+    if (!this.canManage || this.processingId) {
+      return;
+    }
+    this.pendingAction = { type: 'return', reservation };
+    this.confirmTitle = 'Confirmar devolução';
+    this.confirmDescription = `Registrar a devolução do controle por ${reservation.userName}? A reserva será encerrada.`;
+    this.confirmLabel = 'Devolver';
+    this.confirmIcon = 'lucideUndo2';
+    this.cdr.detectChanges();
+    this.confirmDialog().open();
+  }
+
+  confirmAction(): void {
+    const pending = this.pendingAction;
+    this.pendingAction = null;
+    if (!pending) {
+      return;
+    }
+
+    this.processingId = pending.reservation.id;
+    const request$ = pending.type === 'handover'
+      ? this.equipmentService.handover(pending.reservation.id)
+      : this.equipmentService.returnItem(pending.reservation.id);
+
+    request$.pipe(
+      catchError(() => {
+        void this.uiService.showError(
+          pending.type === 'handover' ? 'Erro ao entregar o controle' : 'Erro ao registrar a devolução',
+        );
+        return EMPTY;
+      }),
+      finalize(() => {
+        this.processingId = null;
+        this.cdr.markForCheck();
+      }),
+    ).subscribe(async () => {
+      await this.uiService.showSuccess(
+        pending.type === 'handover' ? 'Controle entregue' : 'Devolução registrada',
+      );
       this.loadReservations();
     });
   }
 
-  handover(reservation: EquipmentReservationResponseDTO): void {
-    this.equipmentService.handover(reservation.id).pipe(
-      catchError(() => of(null))
-    ).subscribe(() => {
-      this.loadReservations();
+  private sortReservations(items: EquipmentReservationResponseDTO[]): EquipmentReservationResponseDTO[] {
+    const rank: Record<string, number> = {
+      [EquipmentReservationStatus.IN_USE]: 0,
+      [EquipmentReservationStatus.CONFIRMED]: 1,
+      [EquipmentReservationStatus.RETURNED]: 2,
+      [EquipmentReservationStatus.CANCELED]: 3,
+    };
+
+    return [...items].sort((a, b) => {
+      const byStatus = (rank[a.status] ?? 9) - (rank[b.status] ?? 9);
+      if (byStatus !== 0) return byStatus;
+      return `${b.date} ${b.startTime}`.localeCompare(`${a.date} ${a.startTime}`);
     });
   }
 
-  returnItem(reservation: EquipmentReservationResponseDTO): void {
-    this.equipmentService.returnItem(reservation.id).pipe(
-      catchError(() => of(null))
-    ).subscribe(() => {
-      this.loadReservations();
+  private applyFilters(): void {
+    const query = this.searchQuery.trim().toLowerCase();
+
+    this.filteredReservations = this.reservations.filter(item => {
+      const matchesStatus = this.statusFilter === 'ALL' || item.status === this.statusFilter;
+      if (!matchesStatus) {
+        return false;
+      }
+      if (!query) {
+        return true;
+      }
+      return [item.userName, item.userApartment, item.equipmentName].some(value =>
+        (value ?? '').toLowerCase().includes(query),
+      );
     });
   }
 }
