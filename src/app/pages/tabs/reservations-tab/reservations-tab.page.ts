@@ -10,7 +10,6 @@ import { NgIcon, provideIcons } from '@ng-icons/core';
 import {
   lucideArrowRight,
   lucideBan,
-  lucideCalendarOff,
   lucideCheck,
   lucideClock,
   lucideDumbbell,
@@ -84,7 +83,6 @@ interface UnifiedReservation {
     provideIcons({
       lucideArrowRight,
       lucideBan,
-      lucideCalendarOff,
       lucideCheck,
       lucideClock,
       lucideDumbbell,

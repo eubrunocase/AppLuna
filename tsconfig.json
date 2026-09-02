@@ -61,6 +61,9 @@
       ],
       "@spartan-ng/helm/skeleton": [
         "./libs/ui/skeleton/src/index.ts"
+      ],
+      "@spartan-ng/helm/textarea": [
+        "./libs/ui/textarea/src/index.ts"
       ]
     }
   },

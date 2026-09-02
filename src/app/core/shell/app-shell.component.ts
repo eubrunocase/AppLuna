@@ -145,7 +145,8 @@ export class AppShellComponent implements OnInit, AfterViewInit, OnDestroy {
     const path = url.split('?')[0];
     return /\/reservation(s)?\/new\/(space|date)/.test(path)
       || /\/deliveries\/new/.test(path)
-      || /\/home\/deliveries\/manage\/new/.test(path);
+      || /\/home\/deliveries\/manage\/new/.test(path)
+      || /\/occurrence(s)?\/new/.test(path);
   }
 
   private refreshRoleVisibility(): void {

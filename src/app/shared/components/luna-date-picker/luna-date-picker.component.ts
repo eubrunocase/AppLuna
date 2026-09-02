@@ -25,6 +25,7 @@ export class LunaDatePickerComponent implements AfterViewInit {
   private destroyRef = inject(DestroyRef);
 
   readonly minDate = input<Date>(this.startOfDay(new Date()));
+  readonly maxDate = input<Date | undefined>(undefined);
   readonly date = input<Date | undefined>();
   readonly dateChange = output<Date>();
 
@@ -42,29 +43,31 @@ export class LunaDatePickerComponent implements AfterViewInit {
   });
 
   readonly yearOptions = computed(() => {
-    const min = this.minDate();
+    const min = this.resolvedMin();
+    const max = this.resolvedMax();
     const start = min.getFullYear();
-    const end = start + 3;
-    return Array.from({ length: end - start + 1 }, (_, index) => start + index);
+    const end = max.getFullYear();
+    return Array.from({ length: Math.max(end - start + 1, 1) }, (_, index) => start + index);
   });
 
   readonly monthOptions = computed(() => {
-    const min = this.minDate();
+    const min = this.resolvedMin();
+    const max = this.resolvedMax();
     const year = this.selectedYear();
-    const minYear = min.getFullYear();
-    const startMonth = year === minYear ? min.getMonth() + 1 : 1;
-    return Array.from({ length: 12 - startMonth + 1 }, (_, index) => startMonth + index);
+    const startMonth = year === min.getFullYear() ? min.getMonth() + 1 : 1;
+    const endMonth = year === max.getFullYear() ? max.getMonth() + 1 : 12;
+    return Array.from({ length: Math.max(endMonth - startMonth + 1, 1) }, (_, index) => startMonth + index);
   });
 
   readonly dayOptions = computed(() => {
-    const min = this.minDate();
+    const min = this.resolvedMin();
+    const max = this.resolvedMax();
     const year = this.selectedYear();
     const month = this.selectedMonth();
     const maxDay = this.daysInMonth(year, month);
-    const minYear = min.getFullYear();
-    const minMonth = min.getMonth() + 1;
-    const startDay = year === minYear && month === minMonth ? min.getDate() : 1;
-    return Array.from({ length: maxDay - startDay + 1 }, (_, index) => startDay + index);
+    const startDay = year === min.getFullYear() && month === min.getMonth() + 1 ? min.getDate() : 1;
+    const endDay = year === max.getFullYear() && month === max.getMonth() + 1 ? max.getDate() : maxDay;
+    return Array.from({ length: Math.max(endDay - startDay + 1, 1) }, (_, index) => startDay + index);
   });
 
   private readonly wheelItemHeight = 52;
@@ -77,7 +80,7 @@ export class LunaDatePickerComponent implements AfterViewInit {
     this.selectedDay.set(initial.getDate());
     this.selectedMonth.set(initial.getMonth() + 1);
     this.selectedYear.set(initial.getFullYear());
-    this.clampToMinDate();
+    this.clampToRange();
 
     queueMicrotask(() => {
       this.syncAllWheels(false);
@@ -115,7 +118,7 @@ export class LunaDatePickerComponent implements AfterViewInit {
         if (kind === 'month') this.selectedMonth.set(value);
         if (kind === 'year') this.selectedYear.set(value);
 
-        this.clampToMinDate();
+        this.clampToRange();
         this.syncAllWheels(true);
         this.emitIfValid();
       }, 80),
@@ -128,20 +131,27 @@ export class LunaDatePickerComponent implements AfterViewInit {
     return this.yearOptions();
   }
 
-  private clampToMinDate(): void {
-    const min = this.startOfDay(this.minDate());
+  private clampToRange(): void {
+    const min = this.resolvedMin();
+    const max = this.resolvedMax();
     let day = this.selectedDay();
     let month = this.selectedMonth();
     let year = this.selectedYear();
 
     const maxDay = this.daysInMonth(year, month);
-    if (day > maxDay) day = maxDay;
+    if (day > maxDay) {
+      day = maxDay;
+    }
 
     let candidate = this.startOfDay(new Date(year, month - 1, day));
     if (candidate < min) {
       year = min.getFullYear();
       month = min.getMonth() + 1;
       day = min.getDate();
+    } else if (candidate > max) {
+      year = max.getFullYear();
+      month = max.getMonth() + 1;
+      day = max.getDate();
     }
 
     this.selectedYear.set(year);
@@ -170,9 +180,23 @@ export class LunaDatePickerComponent implements AfterViewInit {
     const date = this.startOfDay(
       new Date(this.selectedYear(), this.selectedMonth() - 1, this.selectedDay()),
     );
-    if (date >= this.startOfDay(this.minDate())) {
+    if (date >= this.resolvedMin() && date <= this.resolvedMax()) {
       this.dateChange.emit(date);
     }
+  }
+
+  private resolvedMin(): Date {
+    return this.startOfDay(this.minDate());
+  }
+
+  private resolvedMax(): Date {
+    const max = this.maxDate();
+    if (max) {
+      return this.startOfDay(max);
+    }
+
+    const min = this.resolvedMin();
+    return this.startOfDay(new Date(min.getFullYear() + 3, min.getMonth(), min.getDate()));
   }
 
   private daysInMonth(year: number, month: number): number {

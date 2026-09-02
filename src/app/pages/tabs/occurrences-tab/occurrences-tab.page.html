@@ -1,0 +1,73 @@
+<ion-content class="shell-page-content occurrences-content">
+  <ion-refresher slot="fixed" (ionRefresh)="refresh($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+
+  <div class="occurrences-shell">
+    <div class="info-banner" role="note">
+      <span class="info-banner__icon" aria-hidden="true">
+        <ng-icon name="lucideInfo" />
+      </span>
+      <p class="info-banner__text">
+        Os registros são visíveis ao condomínio e não podem ser editados depois do envio. O síndico é notificado na hora.
+      </p>
+    </div>
+
+    @if (isLoading) {
+      <div class="occurrence-list" role="status" aria-label="Carregando ocorrências">
+        @for (item of skeletonItems; track item) {
+          <div hlmCard size="sm" class="occurrence-card occurrence-card--skeleton" aria-hidden="true">
+            <div class="occurrence-card__inner">
+              <span hlmSkeleton class="occurrence-card__skeleton-icon"></span>
+              <div class="occurrence-card__body">
+                <span hlmSkeleton class="occurrence-card__skeleton-title"></span>
+                <span hlmSkeleton class="occurrence-card__skeleton-line"></span>
+                <span hlmSkeleton class="occurrence-card__skeleton-line occurrence-card__skeleton-line--short"></span>
+              </div>
+            </div>
+          </div>
+        }
+      </div>
+    } @else if (occurrences.length > 0) {
+      <div class="occurrence-list">
+        @for (occurrence of occurrences; track occurrence.id) {
+          <article hlmCard size="sm" class="occurrence-card">
+            <div class="occurrence-card__inner">
+              <div class="occurrence-card__icon" aria-hidden="true">
+                <ng-icon name="lucideTriangleAlert" />
+              </div>
+
+              <div class="occurrence-card__body">
+                <p class="occurrence-card__description">{{ occurrence.description }}</p>
+                <p class="occurrence-card__meta">
+                  <ng-icon name="lucideClock" />
+                  {{ formatDate(occurrence.incidentDate) }}
+                </p>
+              </div>
+            </div>
+          </article>
+        }
+      </div>
+    } @else {
+      <div class="empty-state" role="status">
+        <img
+          class="empty-state__image"
+          src="assets/illustrations/occurrences-empty.svg"
+          alt=""
+        />
+        <p class="empty-state__title">Tudo tranquilo</p>
+        <p class="empty-state__message">Nenhuma ocorrência registrada</p>
+      </div>
+    }
+  </div>
+
+  <button
+    slot="fixed"
+    type="button"
+    class="occurrences-fab"
+    aria-label="Nova ocorrência"
+    (click)="openNewOccurrence()"
+  >
+    <ng-icon name="lucidePlus" />
+  </button>
+</ion-content>

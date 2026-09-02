@@ -1,0 +1,202 @@
+:host {
+  display: block;
+  height: 100%;
+}
+
+.occurrences-content {
+  --background: #f9f6ee;
+}
+
+.occurrences-shell {
+  position: relative;
+  min-height: 100%;
+  padding: 0 1rem 5.5rem;
+}
+
+.info-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.7rem;
+  margin: 0 0 0.95rem;
+  padding: 0.75rem 0.85rem;
+  border: 1px solid rgba(192, 92, 70, 0.16);
+  border-radius: 1rem;
+  background: #fff8f4;
+}
+
+.info-banner__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 0.65rem;
+  background: rgba(192, 92, 70, 0.12);
+  color: #c05c46;
+  font-size: 1.05rem;
+}
+
+.info-banner__text {
+  margin: 0;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  line-height: 1.4;
+  color: #6a3327;
+}
+
+.occurrence-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.occurrence-card {
+  margin: 0;
+  padding: 0 !important;
+  gap: 0 !important;
+  --card-spacing: 0 !important;
+  overflow: hidden;
+  background: #ffffff;
+  border: 1px solid rgba(192, 92, 70, 0.12);
+  box-shadow: 0 8px 22px rgba(54, 26, 20, 0.07);
+
+  &--skeleton {
+    pointer-events: none;
+  }
+}
+
+.occurrence-card__inner {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.85rem;
+  padding: 0.85rem;
+}
+
+.occurrence-card__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 3rem;
+  height: 3rem;
+  border-radius: 0.85rem;
+  background: #fff4ed;
+  color: #c2410c;
+  font-size: 1.35rem;
+}
+
+.occurrence-card__body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  min-width: 0;
+  flex: 1;
+}
+
+.occurrence-card__description {
+  margin: 0;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  line-height: 1.4;
+  color: #361a14;
+}
+
+.occurrence-card__meta {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin: 0;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: #8a5a4e;
+  line-height: 1.3;
+
+  ng-icon {
+    flex-shrink: 0;
+    font-size: 0.85rem;
+  }
+}
+
+.occurrence-card__skeleton-icon {
+  flex-shrink: 0;
+  width: 3rem;
+  height: 3rem;
+  border-radius: 0.85rem;
+  background: rgba(192, 92, 70, 0.12) !important;
+}
+
+.occurrence-card__skeleton-title {
+  width: 78%;
+  height: 0.95rem;
+  border-radius: 999px;
+  background: rgba(192, 92, 70, 0.14) !important;
+}
+
+.occurrence-card__skeleton-line {
+  width: 92%;
+  height: 0.7rem;
+  border-radius: 999px;
+  background: rgba(192, 92, 70, 0.1) !important;
+
+  &--short {
+    width: 48%;
+  }
+}
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2.5rem 1.25rem 3.5rem;
+  text-align: center;
+}
+
+.empty-state__image {
+  width: min(240px, 72vw);
+  height: auto;
+  margin-bottom: 0.35rem;
+}
+
+.empty-state__title {
+  margin: 0 0 0.3rem;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #361a14;
+}
+
+.empty-state__message {
+  margin: 0;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: #8a5a4e;
+}
+
+.occurrences-fab {
+  position: fixed;
+  right: 1rem;
+  bottom: var(--app-fab-bottom, 5rem);
+  z-index: 16;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 3.4rem;
+  height: 3.4rem;
+  border: 0;
+  border-radius: 1.05rem;
+  background: #c05c46;
+  color: #ffffff;
+  box-shadow: 0 10px 24px rgba(192, 92, 70, 0.35);
+  cursor: pointer;
+
+  ng-icon {
+    font-size: 1.45rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .occurrences-fab {
+    transition: none;
+  }
+}

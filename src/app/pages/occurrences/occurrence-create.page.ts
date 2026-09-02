@@ -1,240 +1,171 @@
-import { Component, inject } from '@angular/core';
-import { IonicModule, ViewWillEnter } from '@ionic/angular';
-import { CommonModule } from '@angular/common';
-import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
+import { Component, computed, inject, signal } from '@angular/core';
+import { IonContent, ViewWillEnter } from '@ionic/angular/standalone';
+import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
+import { NgIcon, provideIcons } from '@ng-icons/core';
+import {
+  lucideArrowLeft,
+  lucideArrowRight,
+  lucideCheck,
+  lucideTriangleAlert,
+} from '@ng-icons/lucide';
+import { HlmButtonImports } from '@spartan-ng/helm/button';
+import { HlmFieldImports } from '@spartan-ng/helm/field';
+import { HlmSpinnerImports } from '@spartan-ng/helm/spinner';
+import { HlmTextareaImports } from '@spartan-ng/helm/textarea';
+import { catchError, finalize, of } from 'rxjs';
 import { OccurrenceService } from '../../services/occurrence.service';
 import { AppNavigationService } from '../../core/navigation/app-navigation.service';
 import { APP_ROUTES } from '../../core/navigation/app-routes';
 import { AppShellService } from '../../core/shell/app-shell.service';
 import { UiService } from '../../shared/services/ui.service';
-import { toLocalDateTimeString, nowLocalDateTimeString } from '../../shared/utils/date.utils';
-import { catchError, of } from 'rxjs';
+import { toLocalDateTimeString } from '../../shared/utils/date.utils';
+import { LunaDatePickerComponent } from '../../shared/components/luna-date-picker/luna-date-picker.component';
+import { LunaTimePickerComponent } from '../../shared/components/luna-time-picker/luna-time-picker.component';
+
+type OccurrenceStep = 1 | 2 | 3;
 
 @Component({
   selector: 'app-occurrence-create',
-  template: `
-    <ion-content class="shell-page-content ion-padding">
-      <div class="warning-banner">
-        <ion-icon name="warning-outline"></ion-icon>
-        <div>
-          <strong>Esta ação é irreversível</strong>
-          <p>A ocorrência será notificada ao síndico imediatamente.</p>
-        </div>
-      </div>
-
-      <form [formGroup]="form" (ngSubmit)="onSubmit()">
-        <div class="form-section">
-          <h3>Quando ocorreu?</h3>
-
-          <button type="button" class="date-button" (click)="openDatePicker()">
-            <ion-icon name="calendar-outline" class="calendar-icon"></ion-icon>
-            <span *ngIf="selectedIncidentDate" class="date-label">{{ formatDate(selectedIncidentDate) }}</span>
-            <span *ngIf="!selectedIncidentDate" class="date-placeholder">Selecione a data e hora</span>
-            <ion-icon name="chevron-down" class="chevron-icon"></ion-icon>
-          </button>
-          <p class="field-hint">Não é permitido registrar ocorrências futuras</p>
-        </div>
-
-        <div class="form-section">
-          <h3>Descreva o ocorrido</h3>
-          
-          <ion-textarea 
-            formControlName="description"
-            placeholder="Descreva detalhadamente o incidente..."
-            [rows]="6"
-            [counter]="true"
-            [maxlength]="500">
-          </ion-textarea>
-          <p class="field-hint" *ngIf="form.get('description')?.errors?.['minlength']">
-            Mínimo de 10 caracteres
-          </p>
-        </div>
-
-        <div class="form-actions">
-          <ion-button 
-            expand="block" 
-            type="submit" 
-            [disabled]="form.invalid || isSubmitting"
-            class="submit-button"
-            color="danger">
-            <ion-icon slot="start" name="alert-circle-outline"></ion-icon>
-            <ion-spinner *ngIf="isSubmitting" name="crescent"></ion-spinner>
-            <span *ngIf="!isSubmitting">Registrar Ocorrência</span>
-          </ion-button>
-        </div>
-      </form>
-    </ion-content>
-
-    <ion-modal [isOpen]="showDatePicker" (didDismiss)="showDatePicker = false">
-      <ng-template>
-        <ion-content>
-          <ion-datetime
-            presentation="date-time"
-            [max]="maxDateTime"
-            [value]="selectedIncidentDate"
-            (ionChange)="onDateChange($event)">
-            <div slot="title" class="datetime-title">Selecione a Data e Hora</div>
-          </ion-datetime>
-        </ion-content>
-      </ng-template>
-    </ion-modal>
-  `,
-  styles: [`
-    .warning-banner {
-      display: flex;
-      align-items: flex-start;
-      gap: 12px;
-      padding: 16px;
-      background: rgba(130, 0, 0, 0.08);
-      border-radius: 16px;
-      border-left: 4px solid var(--ion-color-danger);
-      margin-bottom: 24px;
-    }
-    
-    .warning-banner ion-icon {
-      font-size: 28px;
-      color: var(--ion-color-danger);
-      flex-shrink: 0;
-    }
-    
-    .warning-banner strong {
-      display: block;
-      font-size: 14px;
-      color: var(--ion-color-danger);
-      margin-bottom: 4px;
-    }
-    
-    .warning-banner p {
-      margin: 0;
-      font-size: 12px;
-      color: var(--ion-color-medium);
-    }
-    
-    .form-section {
-      margin-bottom: 24px;
-    }
-    
-    .form-section h3 {
-      font-size: 14px;
-      font-weight: 600;
-      color: var(--ion-color-medium);
-      margin: 0 0 12px 4px;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-    }
-
-    .date-button {
-      background: rgba(255, 255, 255, 0.14);
-      border-radius: 12px;
-      padding: 16px;
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      width: 100%;
-      cursor: pointer;
-      border: 1px solid rgba(255, 255, 255, 0.28);
-      backdrop-filter: blur(10px);
-    }
-
-    .calendar-icon {
-      color: var(--ion-color-primary);
-      font-size: 22px;
-    }
-
-    .date-label {
-      flex: 1;
-      color: #fffaf5;
-      font-size: 15px;
-      font-weight: 600;
-      text-align: start;
-    }
-
-    .date-placeholder {
-      flex: 1;
-      color: rgba(255, 248, 240, 0.82);
-      font-size: 15px;
-      text-align: start;
-    }
-
-    .chevron-icon {
-      color: rgba(255, 248, 240, 0.86);
-      font-size: 18px;
-    }
-
-    .datetime-title {
-      text-align: center;
-      font-weight: 600;
-      color: #fff8f0;
-    }
-    
-    ion-textarea {
-      --background: rgba(255, 255, 255, 0.16);
-      --color: #fffaf5;
-      --placeholder-color: rgba(255, 250, 245, 0.78);
-      --border-radius: 12px;
-      --padding-start: 16px;
-      --padding-end: 16px;
-      --padding-top: 16px;
-      font-size: 16px;
-      border: 1px solid rgba(255, 255, 255, 0.24);
-      border-radius: 12px;
-    }
-    
-    .field-hint {
-      font-size: 12px;
-      color: rgba(255, 248, 240, 0.78);
-      margin: 4px 0 0 16px;
-    }
-    
-    .field-hint[color="danger"] {
-      color: var(--ion-color-danger);
-    }
-    
-    .form-actions {
-      margin-top: 32px;
-    }
-    
-    .submit-button {
-      --border-radius: 12px;
-      height: 52px;
-      font-weight: 600;
-      font-size: 16px;
-    }
-  `],
+  templateUrl: './occurrence-create.page.html',
+  styleUrl: './occurrence-create.page.scss',
   standalone: true,
-  imports: [IonicModule, CommonModule, ReactiveFormsModule]
+  imports: [
+    IonContent,
+    FormsModule,
+    NgIcon,
+    HlmButtonImports,
+    HlmFieldImports,
+    HlmSpinnerImports,
+    HlmTextareaImports,
+    LunaDatePickerComponent,
+    LunaTimePickerComponent,
+  ],
+  providers: [
+    provideIcons({
+      lucideArrowLeft,
+      lucideArrowRight,
+      lucideCheck,
+      lucideTriangleAlert,
+    }),
+  ],
 })
 export class OccurrenceCreatePage implements ViewWillEnter {
-  private fb = inject(FormBuilder);
   private occurrenceService = inject(OccurrenceService);
   private navigation = inject(AppNavigationService);
   private uiService = inject(UiService);
   private shell = inject(AppShellService);
   private router = inject(Router);
 
-  form: FormGroup = this.fb.group({
-    incidentDate: ['', [Validators.required]],
-    description: ['', [Validators.required, Validators.minLength(10)]]
-  });
+  readonly step = signal<OccurrenceStep>(1);
+  readonly description = signal('');
+  readonly selectedDate = signal('');
+  readonly selectedTime = signal('');
+  readonly isSubmitting = signal(false);
 
-  isSubmitting = false;
-  selectedIncidentDate = '';
-  showDatePicker = false;
+  readonly minPickerDate = (() => {
+    const date = new Date();
+    date.setHours(0, 0, 0, 0);
+    date.setFullYear(date.getFullYear() - 2);
+    return date;
+  })();
 
-  get maxDateTime(): string {
-    return nowLocalDateTimeString();
-  }
+  readonly maxPickerDate = (() => {
+    const date = new Date();
+    date.setHours(0, 0, 0, 0);
+    return date;
+  })();
+
+  readonly canProceedStep1 = computed(() => this.description().trim().length >= 10);
+
+  readonly canProceedStep2 = computed(() => !!this.selectedDate() && !!this.selectedTime());
+
+  readonly canSubmit = computed(() => this.canProceedStep1() && this.canProceedStep2());
 
   ionViewWillEnter(): void {
+    this.updateShell();
+    this.shell.setExpandContent(null);
+  }
+
+  goToStep(next: OccurrenceStep): void {
+    if (next === 2 && !this.canProceedStep1()) {
+      return;
+    }
+    if (next === 3 && !this.canProceedStep2()) {
+      return;
+    }
+    this.step.set(next);
+    this.updateShell();
+  }
+
+  onDateChange(date: Date): void {
+    this.selectedDate.set(this.toIsoDate(date));
+  }
+
+  onTimeChange(time: string): void {
+    this.selectedTime.set(time);
+  }
+
+  onSubmit(): void {
+    if (!this.canSubmit() || this.isSubmitting()) {
+      return;
+    }
+
+    const incidentDate = this.buildIncidentDate();
+
+    this.isSubmitting.set(true);
+    this.occurrenceService.create({
+      description: this.description().trim(),
+      incidentDate,
+    }).pipe(
+      catchError(error => {
+        const message = error?.error?.validationErrors?.description
+          || error?.error?.validationErrors?.incidentDate
+          || error?.message
+          || error?.error?.message
+          || 'Erro ao registrar ocorrência';
+        void this.uiService.showError(message);
+        return of(null);
+      }),
+      finalize(() => this.isSubmitting.set(false)),
+    ).subscribe(async result => {
+      if (result) {
+        await this.navigation.completeFlow(this.completeRoute());
+        await this.uiService.showSuccess('Ocorrência registrada com sucesso!');
+      }
+    });
+  }
+
+  private buildIncidentDate(): string {
+    const [hour, minute] = this.selectedTime().split(':').map(Number);
+    const [year, month, day] = this.selectedDate().split('-').map(Number);
+    const date = new Date(year, month - 1, day, hour, minute, 0);
+
+    if (date.getTime() > Date.now()) {
+      return toLocalDateTimeString(new Date());
+    }
+
+    return toLocalDateTimeString(date);
+  }
+
+  private updateShell(): void {
+    const step = this.step();
+    const subtitles: Record<OccurrenceStep, string> = {
+      1: 'Etapa 1 de 3 — descreva o ocorrido',
+      2: 'Etapa 2 de 3 — quando aconteceu',
+      3: 'Etapa 3 de 3 — aviso importante',
+    };
+
     this.shell.configure({
       title: 'Nova Ocorrência',
+      subtitle: subtitles[step],
       showBack: true,
       showLogo: false,
       showLogout: false,
       headerState: 'compact',
+      progressStep: step,
+      progressTotal: 3,
     });
-    this.shell.setExpandContent(null);
   }
 
   private completeRoute(): string {
@@ -243,49 +174,10 @@ export class OccurrenceCreatePage implements ViewWillEnter {
       : APP_ROUTES.occurrences;
   }
 
-  openDatePicker(): void {
-    this.showDatePicker = true;
-  }
-
-  onDateChange(event: any): void {
-    const value = event.detail.value;
-    if (value) {
-      this.selectedIncidentDate = toLocalDateTimeString(value);
-      this.form.patchValue({ incidentDate: this.selectedIncidentDate });
-      this.form.get('incidentDate')?.markAsTouched();
-      this.showDatePicker = false;
-    }
-  }
-
-  formatDate(dateStr: string): string {
-    const date = new Date(dateStr);
-    return date.toLocaleString('pt-BR');
-  }
-
-  onSubmit(): void {
-    if (this.form.invalid) return;
-
-    this.isSubmitting = true;
-    const { incidentDate, description } = this.form.value;
-
-    this.occurrenceService.create({
-      description,
-      incidentDate: String(incidentDate)
-    }).pipe(
-      catchError(error => {
-        const message = error.error?.validationErrors?.description || 
-                       error.error?.validationErrors?.incidentDate ||
-                       error.error?.message ||
-                       'Erro ao registrar ocorrência';
-        this.uiService.showError(message);
-        return of(null);
-      })
-    ).subscribe(async (result) => {
-      this.isSubmitting = false;
-      if (result) {
-        await this.navigation.completeFlow(this.completeRoute());
-        await this.uiService.showSuccess('Ocorrência registrada com sucesso!');
-      }
-    });
+  private toIsoDate(date: Date): string {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
   }
 }

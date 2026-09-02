@@ -14,7 +14,6 @@ import {
   lucideLayoutGrid,
   lucidePackage,
   lucidePackageCheck,
-  lucidePackageOpen,
   lucidePlus,
 } from '@ng-icons/lucide';
 import { HlmButtonImports } from '@spartan-ng/helm/button';
@@ -58,7 +57,6 @@ type StatusFilter = 'ALL' | 'PENDING' | 'DELIVERED';
       lucideLayoutGrid,
       lucidePackage,
       lucidePackageCheck,
-      lucidePackageOpen,
       lucidePlus,
     }),
   ],
