@@ -2,28 +2,22 @@ import { HttpContextToken, HttpErrorResponse, HttpInterceptorFn } from '@angular
 import { inject } from '@angular/core';
 import { Observable, finalize, shareReplay, switchMap, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
+import { isAuthRequest, isTokenAuthFailure } from '../auth/auth-session.utils';
 import { AuthService } from '../../services/auth.service';
 import { TokenStorageService } from '../storage/token-storage.service';
-
-const AUTH_URLS = ['/auth/login', '/auth/refresh', '/auth/logout'];
 
 const RETRIED_TOKEN = new HttpContextToken<boolean>(() => false);
 
 let isRefreshing = false;
 let refreshDone$: Observable<boolean> | null = null;
 
-function isAuthUrl(url: string): boolean {
-  return AUTH_URLS.some(authUrl => url.includes(authUrl));
-}
-
 /**
- * Em 401 de request protegido tenta um refresh silencioso e repete a requisição.
- * O refresh é single-flight: requisições concorrentes aguardam o mesmo refresh
- * e são repetidas com o novo access token. Se o refresh falhar, a sessão é
- * limpa e o usuário é levado ao login.
+ * Interceptor mais interno: trata 401 antes da formatação de erro.
+ * Tenta refresh silencioso e repete a requisição; em falha limpa a sessão
+ * e redireciona ao login via AuthService.forceLogout().
  */
 export const refreshInterceptorFn: HttpInterceptorFn = (req, next) => {
-  if (isAuthUrl(req.url) || req.context.get(RETRIED_TOKEN)) {
+  if (isAuthRequest(req.url) || req.context.get(RETRIED_TOKEN)) {
     return next(req);
   }
 
@@ -32,7 +26,7 @@ export const refreshInterceptorFn: HttpInterceptorFn = (req, next) => {
 
   return next(req).pipe(
     catchError((error: HttpErrorResponse) => {
-      if (error.status !== 401) {
+      if (!isTokenAuthFailure(error, req.url)) {
         return throwError(() => error);
       }
 
@@ -53,21 +47,21 @@ export const refreshInterceptorFn: HttpInterceptorFn = (req, next) => {
       }
 
       return refreshDone$!.pipe(
-        switchMap(ok => {
+        switchMap((ok) => {
           if (!ok) {
+            authService.forceLogout();
             return throwError(() => error);
           }
 
           const accessToken = tokenStorage.getAccessToken();
           const retried = req.clone({
             context: req.context.set(RETRIED_TOKEN, true),
-            ...(accessToken ? { setHeaders: { Authorization: `Bearer ${accessToken}` } } : {})
+            ...(accessToken ? { setHeaders: { Authorization: `Bearer ${accessToken}` } } : {}),
           });
 
           return next(retried).pipe(
             catchError((retryError: HttpErrorResponse) => {
-              // Refresh válido mas access ainda rejeitado (ex: token_version mudou)
-              if (retryError?.status === 401) {
+              if (isTokenAuthFailure(retryError, req.url)) {
                 authService.forceLogout();
               }
               return throwError(() => retryError);

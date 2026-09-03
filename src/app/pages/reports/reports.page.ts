@@ -8,12 +8,10 @@ import {
   lucideBuilding2,
   lucideCalendar,
   lucideDownload,
-  lucideDumbbell,
   lucideFileText,
   lucideFileType,
   lucideFlame,
   lucideInfo,
-  lucideLandPlot,
   lucidePartyPopper,
 } from '@ng-icons/lucide';
 import { HlmButtonImports } from '@spartan-ng/helm/button';
@@ -21,19 +19,14 @@ import { HlmCardImports } from '@spartan-ng/helm/card';
 import { HlmRadioGroupImports } from '@spartan-ng/helm/radio-group';
 import { HlmSkeletonImports } from '@spartan-ng/helm/skeleton';
 import { HlmSpinnerImports } from '@spartan-ng/helm/spinner';
-import { EMPTY, Subscription, catchError, finalize, forkJoin, interval, map, of, startWith, switchMap, takeWhile } from 'rxjs';
+import { EMPTY, Subscription, catchError, finalize, interval, of, startWith, switchMap, takeWhile } from 'rxjs';
 import {
   MonthlyReservationReportDTO,
   ReportExportStatus,
   ReportFormat,
-  ReservationResponseDTO,
-  ReservationStatus,
-  SpaceType,
-  UserSummaryDTO,
 } from '../../core/models';
 import { AppShellService } from '../../core/shell/app-shell.service';
 import { ReservationService } from '../../services/reservation.service';
-import { UserService } from '../../services/user.service';
 import { getSpaceCatalogEntry } from '../reservations/space-catalog';
 import { LunaDatePickerComponent } from '../../shared/components/luna-date-picker/luna-date-picker.component';
 import { CelebrationService } from '../../shared/services/celebration.service';
@@ -64,19 +57,16 @@ type ReportStep = 1 | 2 | 3;
       lucideBuilding2,
       lucideCalendar,
       lucideDownload,
-      lucideDumbbell,
       lucideFileText,
       lucideFileType,
       lucideFlame,
       lucideInfo,
-      lucideLandPlot,
       lucidePartyPopper,
     }),
   ],
 })
 export class ReportsPage implements OnDestroy, ViewWillEnter {
   private reservationService = inject(ReservationService);
-  private userService = inject(UserService);
   private shell = inject(AppShellService);
   private uiService = inject(UiService);
   private celebration = inject(CelebrationService);
@@ -146,16 +136,6 @@ export class ReportsPage implements OnDestroy, ViewWillEnter {
   private exportSub: Subscription | undefined;
   private readonly exportPollIntervalMs = 1500;
   private readonly exportTimeoutMs = 5 * 60 * 1000;
-  /** RF-REL-02: consumadas (aprovadas/confirmadas) de Salão, Churrasqueira e Campo. */
-  private readonly reportStatuses = new Set<string>([
-    ReservationStatus.APPROVED,
-    'CONFIRMED',
-  ]);
-  private readonly reportSpaceTypes = new Set<string>([
-    SpaceType.SALAO_FESTAS,
-    SpaceType.CHURRASQUEIRA,
-    SpaceType.CAMPO_FUTEBOL,
-  ]);
 
   ionViewWillEnter(): void {
     this.updateShell();
@@ -214,8 +194,6 @@ export class ReportsPage implements OnDestroy, ViewWillEnter {
     const normalized = (type || '').toUpperCase();
     if (normalized === 'SALAO_FESTAS') return 'lucidePartyPopper';
     if (normalized === 'CHURRASQUEIRA') return 'lucideFlame';
-    if (normalized === 'CAMPO_FUTEBOL') return 'lucideLandPlot';
-    if (normalized === 'ACADEMIA') return 'lucideDumbbell';
     return 'lucideCalendar';
   }
 
@@ -231,63 +209,22 @@ export class ReportsPage implements OnDestroy, ViewWillEnter {
   private loadReport(): void {
     this.isLoading.set(true);
     this.cdr.markForCheck();
-    const month = this.selectedMonth();
-    const year = this.selectedYear();
 
-    forkJoin({
-      reservations: this.reservationService.getAll(),
-      users: this.userService.getSummary(),
-    }).pipe(
-      map(({ reservations, users }) => this.toMonthlyReport(reservations, users, month, year)),
-      catchError(() => {
-        void this.uiService.showError('Erro ao carregar o relatório');
-        return of([] as MonthlyReservationReportDTO[]);
-      }),
-      finalize(() => {
-        this.isLoading.set(false);
-        this.cdr.markForCheck();
-      }),
-    ).subscribe((report) => {
-      this.report.set(report);
-    });
-  }
-
-  private toMonthlyReport(
-    reservations: ReservationResponseDTO[],
-    users: UserSummaryDTO[],
-    month: number,
-    year: number,
-  ): MonthlyReservationReportDTO[] {
-    const apartments = new Map(users.map((user) => [user.id, user.apartment?.trim() ?? '']));
-
-    return reservations
-      .filter((item) => this.isReportEligible(item, month, year))
-      .map((item) => ({
-        residentName: item.user?.name ?? '',
-        apartment: apartments.get(item.user?.id) ?? '',
-        date: item.date,
-        spaceType: item.space?.type ?? '',
-      }))
-      .sort((a, b) => a.date.localeCompare(b.date));
-  }
-
-  private isReportEligible(item: ReservationResponseDTO, month: number, year: number): boolean {
-    const date = this.parseIsoDate(item.date);
-    if (!date || date.getMonth() + 1 !== month || date.getFullYear() !== year) {
-      return false;
-    }
-
-    const status = String(item.status ?? '').toUpperCase();
-    const spaceType = String(item.space?.type ?? '').toUpperCase();
-    return this.reportStatuses.has(status) && this.reportSpaceTypes.has(spaceType);
-  }
-
-  private parseIsoDate(value: string): Date | null {
-    if (!value) {
-      return null;
-    }
-    const date = new Date(`${value.slice(0, 10)}T00:00:00`);
-    return Number.isNaN(date.getTime()) ? null : date;
+    this.reservationService
+      .getMonthlyReport(this.selectedMonth(), this.selectedYear())
+      .pipe(
+        catchError(() => {
+          void this.uiService.showError('Erro ao carregar o relatório');
+          return of([] as MonthlyReservationReportDTO[]);
+        }),
+        finalize(() => {
+          this.isLoading.set(false);
+          this.cdr.markForCheck();
+        }),
+      )
+      .subscribe((report) => {
+        this.report.set(report);
+      });
   }
 
   private updateShell(): void {

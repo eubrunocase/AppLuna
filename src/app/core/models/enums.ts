@@ -19,7 +19,6 @@ export function isResidentRole(role: string | null | undefined): boolean {
 export enum SpaceType {
   SALAO_FESTAS = 'SALAO_FESTAS',
   CHURRASQUEIRA = 'CHURRASQUEIRA',
-  ACADEMIA = 'ACADEMIA',
   CAMPO_FUTEBOL = 'CAMPO_FUTEBOL'
 }
 

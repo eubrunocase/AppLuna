@@ -1,15 +1,23 @@
 import { HttpErrorResponse, HttpInterceptorFn } from '@angular/common/http';
+import { inject } from '@angular/core';
 import { throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
+import { isLoginRequest, isTokenAuthFailure } from '../auth/auth-session.utils';
+import { AuthService } from '../../services/auth.service';
 
 /**
  * Formata erros HTTP em um objeto { status, message } amigável ao UI.
- * Não tem efeitos colaterais de sessão — a limpeza de sessão é responsabilidade
- * do refresh interceptor e do AuthService.
+ * Falhas de autenticação (401 / token inválido) disparam forceLogout como rede de segurança.
  */
 export const errorInterceptorFn: HttpInterceptorFn = (req, next) => {
+  const authService = inject(AuthService);
+
   return next(req).pipe(
     catchError((error: HttpErrorResponse) => {
+      if (isTokenAuthFailure(error, req.url)) {
+        authService.forceLogout();
+      }
+
       let errorMessage = 'Ocorreu um erro';
 
       if (error.status === 0) {
@@ -22,8 +30,7 @@ export const errorInterceptorFn: HttpInterceptorFn = (req, next) => {
           errorMessage = error.error?.message || 'Dados inválidos';
         }
       } else if (error.status === 401) {
-        const isLoginRequest = req.url.includes('/auth/login');
-        if (isLoginRequest) {
+        if (isLoginRequest(req.url)) {
           errorMessage = 'Email ou senha incorretos.';
         } else {
           errorMessage = 'Sessão expirada. Faça login novamente.';

@@ -12,7 +12,6 @@ import {
   lucideBan,
   lucideCheck,
   lucideClock,
-  lucideDumbbell,
   lucideFlame,
   lucideGoal,
   lucideLayoutGrid,
@@ -43,7 +42,7 @@ import { catchError, finalize, forkJoin, of } from 'rxjs';
 
 type ReservationKind = 'space' | 'equipment';
 
-type TypeFilter = 'ALL' | 'SALAO_FESTAS' | 'CHURRASQUEIRA' | 'ACADEMIA' | 'CAMPO_FUTEBOL' | 'TELEVISAO';
+type TypeFilter = 'ALL' | 'SALAO_FESTAS' | 'CHURRASQUEIRA' | 'CAMPO_FUTEBOL' | 'TELEVISAO';
 type StatusFilter = 'ALL' | 'PENDING' | 'APPROVED' | 'CONFIRMED' | 'IN_USE' | 'RETURNED' | 'CANCELED';
 
 interface UnifiedReservation {
@@ -85,7 +84,6 @@ interface UnifiedReservation {
       lucideBan,
       lucideCheck,
       lucideClock,
-      lucideDumbbell,
       lucideFlame,
       lucideGoal,
       lucideLayoutGrid,
@@ -137,7 +135,6 @@ export class ReservationsTabPage implements OnInit, ViewWillEnter {
     { value: 'ALL', label: 'Todas', icon: 'lucideLayoutGrid' },
     { value: 'SALAO_FESTAS', label: 'Salão', icon: 'lucidePartyPopper' },
     { value: 'CHURRASQUEIRA', label: 'Churrasqueira', icon: 'lucideFlame' },
-    { value: 'ACADEMIA', label: 'Academia', icon: 'lucideDumbbell' },
     { value: 'CAMPO_FUTEBOL', label: 'Campo', icon: 'lucideGoal' },
     { value: 'TELEVISAO', label: 'TV', icon: 'lucideTv' },
   ];
@@ -197,7 +194,6 @@ export class ReservationsTabPage implements OnInit, ViewWillEnter {
       type === 'TELEVISAO'
       || type === 'SALAO_FESTAS'
       || type === 'CHURRASQUEIRA'
-      || type === 'ACADEMIA'
       || type === 'CAMPO_FUTEBOL'
     ) {
       this.typeFilter = type as TypeFilter;

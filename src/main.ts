@@ -1,4 +1,4 @@
-import { defineCustomElements } from '@ionic/pwa-elements/loader';
+import { defineCustomElements } from '@ionic/pwa-elements/dist/esm/loader.js';
 import { bootstrapApplication } from '@angular/platform-browser';
 
 defineCustomElements(window);
@@ -22,7 +22,7 @@ bootstrapApplication(AppComponent, {
     provideSpartanHlm(),
     provideRouter(routes, withPreloading(PreloadAllModules)),
     provideHttpClient(
-      withInterceptors([authInterceptorFn, refreshInterceptorFn, errorInterceptorFn])
+      withInterceptors([authInterceptorFn, errorInterceptorFn, refreshInterceptorFn])
     ),
     provideServiceWorker('ngsw-worker.js', {
       enabled: !isDevMode(),

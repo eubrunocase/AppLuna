@@ -23,23 +23,43 @@ export class AuthService {
   constructor() {
     this.isAuthenticated$.subscribe(authenticated => {
       if (authenticated) {
+        this.redirectingToLogin = false;
         return;
       }
 
-      const currentUrl = typeof window !== 'undefined' ? window.location.pathname : '';
-      if (currentUrl === '/login') {
-        return;
-      }
-
-      void this.navigation.resetApp();
+      this.redirectToLogin();
     });
   }
 
-  /** Limpa a sessão local e redireciona para o login sem chamar a API. */
+  /** Limpa tokens e perfil local; redireciona ao login via isAuthenticated$. */
   forceLogout(): void {
+    if (
+      !this.tokenStorage.getAccessToken()
+      && !this.tokenStorage.getRefreshToken()
+      && !this.isAuthenticatedSubject.value
+    ) {
+      this.redirectToLogin();
+      return;
+    }
+
     this.tokenStorage.clearTokens();
     this.isAuthenticatedSubject.next(false);
-    void this.navigation.resetApp();
+  }
+
+  private redirectToLogin(): void {
+    if (this.redirectingToLogin) {
+      return;
+    }
+
+    const currentUrl = typeof window !== 'undefined' ? window.location.pathname : '';
+    if (currentUrl === '/login') {
+      return;
+    }
+
+    this.redirectingToLogin = true;
+    void this.navigation.resetApp().finally(() => {
+      this.redirectingToLogin = false;
+    });
   }
 
   login(payload: AuthenticationDTO): Observable<ResponseUserDTO | null> {

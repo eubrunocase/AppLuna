@@ -17,11 +17,6 @@ export const SPACE_CATALOG: Record<string, SpaceCatalogEntry> = {
     description: 'Para confraternizações',
     imageSrc: 'assets/images/spaces/churrasqueira.jpg',
   },
-  [SpaceType.ACADEMIA]: {
-    name: 'Academia',
-    description: 'Treinos e exercícios',
-    imageSrc: 'assets/images/spaces/academia.jpg',
-  },
   [SpaceType.CAMPO_FUTEBOL]: {
     name: 'Campo de Futebol',
     description: 'Jogos e esportes',
@@ -33,6 +28,15 @@ export const SPACE_CATALOG: Record<string, SpaceCatalogEntry> = {
     imageSrc: 'assets/images/spaces/televisao.jpg',
   },
 };
+
+/** Fora do escopo inicial — imagem mantida em assets/images/spaces/academia.jpg */
+export const FUTURE_SPACE_ASSETS = {
+  ACADEMIA: {
+    name: 'Academia',
+    description: 'Treinos e exercícios',
+    imageSrc: 'assets/images/spaces/academia.jpg',
+  },
+} as const satisfies Record<string, SpaceCatalogEntry>;
 
 export function getSpaceCatalogEntry(type: string | null | undefined): SpaceCatalogEntry | null {
   if (!type) return null;
