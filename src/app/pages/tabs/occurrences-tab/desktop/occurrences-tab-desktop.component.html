@@ -1,0 +1,53 @@
+<div class="desktop-page">
+  <div class="desktop-page__toolbar">
+    <div>
+      <h1 class="m-0 text-xl font-bold text-[#361a14]">Ocorrências</h1>
+      <p class="m-0 mt-1 text-sm text-[#8a6f66]">Registros visíveis ao condomínio</p>
+    </div>
+    <div class="flex flex-wrap gap-2">
+      <button hlmBtn type="button" variant="outline" size="sm" (click)="refreshList.emit()">
+        <ng-icon name="lucideRefreshCw" />
+        Atualizar
+      </button>
+      <button hlmBtn type="button" size="sm" (click)="create.emit()">
+        <ng-icon name="lucidePlus" />
+        Nova ocorrência
+      </button>
+    </div>
+  </div>
+
+  <div class="desktop-page__panel p-4 text-sm text-[#8a6f66]">
+    Os registros são visíveis ao condomínio e não podem ser editados depois do envio. O síndico é notificado na hora.
+  </div>
+
+  <div class="desktop-page__panel">
+    @if (isLoading()) {
+      <div class="desktop-empty"><hlm-spinner /><p class="desktop-empty__message">Carregando...</p></div>
+    } @else if (occurrences().length === 0) {
+      <div class="desktop-empty">
+        <img class="desktop-empty__image" src="assets/illustrations/occurrences-empty.svg" alt="" />
+        <p class="desktop-empty__title">Tudo tranquilo</p>
+        <p class="desktop-empty__message">Nenhuma ocorrência registrada</p>
+      </div>
+    } @else {
+      <div hlmTableContainer>
+        <table hlmTable>
+          <thead hlmTHead>
+            <tr hlmTr>
+              <th hlmTh>Descrição</th>
+              <th hlmTh>Data</th>
+            </tr>
+          </thead>
+          <tbody hlmTBody>
+            @for (occurrence of occurrences(); track occurrence.id) {
+              <tr hlmTr>
+                <td hlmTd class="whitespace-normal max-w-xl">{{ occurrence.description }}</td>
+                <td hlmTd>{{ formatDate(occurrence.incidentDate) }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  </div>
+</div>

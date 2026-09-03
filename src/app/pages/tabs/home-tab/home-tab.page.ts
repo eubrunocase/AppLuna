@@ -1,27 +1,19 @@
 import { ChangeDetectorRef, Component, inject } from '@angular/core';
 import {
-  IonContent,
   ViewWillEnter,
   ViewWillLeave,
 } from '@ionic/angular/standalone';
-import { NgIcon, provideIcons } from '@ng-icons/core';
-import {
-  lucideCalendar,
-  lucideClipboardList,
-  lucideInfo,
-  lucidePackage,
-} from '@ng-icons/lucide';
-import { HlmButtonImports } from '@spartan-ng/helm/button';
-import { HlmCardImports } from '@spartan-ng/helm/card';
-import { HlmSkeletonImports } from '@spartan-ng/helm/skeleton';
 import { AppNavigationService } from '../../../core/navigation/app-navigation.service';
 import { APP_ROUTES } from '../../../core/navigation/app-routes';
 import { AppShellService } from '../../../core/shell/app-shell.service';
+import { LayoutService } from '../../../core/layout/layout.service';
 import { AuthService } from '../../../services/auth.service';
 import { ReservationService } from '../../../services/reservation.service';
 import { DeliveryService } from '../../../services/delivery.service';
 import { HomeHeaderExpandComponent } from './home-header-expand.component';
 import { ReservationDraftService } from '../../reservations/reservation-draft.service';
+import { HomeTabDesktopComponent } from './desktop/home-tab-desktop.component';
+import { HomeTabMobileComponent } from './mobile/home-tab-mobile.component';
 import { catchError, finalize, forkJoin, of } from 'rxjs';
 
 interface HomeQuickAction {
@@ -33,17 +25,8 @@ interface HomeQuickAction {
 @Component({
   selector: 'app-home-tab',
   templateUrl: './home-tab.page.html',
-  styleUrl: './home-tab.page.scss',
   standalone: true,
-  imports: [IonContent, NgIcon, HlmButtonImports, HlmCardImports, HlmSkeletonImports],
-  providers: [
-    provideIcons({
-      lucideClipboardList,
-      lucidePackage,
-      lucideCalendar,
-      lucideInfo,
-    }),
-  ],
+  imports: [HomeTabDesktopComponent, HomeTabMobileComponent],
 })
 export class HomeTabPage implements ViewWillEnter, ViewWillLeave {
   private authService = inject(AuthService);
@@ -53,6 +36,7 @@ export class HomeTabPage implements ViewWillEnter, ViewWillLeave {
   private shell = inject(AppShellService);
   private draft = inject(ReservationDraftService);
   private cdr = inject(ChangeDetectorRef);
+  readonly layout = inject(LayoutService);
 
   isAdmin = false;
   isEmployee = false;

@@ -1,138 +1,317 @@
 <div
   #shellRoot
-  class="app-shell"
+  [class]="layout.isDesktop() ? 'desktop-shell' : 'app-shell'"
   [attr.data-header-state]="shell.headerState()"
-  [style.--app-header-bar-height]="'3.25rem'"
+  [style.--app-header-bar-height]="layout.isDesktop() ? null : '3.25rem'"
 >
-  <header #shellHeader class="shell-header" role="banner">
-    <div class="shell-header__safe-top"></div>
-
-    <div class="shell-header__bar">
-      <div class="shell-header__start">
-        @if (shell.showBack()) {
-          <button
-            hlmBtn
-            type="button"
-            variant="ghost"
-            size="icon"
-            class="shell-icon-btn"
-            (click)="onBack()"
-            aria-label="Voltar"
-          >
-            <ng-icon name="lucideChevronLeft" />
-          </button>
-        }
-
-        @if (shell.showLogo()) {
-          <div class="shell-header__logo" aria-hidden="true">
-            <ng-icon name="lucideMoonStar" />
-          </div>
-        }
-
-        <div class="shell-header__brand">
-          <h1 class="shell-header__title">{{ shell.title() }}</h1>
-          @if (shell.subtitle()) {
-            <p class="shell-header__subtitle">{{ shell.subtitle() }}</p>
-          }
+  @if (layout.isDesktop()) {
+    <aside class="desktop-sidebar" aria-label="Navegação principal">
+      <div class="desktop-sidebar__brand">
+        <div class="desktop-sidebar__logo" aria-hidden="true">
+          <ng-icon name="lucideMoonStar" />
+        </div>
+        <div class="desktop-sidebar__brand-text">
+          <span class="desktop-sidebar__brand-name">LunaLink</span>
+          <span class="desktop-sidebar__brand-tag">Condomínio</span>
         </div>
       </div>
 
-      <div class="shell-header__end">
-        @if (shell.headerActions(); as actions) {
-          <ng-container
-            *ngComponentOutlet="actions.component; inputs: actions.inputs ?? {}"
-          />
-        }
-        @if (shell.showLogout()) {
-          <app-logout-confirm buttonClass="shell-icon-btn text-white hover:text-white" />
-        }
-      </div>
-    </div>
+      <nav class="desktop-sidebar__nav">
+        <p class="desktop-sidebar__label">Principal</p>
+        <button
+          type="button"
+          class="desktop-sidebar__item"
+          [class.desktop-sidebar__item--active]="isTabActive('home')"
+          (click)="onTabClick('home')"
+        >
+          <ng-icon name="lucideHome" />
+          <span>Início</span>
+        </button>
 
-    @if (shell.progressStep() !== null && shell.progressTotal() !== null) {
-      <div
-        class="shell-header__progress"
-        [attr.aria-valuenow]="shell.progressStep()"
-        [attr.aria-valuemax]="shell.progressTotal()"
-        role="progressbar"
-        [attr.aria-label]="'Etapa ' + shell.progressStep() + ' de ' + shell.progressTotal()"
-      >
-        @for (step of progressSteps(); track step; let last = $last) {
-          <span
-            class="shell-header__progress-item"
-            [class.shell-header__progress-item--active]="shell.progressStep()! >= step"
+        @if (canSeeReservations) {
+          <button
+            type="button"
+            class="desktop-sidebar__item"
+            [class.desktop-sidebar__item--active]="isTabActive('reservations')"
+            (click)="onTabClick('reservations')"
           >
-            {{ step }}
-          </span>
-          @if (!last) {
-            <span
-              class="shell-header__progress-line"
-              [class.shell-header__progress-line--active]="shell.progressStep()! >= step + 1"
-            ></span>
+            <ng-icon name="lucideCalendar" />
+            <span>Reservas</span>
+          </button>
+        }
+
+        <button
+          type="button"
+          class="desktop-sidebar__item"
+          [class.desktop-sidebar__item--active]="isTabActive('deliveries')"
+          (click)="onTabClick('deliveries')"
+        >
+          <ng-icon name="lucidePackage" />
+          <span>Entregas</span>
+        </button>
+
+        @if (canSeeOccurrences) {
+          <button
+            type="button"
+            class="desktop-sidebar__item"
+            [class.desktop-sidebar__item--active]="isTabActive('occurrences')"
+            (click)="onTabClick('occurrences')"
+          >
+            <ng-icon name="lucideTriangleAlert" />
+            <span>Ocorrências</span>
+          </button>
+        }
+
+        @if (canManageDeliveries || canManageEquipment || canManageAdmin) {
+          <hlm-separator class="desktop-sidebar__sep" />
+          <p class="desktop-sidebar__label">Gestão</p>
+
+          @if (canManageDeliveries) {
+            <button
+              type="button"
+              class="desktop-sidebar__item"
+              [class.desktop-sidebar__item--active]="isRouteActive(routes.homeDeliveriesManage) || isRouteActive(routes.deliveriesManage)"
+              (click)="goTo(routes.homeDeliveriesManage)"
+            >
+              <ng-icon name="lucideClipboardList" />
+              <span>Gestão de entregas</span>
+            </button>
+          }
+          @if (canManageEquipment) {
+            <button
+              type="button"
+              class="desktop-sidebar__item"
+              [class.desktop-sidebar__item--active]="isRouteActive(routes.homeEquipmentManage)"
+              (click)="goTo(routes.homeEquipmentManage)"
+            >
+              <ng-icon name="lucideTv" />
+              <span>Equipamentos</span>
+            </button>
+          }
+          @if (canManageAdmin) {
+            <button
+              type="button"
+              class="desktop-sidebar__item"
+              [class.desktop-sidebar__item--active]="isRouteActive(routes.homeAdminUsers)"
+              (click)="goTo(routes.homeAdminUsers)"
+            >
+              <ng-icon name="lucideUsers" />
+              <span>Usuários</span>
+            </button>
+            <button
+              type="button"
+              class="desktop-sidebar__item"
+              [class.desktop-sidebar__item--active]="isRouteActive(routes.homeAdminReports)"
+              (click)="goTo(routes.homeAdminReports)"
+            >
+              <ng-icon name="lucideFileText" />
+              <span>Relatórios</span>
+            </button>
           }
         }
+      </nav>
+
+      <div class="desktop-sidebar__footer">
+        <app-logout-confirm buttonClass="desktop-sidebar__logout" />
       </div>
+    </aside>
+  }
+
+  <div class="shell-stage" [class.shell-stage--desktop]="layout.isDesktop()">
+    @if (layout.isDesktop()) {
+      <header #shellHeader class="desktop-topbar" role="banner">
+        <div class="desktop-topbar__start">
+          @if (shell.showBack()) {
+            <button
+              hlmBtn
+              type="button"
+              variant="ghost"
+              size="icon"
+              class="desktop-topbar__back"
+              (click)="onBack()"
+              aria-label="Voltar"
+            >
+              <ng-icon name="lucideChevronLeft" />
+            </button>
+          }
+          <div class="desktop-topbar__titles">
+            <nav hlmBreadcrumb aria-label="breadcrumb">
+              <ol hlmBreadcrumbList>
+                <li hlmBreadcrumbItem>
+                  <span hlmBreadcrumbPage>{{ shell.title() }}</span>
+                </li>
+              </ol>
+            </nav>
+            @if (shell.subtitle()) {
+              <p class="desktop-topbar__subtitle">{{ shell.subtitle() }}</p>
+            }
+          </div>
+        </div>
+
+        <div class="desktop-topbar__end">
+          @if (shell.progressStep() !== null && shell.progressTotal() !== null) {
+            <div
+              class="desktop-topbar__progress"
+              role="progressbar"
+              [attr.aria-valuenow]="shell.progressStep()"
+              [attr.aria-valuemax]="shell.progressTotal()"
+              [attr.aria-label]="'Etapa ' + shell.progressStep() + ' de ' + shell.progressTotal()"
+            >
+              @for (step of progressSteps(); track step; let last = $last) {
+                <span
+                  class="desktop-topbar__progress-item"
+                  [class.desktop-topbar__progress-item--active]="shell.progressStep()! >= step"
+                >{{ step }}</span>
+                @if (!last) {
+                  <span
+                    class="desktop-topbar__progress-line"
+                    [class.desktop-topbar__progress-line--active]="shell.progressStep()! >= step + 1"
+                  ></span>
+                }
+              }
+            </div>
+          }
+          @if (shell.headerActions(); as actions) {
+            <ng-container
+              *ngComponentOutlet="actions.component; inputs: actions.inputs ?? {}"
+            />
+          }
+        </div>
+      </header>
+    } @else {
+      <header #shellHeader class="shell-header" role="banner">
+        <div class="shell-header__safe-top"></div>
+
+        <div class="shell-header__bar">
+          <div class="shell-header__start">
+            @if (shell.showBack()) {
+              <button
+                hlmBtn
+                type="button"
+                variant="ghost"
+                size="icon"
+                class="shell-icon-btn"
+                (click)="onBack()"
+                aria-label="Voltar"
+              >
+                <ng-icon name="lucideChevronLeft" />
+              </button>
+            }
+
+            @if (shell.showLogo()) {
+              <div class="shell-header__logo" aria-hidden="true">
+                <ng-icon name="lucideMoonStar" />
+              </div>
+            }
+
+            <div class="shell-header__brand">
+              <h1 class="shell-header__title">{{ shell.title() }}</h1>
+              @if (shell.subtitle()) {
+                <p class="shell-header__subtitle">{{ shell.subtitle() }}</p>
+              }
+            </div>
+          </div>
+
+          <div class="shell-header__end">
+            @if (shell.headerActions(); as actions) {
+              <ng-container
+                *ngComponentOutlet="actions.component; inputs: actions.inputs ?? {}"
+              />
+            }
+            @if (shell.showLogout()) {
+              <app-logout-confirm buttonClass="shell-icon-btn text-white hover:text-white" />
+            }
+          </div>
+        </div>
+
+        @if (shell.progressStep() !== null && shell.progressTotal() !== null) {
+          <div
+            class="shell-header__progress"
+            [attr.aria-valuenow]="shell.progressStep()"
+            [attr.aria-valuemax]="shell.progressTotal()"
+            role="progressbar"
+            [attr.aria-label]="'Etapa ' + shell.progressStep() + ' de ' + shell.progressTotal()"
+          >
+            @for (step of progressSteps(); track step; let last = $last) {
+              <span
+                class="shell-header__progress-item"
+                [class.shell-header__progress-item--active]="shell.progressStep()! >= step"
+              >
+                {{ step }}
+              </span>
+              @if (!last) {
+                <span
+                  class="shell-header__progress-line"
+                  [class.shell-header__progress-line--active]="shell.progressStep()! >= step + 1"
+                ></span>
+              }
+            }
+          </div>
+        }
+
+        <div
+          class="shell-header__expand"
+          [class.shell-header__expand--visible]="shell.headerState() === 'expanded'"
+        >
+          @if (shell.expandContent(); as expand) {
+            <ng-container
+              *ngComponentOutlet="expand.component; inputs: expand.inputs ?? {}"
+            />
+          }
+        </div>
+      </header>
     }
 
-    <div
-      class="shell-header__expand"
-      [class.shell-header__expand--visible]="shell.headerState() === 'expanded'"
-    >
-      @if (shell.expandContent(); as expand) {
-        <ng-container
-          *ngComponentOutlet="expand.component; inputs: expand.inputs ?? {}"
-        />
-      }
-    </div>
-  </header>
+    <main class="shell-main" [class.shell-main--desktop]="layout.isDesktop()">
+      <ion-router-outlet />
+    </main>
 
-  <main class="shell-main">
-    <ion-router-outlet />
-  </main>
+    @if (!layout.isDesktop()) {
+      <nav class="shell-dock" aria-label="Navegação principal">
+        <button
+          type="button"
+          class="shell-dock__item"
+          [class.shell-dock__item--active]="isTabActive('home')"
+          (click)="onTabClick('home', $event)"
+        >
+          <ng-icon name="lucideHome" />
+          <span>Início</span>
+        </button>
 
-  <nav class="shell-dock" aria-label="Navegação principal">
-    <button
-      type="button"
-      class="shell-dock__item"
-      [class.shell-dock__item--active]="isTabActive('home')"
-      (click)="onTabClick('home', $event)"
-    >
-      <ng-icon name="lucideHome" />
-      <span>Início</span>
-    </button>
+        @if (canSeeReservations) {
+          <button
+            type="button"
+            class="shell-dock__item"
+            [class.shell-dock__item--active]="isTabActive('reservations')"
+            (click)="onTabClick('reservations', $event)"
+          >
+            <ng-icon name="lucideCalendar" />
+            <span>Reservas</span>
+          </button>
+        }
 
-    @if (canSeeReservations) {
-      <button
-        type="button"
-        class="shell-dock__item"
-        [class.shell-dock__item--active]="isTabActive('reservations')"
-        (click)="onTabClick('reservations', $event)"
-      >
-        <ng-icon name="lucideCalendar" />
-        <span>Reservas</span>
-      </button>
+        <button
+          type="button"
+          class="shell-dock__item"
+          [class.shell-dock__item--active]="isTabActive('deliveries')"
+          (click)="onTabClick('deliveries', $event)"
+        >
+          <ng-icon name="lucidePackage" />
+          <span>Entregas</span>
+        </button>
+
+        @if (canSeeOccurrences) {
+          <button
+            type="button"
+            class="shell-dock__item"
+            [class.shell-dock__item--active]="isTabActive('occurrences')"
+            (click)="onTabClick('occurrences', $event)"
+          >
+            <ng-icon name="lucideTriangleAlert" />
+            <span>Ocorrências</span>
+          </button>
+        }
+      </nav>
     }
-
-    <button
-      type="button"
-      class="shell-dock__item"
-      [class.shell-dock__item--active]="isTabActive('deliveries')"
-      (click)="onTabClick('deliveries', $event)"
-    >
-      <ng-icon name="lucidePackage" />
-      <span>Entregas</span>
-    </button>
-
-    @if (canSeeOccurrences) {
-      <button
-        type="button"
-        class="shell-dock__item"
-        [class.shell-dock__item--active]="isTabActive('occurrences')"
-        (click)="onTabClick('occurrences', $event)"
-      >
-        <ng-icon name="lucideTriangleAlert" />
-        <span>Ocorrências</span>
-      </button>
-    }
-  </nav>
+  </div>
 </div>

@@ -245,3 +245,228 @@
     transition: none;
   }
 }
+
+/* ===== Desktop dashboard shell ===== */
+
+.desktop-shell {
+  display: flex;
+  height: 100%;
+  max-width: none;
+  margin: 0;
+  background: #f9f6ee;
+}
+
+.shell-stage {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.shell-stage--desktop {
+  background: #f9f6ee;
+}
+
+.desktop-sidebar {
+  display: flex;
+  flex-direction: column;
+  width: 16.5rem;
+  flex-shrink: 0;
+  height: 100%;
+  background: #ffffff;
+  border-right: 1px solid rgba(192, 92, 70, 0.14);
+  padding: 1.25rem 0.85rem;
+}
+
+.desktop-sidebar__brand {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.35rem 0.65rem 1.25rem;
+}
+
+.desktop-sidebar__logo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 0.85rem;
+  background: #c05c46;
+  color: #f9f6ee;
+  font-size: 1.25rem;
+}
+
+.desktop-sidebar__brand-text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+}
+
+.desktop-sidebar__brand-name {
+  font-family: var(--font-logo, inherit);
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #361a14;
+  line-height: 1.1;
+}
+
+.desktop-sidebar__brand-tag {
+  font-size: 0.72rem;
+  font-weight: 500;
+  color: #8a6f66;
+}
+
+.desktop-sidebar__nav {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 0 0.25rem;
+}
+
+.desktop-sidebar__label {
+  margin: 0.75rem 0.65rem 0.35rem;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #8a6f66;
+}
+
+.desktop-sidebar__sep {
+  margin: 0.75rem 0.5rem;
+}
+
+.desktop-sidebar__item {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  width: 100%;
+  border: none;
+  background: transparent;
+  color: #6a3327;
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-align: left;
+  padding: 0.65rem 0.75rem;
+  border-radius: 0.75rem;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.desktop-sidebar__item ng-icon {
+  font-size: 1.1rem;
+  flex-shrink: 0;
+}
+
+.desktop-sidebar__item:hover {
+  background: rgba(192, 92, 70, 0.08);
+}
+
+.desktop-sidebar__item--active {
+  background: rgba(192, 92, 70, 0.14);
+  color: #c05c46;
+}
+
+.desktop-sidebar__footer {
+  padding: 0.75rem 0.5rem 0.25rem;
+  border-top: 1px solid rgba(192, 92, 70, 0.1);
+  margin-top: 0.5rem;
+}
+
+.desktop-sidebar__logout {
+  width: 100%;
+  justify-content: flex-start;
+}
+
+.desktop-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  min-height: 4rem;
+  padding: 0.85rem 1.75rem;
+  background: #ffffff;
+  border-bottom: 1px solid rgba(192, 92, 70, 0.1);
+}
+
+.desktop-topbar__start,
+.desktop-topbar__end {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-width: 0;
+}
+
+.desktop-topbar__titles {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  min-width: 0;
+}
+
+.desktop-topbar__subtitle {
+  margin: 0;
+  font-size: 0.8rem;
+  color: #8a6f66;
+}
+
+.desktop-topbar__back {
+  color: #c05c46 !important;
+}
+
+.desktop-topbar__progress {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.desktop-topbar__progress-item {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.6rem;
+  height: 1.6rem;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  background: rgba(192, 92, 70, 0.12);
+  color: #8a6f66;
+}
+
+.desktop-topbar__progress-item--active {
+  background: #c05c46;
+  color: #ffffff;
+}
+
+.desktop-topbar__progress-line {
+  width: 1.75rem;
+  height: 2px;
+  border-radius: 999px;
+  background: rgba(192, 92, 70, 0.18);
+}
+
+.desktop-topbar__progress-line--active {
+  background: #c05c46;
+}
+
+.shell-main--desktop {
+  flex: 1;
+  min-height: 0;
+  position: relative;
+  overflow: hidden;
+}
+
+.desktop-shell .shell-main--desktop {
+  --background: #f9f6ee;
+}
+
+:host ::ng-deep .desktop-shell .shell-main--desktop .ion-page {
+  overflow-y: auto;
+  background: #f9f6ee;
+}
+

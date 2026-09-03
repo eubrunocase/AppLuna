@@ -1,54 +1,27 @@
 import { Component, computed, inject, signal } from '@angular/core';
-import { IonContent, ViewWillEnter } from '@ionic/angular/standalone';
-import { FormsModule } from '@angular/forms';
+import { ViewWillEnter } from '@ionic/angular/standalone';
 import { Router } from '@angular/router';
-import { NgIcon, provideIcons } from '@ng-icons/core';
-import {
-  lucideArrowLeft,
-  lucideArrowRight,
-  lucideCheck,
-  lucideTriangleAlert,
-} from '@ng-icons/lucide';
-import { HlmButtonImports } from '@spartan-ng/helm/button';
-import { HlmFieldImports } from '@spartan-ng/helm/field';
-import { HlmSpinnerImports } from '@spartan-ng/helm/spinner';
-import { HlmTextareaImports } from '@spartan-ng/helm/textarea';
 import { catchError, finalize, of } from 'rxjs';
 import { OccurrenceService } from '../../services/occurrence.service';
 import { AppNavigationService } from '../../core/navigation/app-navigation.service';
 import { APP_ROUTES } from '../../core/navigation/app-routes';
 import { AppShellService } from '../../core/shell/app-shell.service';
+import { LayoutService } from '../../core/layout/layout.service';
 import { UiService } from '../../shared/services/ui.service';
 import { toLocalDateTimeString } from '../../shared/utils/date.utils';
-import { LunaDatePickerComponent } from '../../shared/components/luna-date-picker/luna-date-picker.component';
-import { LunaTimePickerComponent } from '../../shared/components/luna-time-picker/luna-time-picker.component';
+import { OccurrenceCreateDesktopComponent } from './desktop/occurrence-create-desktop.component';
+import {
+  OccurrenceCreateMobileComponent,
+  type OccurrenceCreateStep,
+} from './mobile/occurrence-create-mobile.component';
 
-type OccurrenceStep = 1 | 2 | 3;
+type OccurrenceStep = OccurrenceCreateStep;
 
 @Component({
   selector: 'app-occurrence-create',
   templateUrl: './occurrence-create.page.html',
-  styleUrl: './occurrence-create.page.scss',
   standalone: true,
-  imports: [
-    IonContent,
-    FormsModule,
-    NgIcon,
-    HlmButtonImports,
-    HlmFieldImports,
-    HlmSpinnerImports,
-    HlmTextareaImports,
-    LunaDatePickerComponent,
-    LunaTimePickerComponent,
-  ],
-  providers: [
-    provideIcons({
-      lucideArrowLeft,
-      lucideArrowRight,
-      lucideCheck,
-      lucideTriangleAlert,
-    }),
-  ],
+  imports: [OccurrenceCreateDesktopComponent, OccurrenceCreateMobileComponent],
 })
 export class OccurrenceCreatePage implements ViewWillEnter {
   private occurrenceService = inject(OccurrenceService);
@@ -56,6 +29,7 @@ export class OccurrenceCreatePage implements ViewWillEnter {
   private uiService = inject(UiService);
   private shell = inject(AppShellService);
   private router = inject(Router);
+  readonly layout = inject(LayoutService);
 
   readonly step = signal<OccurrenceStep>(1);
   readonly description = signal('');

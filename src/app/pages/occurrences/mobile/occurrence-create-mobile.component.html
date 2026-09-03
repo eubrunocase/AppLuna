@@ -1,0 +1,142 @@
+<ion-content class="shell-page-content occurrence-flow-content">
+  <div class="occurrence-flow-shell">
+    @switch (step()) {
+      @case (1) {
+        <section class="occurrence-step" aria-labelledby="occurrence-step-1-title">
+          <header class="section-header">
+            <span class="section-step" aria-hidden="true">1</span>
+            <div>
+              <h2 id="occurrence-step-1-title" class="section-title">Descreva o ocorrido</h2>
+              <p class="section-subtitle">Conte o que aconteceu com o máximo de detalhes</p>
+            </div>
+          </header>
+
+          <hlm-field>
+            <label hlmFieldLabel for="occurrence-description">Descrição</label>
+            <textarea
+              hlmTextarea
+              id="occurrence-description"
+              class="occurrence-textarea"
+              rows="8"
+              maxlength="500"
+              placeholder="Descreva detalhadamente o incidente…"
+              [ngModel]="description()"
+              (ngModelChange)="descriptionChange.emit($event)"
+            ></textarea>
+            <p class="field-hint">
+              {{ description().trim().length }}/500 · mínimo de 10 caracteres
+            </p>
+          </hlm-field>
+        </section>
+      }
+
+      @case (2) {
+        <section class="occurrence-step" aria-labelledby="occurrence-step-2-title">
+          <header class="section-header">
+            <span class="section-step" aria-hidden="true">2</span>
+            <div>
+              <h2 id="occurrence-step-2-title" class="section-title">Quando ocorreu?</h2>
+              <p class="section-subtitle">Escolha a data e o horário do incidente</p>
+            </div>
+          </header>
+
+          <div class="picker-panel">
+            <div class="picker-panel__top">
+              <span class="picker-panel__eyebrow">Data</span>
+              <p class="picker-panel__hint">Não é permitido registrar ocorrências futuras</p>
+            </div>
+            <app-luna-date-picker
+              [minDate]="minPickerDate()"
+              [maxDate]="maxPickerDate()"
+              [date]="maxPickerDate()"
+              (dateChange)="dateChange.emit($event)"
+            />
+          </div>
+
+          <div class="picker-panel">
+            <div class="picker-panel__top">
+              <span class="picker-panel__eyebrow">Horário</span>
+              <p class="picker-panel__hint">Role para selecionar a hora</p>
+            </div>
+            <app-luna-time-picker (timeChange)="timeChange.emit($event)" />
+          </div>
+        </section>
+      }
+
+      @case (3) {
+        <section class="occurrence-step occurrence-step--notice" aria-labelledby="occurrence-step-3-title">
+          <img
+            class="notice-hero__image"
+            src="assets/illustrations/occurrence-warning.svg"
+            alt=""
+          />
+          <span class="notice-hero__badge" aria-hidden="true">
+            <ng-icon name="lucideTriangleAlert" />
+          </span>
+          <h2 id="occurrence-step-3-title" class="notice-hero__title">Esta ação é irreversível</h2>
+          <p class="notice-hero__text">
+            A ocorrência será notificada ao síndico imediatamente e não poderá ser editada ou excluída depois do envio.
+          </p>
+        </section>
+      }
+    }
+  </div>
+
+  <div slot="fixed" class="occurrence-actions">
+    @switch (step()) {
+      @case (1) {
+        <button
+          hlmBtn
+          type="button"
+          class="submit-btn"
+          [disabled]="!canProceedStep1()"
+          (click)="goToStep.emit(2)"
+        >
+          <span>Continuar</span>
+          <ng-icon name="lucideArrowRight" />
+        </button>
+      }
+      @case (2) {
+        <div class="form-footer form-footer--split">
+          <button hlmBtn type="button" variant="outline" class="back-btn" (click)="goToStep.emit(1)">
+            <ng-icon name="lucideArrowLeft" />
+            <span>Voltar</span>
+          </button>
+          <button
+            hlmBtn
+            type="button"
+            class="submit-btn submit-btn--compact"
+            [disabled]="!canProceedStep2()"
+            (click)="goToStep.emit(3)"
+          >
+            <span>Continuar</span>
+            <ng-icon name="lucideArrowRight" />
+          </button>
+        </div>
+      }
+      @case (3) {
+        <div class="form-footer form-footer--split">
+          <button hlmBtn type="button" variant="outline" class="back-btn" (click)="goToStep.emit(2)">
+            <ng-icon name="lucideArrowLeft" />
+            <span>Voltar</span>
+          </button>
+          <button
+            hlmBtn
+            type="button"
+            class="submit-btn submit-btn--compact"
+            [disabled]="!canSubmit() || isSubmitting()"
+            (click)="submit.emit()"
+          >
+            @if (isSubmitting()) {
+              <hlm-spinner aria-label="Registrando ocorrência" />
+              <span>Registrando...</span>
+            } @else {
+              <ng-icon name="lucideCheck" />
+              <span>Registrar</span>
+            }
+          </button>
+        </div>
+      }
+    }
+  </div>
+</ion-content>

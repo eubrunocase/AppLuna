@@ -1,207 +1,46 @@
-<ion-content class="shell-page-content users-content">
-  <ion-refresher slot="fixed" (ionRefresh)="refresh($event)">
-    <ion-refresher-content></ion-refresher-content>
-  </ion-refresher>
-
-  <div class="users-shell">
-    <div class="chip-row" role="tablist" aria-label="Papel do usuário">
-      @for (filter of roleFilters; track filter.value) {
-        <button
-          type="button"
-          role="tab"
-          class="filter-chip"
-          [class.filter-chip--active]="roleFilter === filter.value"
-          [attr.aria-selected]="roleFilter === filter.value"
-          (click)="setRoleFilter(filter.value)"
-        >
-          <ng-icon [name]="filter.icon" />
-          {{ filter.label }}
-        </button>
-      }
-    </div>
-
-    <div class="search-field">
-      <ng-icon name="lucideSearch" class="search-field__icon" aria-hidden="true" />
-      <input
-        hlmInput
-        type="search"
-        class="search-field__input"
-        placeholder="Buscar por nome, e-mail ou apto"
-        aria-label="Buscar usuários"
-        [ngModel]="searchQuery"
-        (ngModelChange)="setSearchQuery($event)"
-      />
-    </div>
-
-    @if (isLoading) {
-      @if (isCompactList) {
-        <div class="user-table" role="status" aria-label="Carregando usuários">
-          @for (item of compactSkeletonItems; track item) {
-            <div class="user-row user-row--skeleton" aria-hidden="true">
-              <div class="user-row__info">
-                <span hlmSkeleton class="user-row__skeleton-name"></span>
-                <span hlmSkeleton class="user-row__skeleton-meta"></span>
-              </div>
-              <span hlmSkeleton class="user-row__skeleton-action"></span>
-              <span hlmSkeleton class="user-row__skeleton-action"></span>
-            </div>
-          }
-        </div>
-      } @else {
-        <div class="user-list" role="status" aria-label="Carregando usuários">
-          @for (item of skeletonItems; track item) {
-            <div hlmCard size="sm" class="user-card user-card--skeleton" aria-hidden="true">
-              <div class="user-card__inner">
-                <span hlmSkeleton class="user-card__skeleton-icon"></span>
-                <div class="user-card__body">
-                  <span hlmSkeleton class="user-card__skeleton-title"></span>
-                  <span hlmSkeleton class="user-card__skeleton-line"></span>
-                  <span hlmSkeleton class="user-card__skeleton-line user-card__skeleton-line--short"></span>
-                </div>
-              </div>
-            </div>
-          }
-        </div>
-      }
-    } @else if (filteredUsers.length > 0) {
-      @if (isCompactList) {
-        <cdk-virtual-scroll-viewport
-          class="luna-virtual-viewport luna-virtual-viewport--with-search"
-          [itemSize]="compactItemSize"
-          role="list"
-        >
-          <div
-            *cdkVirtualFor="let user of filteredUsers; trackBy: trackById"
-            class="user-row"
-            role="listitem"
-          >
-            <div class="user-row__info">
-              <p class="user-row__name">{{ user.name }}</p>
-              <p class="user-row__meta">Apto {{ user.apartment }} · {{ user.email }}</p>
-            </div>
-            <div class="user-row__actions">
-              <button
-                type="button"
-                class="icon-action"
-                [attr.aria-label]="'Editar ' + user.name"
-                (click)="openEdit(user)"
-              >
-                <ng-icon name="lucidePencil" />
-              </button>
-              <button
-                type="button"
-                class="icon-action icon-action--danger"
-                [attr.aria-label]="'Excluir ' + user.name"
-                [disabled]="processingId === user.id || isCurrentUser(user)"
-                (click)="askDelete(user)"
-              >
-                @if (processingId === user.id) {
-                  <hlm-spinner aria-label="Excluindo usuário" />
-                } @else {
-                  <ng-icon name="lucideTrash2" />
-                }
-              </button>
-            </div>
-          </div>
-        </cdk-virtual-scroll-viewport>
-      } @else {
-        <cdk-virtual-scroll-viewport
-          class="luna-virtual-viewport luna-virtual-viewport--with-search"
-          [itemSize]="itemSize"
-        >
-          <article
-            *cdkVirtualFor="let user of filteredUsers; trackBy: trackById"
-            hlmCard
-            size="sm"
-            class="user-card"
-          >
-            <div class="user-card__inner">
-              <div class="user-card__icon" [class]="'user-card__icon--' + getRoleModifier(user.role)" aria-hidden="true">
-                <ng-icon [name]="getRoleIcon(user.role)" />
-              </div>
-
-              <div class="user-card__body">
-                <div class="user-card__top">
-                  <h3>{{ user.name }}</h3>
-                  <span [class]="'status-pill status-pill--' + getRoleModifier(user.role)">
-                    <span class="status-pill__dot" aria-hidden="true"></span>
-                    {{ getRoleLabel(user.role) }}
-                  </span>
-                </div>
-
-                <p class="user-card__meta">
-                  <ng-icon name="lucideBuilding2" />
-                  Apto {{ user.apartment }}
-                </p>
-                <p class="user-card__meta">
-                  <ng-icon name="lucideMail" />
-                  {{ user.email }}
-                </p>
-              </div>
-            </div>
-
-            <div class="user-card__actions">
-              <button
-                hlmBtn
-                type="button"
-                variant="outline"
-                class="action-btn"
-                (click)="openEdit(user)"
-              >
-                <ng-icon name="lucidePencil" />
-                Editar
-              </button>
-              <button
-                hlmBtn
-                type="button"
-                variant="outline"
-                class="action-btn action-btn--danger"
-                [disabled]="processingId === user.id || isCurrentUser(user)"
-                (click)="askDelete(user)"
-              >
-                @if (processingId === user.id) {
-                  <hlm-spinner aria-label="Excluindo usuário" />
-                  Excluindo...
-                } @else {
-                  <ng-icon name="lucideTrash2" />
-                  Excluir
-                }
-              </button>
-            </div>
-          </article>
-        </cdk-virtual-scroll-viewport>
-      }
-    } @else {
-      <div class="empty-state" role="status">
-        <img
-          class="empty-state__image"
-          src="assets/illustrations/users-empty.svg"
-          alt=""
-        />
-        <p class="empty-state__title">Nenhum usuário encontrado</p>
-        <p class="empty-state__message">
-          {{ searchQuery || roleFilter !== 'ALL' ? 'Ajuste a busca ou o filtro' : 'Cadastre o primeiro morador, funcionário ou síndico' }}
-        </p>
-      </div>
-    }
-  </div>
-
-  <app-confirm-dialog
-    #confirmDialog
-    [title]="confirmTitle"
-    [description]="confirmDescription"
-    [confirmLabel]="confirmLabel"
-    icon="lucideTriangleAlert"
-    (confirmed)="confirmDelete()"
+@if (layout.isDesktop()) {
+  <app-users-desktop
+    [roleFilters]="roleFilters"
+    [roleFilter]="roleFilter"
+    [searchQuery]="searchQuery"
+    [isLoading]="isLoading"
+    [filteredUsers]="filteredUsers"
+    [processingId]="processingId"
+    [currentUserId]="currentUserId"
+    (roleFilterChange)="setRoleFilter($event)"
+    (searchQueryChange)="setSearchQuery($event)"
+    (edit)="openEdit($event)"
+    (deleteUser)="askDelete($event)"
+    (create)="openCreate()"
+    (refreshList)="loadUsers()"
   />
+} @else {
+  <app-users-mobile
+    [roleFilters]="roleFilters"
+    [roleFilter]="roleFilter"
+    [searchQuery]="searchQuery"
+    [isLoading]="isLoading"
+    [skeletonItems]="skeletonItems"
+    [compactSkeletonItems]="compactSkeletonItems"
+    [filteredUsers]="filteredUsers"
+    [itemSize]="itemSize"
+    [compactItemSize]="compactItemSize"
+    [processingId]="processingId"
+    [currentUserId]="currentUserId"
+    (refresh)="refresh($event)"
+    (roleFilterChange)="setRoleFilter($event)"
+    (searchQueryChange)="setSearchQuery($event)"
+    (edit)="openEdit($event)"
+    (deleteUser)="askDelete($event)"
+    (create)="openCreate()"
+  />
+}
 
-  <button
-    slot="fixed"
-    type="button"
-    class="users-fab"
-    aria-label="Novo usuário"
-    (click)="openCreate()"
-  >
-    <ng-icon name="lucidePlus" />
-  </button>
-</ion-content>
+<app-confirm-dialog
+  #confirmDialog
+  [title]="confirmTitle"
+  [description]="confirmDescription"
+  [confirmLabel]="confirmLabel"
+  icon="lucideTriangleAlert"
+  (confirmed)="confirmDelete()"
+/>

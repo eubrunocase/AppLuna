@@ -1,180 +1,46 @@
-<ion-content class="shell-page-content equipment-content">
-  <ion-refresher slot="fixed" (ionRefresh)="refresh($event)">
-    <ion-refresher-content></ion-refresher-content>
-  </ion-refresher>
-
-  <div class="equipment-shell">
-    <div class="chip-row" role="tablist" aria-label="Status do empréstimo">
-      @for (filter of statusFilters; track filter.value) {
-        <button
-          type="button"
-          role="tab"
-          class="filter-chip"
-          [class.filter-chip--active]="statusFilter === filter.value"
-          [attr.aria-selected]="statusFilter === filter.value"
-          (click)="setStatusFilter(filter.value)"
-        >
-          <ng-icon [name]="filter.icon" />
-          {{ filter.label }}
-        </button>
-      }
-    </div>
-
-    <div class="search-field">
-      <ng-icon name="lucideSearch" class="search-field__icon" aria-hidden="true" />
-      <input
-        hlmInput
-        type="search"
-        class="search-field__input"
-        placeholder="Buscar por nome ou apto"
-        aria-label="Buscar empréstimos"
-        [ngModel]="searchQuery"
-        (ngModelChange)="setSearchQuery($event)"
-      />
-    </div>
-
-    @if (isLoading) {
-      <div class="loan-list" role="status" aria-label="Carregando empréstimos">
-        @for (item of skeletonItems; track item) {
-          <div hlmCard size="sm" class="loan-card loan-card--skeleton" aria-hidden="true">
-            <div class="loan-card__inner">
-              <span hlmSkeleton class="loan-card__skeleton-icon"></span>
-              <div class="loan-card__body">
-                <span hlmSkeleton class="loan-card__skeleton-title"></span>
-                <span hlmSkeleton class="loan-card__skeleton-line"></span>
-                <span hlmSkeleton class="loan-card__skeleton-line loan-card__skeleton-line--short"></span>
-              </div>
-            </div>
-          </div>
-        }
-      </div>
-    } @else if (filteredReservations.length > 0) {
-      <cdk-virtual-scroll-viewport
-        class="luna-virtual-viewport luna-virtual-viewport--with-search loan-list"
-        [itemSize]="itemSize"
-      >
-        <article
-          *cdkVirtualFor="let reservation of filteredReservations; trackBy: trackById"
-          hlmCard
-          size="sm"
-          class="loan-card"
-          [class.loan-card--confirmed]="reservation.status === 'CONFIRMED'"
-          [class.loan-card--in-use]="reservation.status === 'IN_USE'"
-        >
-          <div class="loan-card__inner">
-            <div class="loan-card__icon" [class]="'loan-card__icon--' + reservation.status" aria-hidden="true">
-              <ng-icon name="lucideTv" />
-            </div>
-
-            <div class="loan-card__body">
-              <div class="loan-card__top">
-                <h3>{{ reservation.equipmentName || 'Televisão comunitária' }}</h3>
-                <span [class]="'status-pill status-pill--' + reservation.status">
-                  <span class="status-pill__dot" aria-hidden="true"></span>
-                  {{ getStatusLabel(reservation.status) }}
-                </span>
-              </div>
-
-              <p class="loan-card__meta">
-                <ng-icon name="lucideUser" />
-                {{ reservation.userName }}
-              </p>
-              <p class="loan-card__meta">
-                <ng-icon name="lucideBuilding2" />
-                Apto {{ reservation.userApartment }}
-              </p>
-              <p class="loan-card__meta">
-                <ng-icon name="lucideCalendar" />
-                {{ formatDate(reservation.date) }} · {{ reservation.startTime }}–{{ reservation.endTime }}
-              </p>
-              @if (reservation.pickedUpAt) {
-                <p class="loan-card__meta loan-card__meta--success">
-                  <ng-icon name="lucideKeyRound" />
-                  Retirado {{ formatDateTime(reservation.pickedUpAt) }}
-                </p>
-              }
-              @if (reservation.returnedAt) {
-                <p class="loan-card__meta loan-card__meta--success">
-                  <ng-icon name="lucideCircleCheck" />
-                  Devolvido {{ formatDateTime(reservation.returnedAt) }}
-                </p>
-              }
-            </div>
-          </div>
-
-          @if (canManage && (reservation.status === 'CONFIRMED' || reservation.status === 'IN_USE')) {
-            <div class="loan-card__actions">
-              @if (reservation.status === 'CONFIRMED') {
-                <button
-                  hlmBtn
-                  type="button"
-                  class="action-btn"
-                  [disabled]="processingId === reservation.id"
-                  (click)="askHandover(reservation)"
-                >
-                  @if (processingId === reservation.id) {
-                    <hlm-spinner aria-label="Entregando controle" />
-                    Entregando...
-                  } @else {
-                    <ng-icon name="lucideKeyRound" />
-                    Entregar controle
-                  }
-                </button>
-              }
-              @if (reservation.status === 'IN_USE') {
-                <button
-                  hlmBtn
-                  type="button"
-                  class="action-btn action-btn--success"
-                  [disabled]="processingId === reservation.id"
-                  (click)="askReturn(reservation)"
-                >
-                  @if (processingId === reservation.id) {
-                    <hlm-spinner aria-label="Registrando devolução" />
-                    Devolvendo...
-                  } @else {
-                    <ng-icon name="lucideUndo2" />
-                    Confirmar devolução
-                  }
-                </button>
-              }
-            </div>
-          }
-        </article>
-      </cdk-virtual-scroll-viewport>
-    } @else {
-      <div class="empty-state" role="status">
-        <img
-          class="empty-state__image"
-          src="assets/illustrations/equipment-empty.svg"
-          alt=""
-        />
-        <p class="empty-state__title">Nenhum empréstimo encontrado</p>
-        <p class="empty-state__message">
-          {{ searchQuery || statusFilter !== 'ALL' ? 'Ajuste a busca ou o filtro' : 'As reservas da TV comunitária aparecerão aqui' }}
-        </p>
-      </div>
-    }
-  </div>
-
-  <app-confirm-dialog
-    #confirmDialog
-    [title]="confirmTitle"
-    [description]="confirmDescription"
-    [confirmLabel]="confirmLabel"
-    [icon]="confirmIcon"
-    (confirmed)="confirmAction()"
+@if (layout.isDesktop()) {
+  <app-equipment-reservations-desktop
+    [statusFilters]="statusFilters"
+    [statusFilter]="statusFilter"
+    [searchQuery]="searchQuery"
+    [isLoading]="isLoading"
+    [filteredReservations]="filteredReservations"
+    [processingId]="processingId"
+    [canCreate]="canCreate"
+    [canManage]="canManage"
+    (statusFilterChange)="setStatusFilter($event)"
+    (searchQueryChange)="setSearchQuery($event)"
+    (handover)="askHandover($event)"
+    (returnItem)="askReturn($event)"
+    (create)="openCreate()"
+    (refreshList)="loadReservations()"
   />
+} @else {
+  <app-equipment-reservations-mobile
+    [statusFilters]="statusFilters"
+    [statusFilter]="statusFilter"
+    [searchQuery]="searchQuery"
+    [isLoading]="isLoading"
+    [skeletonItems]="skeletonItems"
+    [filteredReservations]="filteredReservations"
+    [itemSize]="itemSize"
+    [processingId]="processingId"
+    [canCreate]="canCreate"
+    [canManage]="canManage"
+    (refresh)="refresh($event)"
+    (statusFilterChange)="setStatusFilter($event)"
+    (searchQueryChange)="setSearchQuery($event)"
+    (handover)="askHandover($event)"
+    (returnItem)="askReturn($event)"
+    (create)="openCreate()"
+  />
+}
 
-  @if (canCreate) {
-    <button
-      slot="fixed"
-      type="button"
-      class="equipment-fab"
-      aria-label="Nova reserva de TV"
-      (click)="openCreate()"
-    >
-      <ng-icon name="lucidePlus" />
-    </button>
-  }
-</ion-content>
+<app-confirm-dialog
+  #confirmDialog
+  [title]="confirmTitle"
+  [description]="confirmDescription"
+  [confirmLabel]="confirmLabel"
+  [icon]="confirmIcon"
+  (confirmed)="confirmAction()"
+/>

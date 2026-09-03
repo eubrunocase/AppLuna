@@ -1,52 +1,21 @@
 import { ChangeDetectorRef, Component, inject } from '@angular/core';
-import {
-  IonContent,
-  IonRefresher,
-  IonRefresherContent,
-  ViewWillEnter,
-} from '@ionic/angular/standalone';
-import { CdkFixedSizeVirtualScroll, CdkVirtualForOf, CdkVirtualScrollViewport } from '@angular/cdk/scrolling';
-import { NgIcon, provideIcons } from '@ng-icons/core';
-import {
-  lucideClock,
-  lucideInfo,
-  lucidePlus,
-  lucideTriangleAlert,
-} from '@ng-icons/lucide';
-import { HlmCardImports } from '@spartan-ng/helm/card';
-import { HlmSkeletonImports } from '@spartan-ng/helm/skeleton';
+import { ViewWillEnter } from '@ionic/angular/standalone';
 import { OccurrenceService } from '../../../services/occurrence.service';
 import { OccurrenceResponseDTO } from '../../../core/models';
 import { AppNavigationService } from '../../../core/navigation/app-navigation.service';
 import { APP_ROUTES } from '../../../core/navigation/app-routes';
 import { AppShellService } from '../../../core/shell/app-shell.service';
+import { LayoutService } from '../../../core/layout/layout.service';
 import { UiService } from '../../../shared/services/ui.service';
+import { OccurrencesTabDesktopComponent } from './desktop/occurrences-tab-desktop.component';
+import { OccurrencesTabMobileComponent } from './mobile/occurrences-tab-mobile.component';
 import { catchError, finalize, of } from 'rxjs';
 
 @Component({
   selector: 'app-occurrences-tab',
   templateUrl: './occurrences-tab.page.html',
-  styleUrl: './occurrences-tab.page.scss',
   standalone: true,
-  imports: [
-    IonContent,
-    IonRefresher,
-    IonRefresherContent,
-    CdkVirtualScrollViewport,
-    CdkFixedSizeVirtualScroll,
-    CdkVirtualForOf,
-    NgIcon,
-    HlmCardImports,
-    HlmSkeletonImports,
-  ],
-  providers: [
-    provideIcons({
-      lucideClock,
-      lucideInfo,
-      lucidePlus,
-      lucideTriangleAlert,
-    }),
-  ],
+  imports: [OccurrencesTabDesktopComponent, OccurrencesTabMobileComponent],
 })
 export class OccurrencesTabPage implements ViewWillEnter {
   private occurrenceService = inject(OccurrenceService);
@@ -54,6 +23,7 @@ export class OccurrencesTabPage implements ViewWillEnter {
   private shell = inject(AppShellService);
   private uiService = inject(UiService);
   private cdr = inject(ChangeDetectorRef);
+  readonly layout = inject(LayoutService);
 
   occurrences: OccurrenceResponseDTO[] = [];
   isLoading = true;

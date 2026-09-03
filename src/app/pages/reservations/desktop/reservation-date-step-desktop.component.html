@@ -1,0 +1,104 @@
+<div class="desktop-page">
+  <div class="desktop-page__toolbar">
+    <div>
+      <h1 class="m-0 text-xl font-bold text-[#361a14]">Nova Reserva</h1>
+      <p class="m-0 mt-1 text-sm text-[#8a6f66]">Etapa 2 de 2 — escolha a data</p>
+    </div>
+  </div>
+
+  <div class="date-desktop-layout">
+    <div class="desktop-page__panel date-form-panel">
+      <div class="date-picker-panel">
+        <div>
+          <span class="date-picker-panel__eyebrow">Quando?</span>
+          <p class="date-picker-panel__hint">Escolha a data da reserva e verifique a disponibilidade</p>
+        </div>
+        <app-luna-date-picker
+          [minDate]="minPickerDate()"
+          (dateChange)="dateChange.emit($event)"
+        />
+        <button
+          hlmBtn
+          type="button"
+          variant="outline"
+          class="check-btn"
+          [disabled]="isCheckingAvailability() || isSubmitting()"
+          (click)="checkAvailability.emit()"
+        >
+          @if (isCheckingAvailability()) {
+            <hlm-spinner aria-label="Verificando disponibilidade" />
+            <span>Verificando...</span>
+          } @else {
+            <span>Checar disponibilidade</span>
+          }
+        </button>
+      </div>
+
+      @if (showAvailabilityResult() !== null && !isCheckingAvailability()) {
+        <div
+          hlmCard
+          size="sm"
+          class="availability"
+          [class.availability--available]="showAvailabilityResult()"
+          [class.availability--unavailable]="!showAvailabilityResult()"
+          role="status"
+        >
+          <div hlmCardContent class="availability__inner">
+            <ng-icon [name]="showAvailabilityResult() ? 'lucideCircleCheck' : 'lucideCircleX'" />
+            <span>{{ showAvailabilityResult() ? 'Data disponível!' : 'Data já reservada' }}</span>
+          </div>
+        </div>
+      }
+
+      <div class="date-actions">
+        <button hlmBtn type="button" variant="outline" (click)="back.emit()">
+          <ng-icon name="lucideArrowLeft" />
+          Voltar
+        </button>
+        <button
+          hlmBtn
+          type="button"
+          [disabled]="isSubmitting() || isCheckingAvailability()"
+          (click)="submit.emit()"
+        >
+          @if (isSubmitting()) {
+            <hlm-spinner aria-label="Enviando solicitação" />
+            <span>Enviando...</span>
+          } @else {
+            <ng-icon name="lucideCalendarCheck" />
+            <span>Solicitar reserva</span>
+          }
+        </button>
+      </div>
+    </div>
+
+    <aside class="date-side">
+      @if (selectedSpace(); as space) {
+        <div hlmCard class="desktop-page__panel" style="overflow: hidden; border: 0; box-shadow: none;">
+          <div hlmCardContent class="selected-space-summary__inner">
+            <span class="selected-space-summary__thumb">
+              <img [src]="space.imageSrc" [alt]="space.name" />
+            </span>
+            <div>
+              <span class="selected-space-summary__label">Espaço selecionado</span>
+              <span class="selected-space-summary__name">{{ space.name }}</span>
+            </div>
+          </div>
+        </div>
+      }
+
+      <div class="date-help">
+        <span class="date-help__icon" aria-hidden="true">
+          <ng-icon name="lucideInfo" />
+        </span>
+        <h3>Resumo</h3>
+        <p>
+          Após solicitar, o síndico receberá o pedido para aprovação.
+          @if (selectedDate()) {
+            Data escolhida: <strong>{{ selectedDate() }}</strong>.
+          }
+        </p>
+      </div>
+    </aside>
+  </div>
+</div>

@@ -1,25 +1,5 @@
 import { ChangeDetectorRef, Component, computed, inject, OnDestroy, signal } from '@angular/core';
-import { FormsModule } from '@angular/forms';
-import { CdkFixedSizeVirtualScroll, CdkVirtualForOf, CdkVirtualScrollViewport } from '@angular/cdk/scrolling';
-import { IonContent, ViewWillEnter } from '@ionic/angular/standalone';
-import { NgIcon, provideIcons } from '@ng-icons/core';
-import {
-  lucideArrowLeft,
-  lucideArrowRight,
-  lucideBuilding2,
-  lucideCalendar,
-  lucideDownload,
-  lucideFileText,
-  lucideFileType,
-  lucideFlame,
-  lucideInfo,
-  lucidePartyPopper,
-} from '@ng-icons/lucide';
-import { HlmButtonImports } from '@spartan-ng/helm/button';
-import { HlmCardImports } from '@spartan-ng/helm/card';
-import { HlmRadioGroupImports } from '@spartan-ng/helm/radio-group';
-import { HlmSkeletonImports } from '@spartan-ng/helm/skeleton';
-import { HlmSpinnerImports } from '@spartan-ng/helm/spinner';
+import { ViewWillEnter } from '@ionic/angular/standalone';
 import { EMPTY, Subscription, catchError, finalize, interval, of, startWith, switchMap, takeWhile } from 'rxjs';
 import {
   MonthlyReservationReportDTO,
@@ -27,47 +7,19 @@ import {
   ReportFormat,
 } from '../../core/models';
 import { AppShellService } from '../../core/shell/app-shell.service';
+import { LayoutService } from '../../core/layout/layout.service';
 import { ReservationService } from '../../services/reservation.service';
 import { getSpaceCatalogEntry } from '../reservations/space-catalog';
-import { LunaDatePickerComponent } from '../../shared/components/luna-date-picker/luna-date-picker.component';
 import { CelebrationService } from '../../shared/services/celebration.service';
 import { UiService } from '../../shared/services/ui.service';
-
-type ReportStep = 1 | 2 | 3;
+import { ReportsDesktopComponent } from './desktop/reports-desktop.component';
+import { ReportsMobileComponent, type ReportStep } from './mobile/reports-mobile.component';
 
 @Component({
   selector: 'app-reports',
   templateUrl: './reports.page.html',
-  styleUrl: './reports.page.scss',
   standalone: true,
-  imports: [
-    IonContent,
-    CdkVirtualScrollViewport,
-    CdkFixedSizeVirtualScroll,
-    CdkVirtualForOf,
-    FormsModule,
-    NgIcon,
-    HlmButtonImports,
-    HlmCardImports,
-    HlmRadioGroupImports,
-    HlmSkeletonImports,
-    HlmSpinnerImports,
-    LunaDatePickerComponent,
-  ],
-  providers: [
-    provideIcons({
-      lucideArrowLeft,
-      lucideArrowRight,
-      lucideBuilding2,
-      lucideCalendar,
-      lucideDownload,
-      lucideFileText,
-      lucideFileType,
-      lucideFlame,
-      lucideInfo,
-      lucidePartyPopper,
-    }),
-  ],
+  imports: [ReportsDesktopComponent, ReportsMobileComponent],
 })
 export class ReportsPage implements OnDestroy, ViewWillEnter {
   private reservationService = inject(ReservationService);
@@ -75,6 +27,7 @@ export class ReportsPage implements OnDestroy, ViewWillEnter {
   private uiService = inject(UiService);
   private celebration = inject(CelebrationService);
   private cdr = inject(ChangeDetectorRef);
+  readonly layout = inject(LayoutService);
 
   readonly step = signal<ReportStep>(1);
   readonly selectedMonth = signal(new Date().getMonth() + 1);

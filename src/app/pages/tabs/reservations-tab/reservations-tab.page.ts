@@ -1,33 +1,6 @@
 import { ChangeDetectorRef, Component, inject, viewChild } from '@angular/core';
-import {
-  IonContent,
-  IonRefresher,
-  IonRefresherContent,
-  ViewWillEnter,
-} from '@ionic/angular/standalone';
+import { ViewWillEnter } from '@ionic/angular/standalone';
 import { ActivatedRoute } from '@angular/router';
-import { CdkFixedSizeVirtualScroll, CdkVirtualForOf, CdkVirtualScrollViewport } from '@angular/cdk/scrolling';
-import { NgIcon, provideIcons } from '@ng-icons/core';
-import {
-  lucideArrowRight,
-  lucideBan,
-  lucideCheck,
-  lucideClock,
-  lucideFlame,
-  lucideGoal,
-  lucideLayoutGrid,
-  lucidePartyPopper,
-  lucidePlus,
-  lucideTriangleAlert,
-  lucideTv,
-  lucideUser,
-  lucideUsers,
-  lucideX,
-} from '@ng-icons/lucide';
-import { HlmButtonImports } from '@spartan-ng/helm/button';
-import { HlmCardImports } from '@spartan-ng/helm/card';
-import { HlmSkeletonImports } from '@spartan-ng/helm/skeleton';
-import { HlmSpinnerImports } from '@spartan-ng/helm/spinner';
 import { ReservationService } from '../../../services/reservation.service';
 import { EquipmentReservationService } from '../../../services/equipment-reservation.service';
 import { ReservationResponseDTO, EquipmentReservationResponseDTO, ReservationStatus } from '../../../core/models';
@@ -36,69 +9,29 @@ import { UiService } from '../../../shared/services/ui.service';
 import { AppNavigationService } from '../../../core/navigation/app-navigation.service';
 import { APP_ROUTES } from '../../../core/navigation/app-routes';
 import { AppShellService } from '../../../core/shell/app-shell.service';
+import { LayoutService } from '../../../core/layout/layout.service';
 import { ReservationDraftService } from '../../reservations/reservation-draft.service';
 import { getSpaceCatalogEntry } from '../../reservations/space-catalog';
 import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog.component';
+import { ReservationsTabDesktopComponent } from './desktop/reservations-tab-desktop.component';
+import {
+  ReservationsTabMobileComponent,
+  type StatusFilter,
+  type TypeFilter,
+  type UnifiedReservationView,
+} from './mobile/reservations-tab-mobile.component';
 import { catchError, finalize, forkJoin, of } from 'rxjs';
 
-type ReservationKind = 'space' | 'equipment';
-
-type TypeFilter = 'ALL' | 'SALAO_FESTAS' | 'CHURRASQUEIRA' | 'CAMPO_FUTEBOL' | 'TELEVISAO';
-type StatusFilter = 'ALL' | 'PENDING' | 'APPROVED' | 'CONFIRMED' | 'IN_USE' | 'RETURNED' | 'CANCELED';
-
-interface UnifiedReservation {
-  kind: ReservationKind;
-  type: string;
-  id: string;
-  date: string;
-  status: string;
-  createdAt?: string;
-  spaceType?: string;
-  user?: { id: string; name: string; email: string };
-  equipmentName?: string;
-  startTime?: string;
-  endTime?: string;
-  pickedUpAt?: string | null;
-  returnedAt?: string | null;
-  canceledAt?: string | null;
-}
+type UnifiedReservation = UnifiedReservationView;
 
 @Component({
   selector: 'app-reservations-tab',
   templateUrl: './reservations-tab.page.html',
-  styleUrl: './reservations-tab.page.scss',
   standalone: true,
   imports: [
-    IonContent,
-    IonRefresher,
-    IonRefresherContent,
-    CdkVirtualScrollViewport,
-    CdkFixedSizeVirtualScroll,
-    CdkVirtualForOf,
-    NgIcon,
-    HlmButtonImports,
-    HlmCardImports,
-    HlmSkeletonImports,
-    HlmSpinnerImports,
     ConfirmDialogComponent,
-  ],
-  providers: [
-    provideIcons({
-      lucideArrowRight,
-      lucideBan,
-      lucideCheck,
-      lucideClock,
-      lucideFlame,
-      lucideGoal,
-      lucideLayoutGrid,
-      lucidePartyPopper,
-      lucidePlus,
-      lucideTriangleAlert,
-      lucideTv,
-      lucideUser,
-      lucideUsers,
-      lucideX,
-    }),
+    ReservationsTabDesktopComponent,
+    ReservationsTabMobileComponent,
   ],
 })
 export class ReservationsTabPage implements ViewWillEnter {
@@ -111,6 +44,7 @@ export class ReservationsTabPage implements ViewWillEnter {
   private draft = inject(ReservationDraftService);
   private uiService = inject(UiService);
   private cdr = inject(ChangeDetectorRef);
+  readonly layout = inject(LayoutService);
 
   reservations: ReservationResponseDTO[] = [];
   equipmentReservations: EquipmentReservationResponseDTO[] = [];

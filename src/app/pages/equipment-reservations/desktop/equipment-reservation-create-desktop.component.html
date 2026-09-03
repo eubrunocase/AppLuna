@@ -1,0 +1,105 @@
+<div class="desktop-page">
+  <div class="desktop-page__toolbar">
+    <div>
+      <h1 class="m-0 text-xl font-bold text-[#361a14]">Reservar TV</h1>
+      <p class="m-0 mt-1 text-sm text-[#8a6f66]">
+        {{ step() === 1 ? 'Etapa 1 de 2 — escolha o dia' : 'Etapa 2 de 2 — escolha o horário' }}
+      </p>
+    </div>
+  </div>
+
+  <div class="tv-steps" aria-label="Progresso">
+    @for (s of steps; track s.id) {
+      <span
+        class="tv-steps__item"
+        [class.tv-steps__item--active]="step() === s.id"
+        [class.tv-steps__item--done]="step() > s.id"
+      >
+        <span class="tv-steps__num">{{ s.id }}</span>
+        {{ s.label }}
+      </span>
+    }
+  </div>
+
+  <div class="tv-layout">
+    <div class="desktop-page__panel tv-form-panel">
+      @if (step() === 1) {
+        <h2 class="m-0 text-lg font-bold text-[#361a14]">Quando vai usar?</h2>
+        <p class="m-0 mt-1 mb-3 text-sm text-[#8a6f66]">Escolha o dia da reserva da TV comunitária</p>
+        <div class="picker-panel">
+          <div>
+            <span class="picker-panel__eyebrow">Data</span>
+            <p class="picker-panel__hint">Selecione o dia da reserva</p>
+          </div>
+          <app-luna-date-picker
+            [minDate]="minPickerDate()"
+            [date]="pickerDate()"
+            (dateChange)="dateChange.emit($event)"
+          />
+        </div>
+        <div class="tv-actions">
+          <button hlmBtn type="button" [disabled]="!canProceedStep1()" (click)="goToStep.emit(2)">
+            Continuar
+            <ng-icon name="lucideArrowRight" />
+          </button>
+        </div>
+      } @else {
+        <h2 class="m-0 text-lg font-bold text-[#361a14]">Qual o horário?</h2>
+        <p class="m-0 mt-1 mb-3 text-sm text-[#8a6f66]">Confirmação automática, sem aprovação do síndico</p>
+        <div class="picker-panel">
+          <div>
+            <span class="picker-panel__eyebrow">Horário</span>
+            <p class="picker-panel__hint">Defina o início e quanto tempo vai usar</p>
+          </div>
+          <app-luna-time-slot-picker
+            [startTime]="startTime()"
+            [durationHours]="durationHours()"
+            (slotChange)="slotChange.emit($event)"
+          />
+        </div>
+        <aside class="tv-notice mt-4" aria-live="polite">
+          <span class="tv-notice__icon"><ng-icon name="lucideKeyRound" /></span>
+          <p>
+            Retire o controle na portaria no horário marcado. A TV não pode ser reservada
+            no mesmo dia de uma reserva do Salão ou da Churrasqueira.
+          </p>
+        </aside>
+        <div class="tv-actions">
+          <button hlmBtn type="button" variant="outline" (click)="goToStep.emit(1)">
+            <ng-icon name="lucideArrowLeft" />
+            Voltar
+          </button>
+          <button
+            hlmBtn
+            type="button"
+            [disabled]="!canSubmit() || isSubmitting()"
+            (click)="submit.emit()"
+          >
+            @if (isSubmitting()) {
+              <hlm-spinner />
+              Confirmando...
+            } @else {
+              <ng-icon name="lucideCalendarCheck" />
+              Confirmar
+            }
+          </button>
+        </div>
+      }
+    </div>
+
+    <aside class="tv-side">
+      <img src="assets/illustrations/equipment-tv.svg" alt="" />
+      <h3>TV comunitária</h3>
+      <p>
+        @if (selectedDate()) {
+          Data: <strong>{{ selectedDate() }}</strong>.
+        } @else {
+          Escolha a data e o horário para reservar a TV.
+        }
+        @if (step() === 2) {
+          Horário: <strong>{{ startTime() }} – {{ endTime() }}</strong>.
+        }
+      </p>
+    </aside>
+  </div>
+</div>

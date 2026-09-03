@@ -1,217 +1,37 @@
-<ion-content class="shell-page-content user-flow-content">
-  <div class="user-flow-shell">
-    @if (isLoadingUser()) {
-      <div class="user-loading" role="status">
-        <hlm-spinner aria-label="Carregando usuário" />
-        <span>Carregando usuário...</span>
-      </div>
-    } @else {
-      @switch (step()) {
-        @case (1) {
-          <section class="user-step" aria-labelledby="user-step-1-title">
-            <header class="section-header">
-              <span class="section-step" aria-hidden="true">1</span>
-              <div>
-                <h2 id="user-step-1-title" class="section-title">
-                  {{ isEdit() ? 'Dados do usuário' : 'Quem é a pessoa?' }}
-                </h2>
-                <p class="section-subtitle">
-                  {{ isEdit() ? 'Atualize nome, unidade e senha se precisar' : 'Nome, unidade, e-mail e senha de acesso' }}
-                </p>
-              </div>
-            </header>
-
-            <form [formGroup]="form" class="user-form">
-              <hlm-field-group>
-                <hlm-field>
-                  <label hlmFieldLabel for="user-name">Nome completo</label>
-                  <div class="input-with-icon">
-                    <ng-icon name="lucideUser" class="field-icon" aria-hidden="true" />
-                    <input
-                      hlmInput
-                      id="user-name"
-                      type="text"
-                      formControlName="name"
-                      class="user-input pl-9"
-                      placeholder="Ex: Ana Souza"
-                      [attr.aria-invalid]="showError('name')"
-                    />
-                  </div>
-                  @if (showError('name')) {
-                    <hlm-field-error [forceShow]="true">Informe o nome</hlm-field-error>
-                  }
-                </hlm-field>
-
-                <hlm-field>
-                  <label hlmFieldLabel for="user-apartment">Apartamento</label>
-                  <div class="input-with-icon">
-                    <ng-icon name="lucideBuilding2" class="field-icon" aria-hidden="true" />
-                    <input
-                      hlmInput
-                      id="user-apartment"
-                      type="text"
-                      formControlName="apartment"
-                      class="user-input pl-9"
-                      placeholder="Ex: 101"
-                      [attr.aria-invalid]="showError('apartment')"
-                    />
-                  </div>
-                  @if (showError('apartment')) {
-                    <hlm-field-error [forceShow]="true">Informe o apartamento</hlm-field-error>
-                  }
-                </hlm-field>
-
-                <hlm-field>
-                  <label hlmFieldLabel for="user-email">E-mail</label>
-                  <div class="input-with-icon">
-                    <ng-icon name="lucideMail" class="field-icon" aria-hidden="true" />
-                    <input
-                      hlmInput
-                      id="user-email"
-                      type="email"
-                      formControlName="email"
-                      class="user-input pl-9"
-                      placeholder="nome@email.com"
-                      [attr.aria-invalid]="showError('email')"
-                    />
-                  </div>
-                  @if (showError('email')) {
-                    <hlm-field-error [forceShow]="true">Informe um e-mail válido</hlm-field-error>
-                  }
-                </hlm-field>
-
-                <hlm-field>
-                  <label hlmFieldLabel for="user-password">
-                    {{ isEdit() ? 'Nova senha (opcional)' : 'Senha' }}
-                  </label>
-                  <div class="input-with-icon">
-                    <ng-icon name="lucideLock" class="field-icon" aria-hidden="true" />
-                    <input
-                      hlmInput
-                      id="user-password"
-                      [type]="showPassword() ? 'text' : 'password'"
-                      formControlName="password"
-                      class="user-input pl-9 pr-10"
-                      [placeholder]="isEdit() ? 'Deixe em branco para manter' : 'Mínimo de 4 caracteres'"
-                      [attr.aria-invalid]="showError('password')"
-                    />
-                    <button
-                      type="button"
-                      class="password-toggle"
-                      [attr.aria-label]="showPassword() ? 'Ocultar senha' : 'Mostrar senha'"
-                      (click)="showPassword.set(!showPassword())"
-                    >
-                      <ng-icon [name]="showPassword() ? 'lucideEyeOff' : 'lucideEye'" />
-                    </button>
-                  </div>
-                  @if (showError('password')) {
-                    <hlm-field-error [forceShow]="true">A senha precisa ter ao menos 4 caracteres</hlm-field-error>
-                  }
-                </hlm-field>
-              </hlm-field-group>
-            </form>
-          </section>
-        }
-
-        @case (2) {
-          <section class="user-step" aria-labelledby="user-step-2-title">
-            <header class="section-header">
-              <span class="section-step" aria-hidden="true">2</span>
-              <div>
-                <h2 id="user-step-2-title" class="section-title">Qual o papel?</h2>
-                <p class="section-subtitle">Isso define o que a pessoa vê no app</p>
-              </div>
-            </header>
-
-            <hlm-radio-group
-              class="role-grid"
-              name="user-role"
-              [ngModel]="selectedRole()"
-              (ngModelChange)="selectedRole.set($event)"
-              aria-labelledby="user-step-2-title"
-            >
-              @for (role of roleOptions; track role.value) {
-                <label
-                  class="role-card"
-                  [class.role-card--selected]="selectedRole() === role.value"
-                  [for]="role.inputId"
-                >
-                  <hlm-radio
-                    class="role-card__radio"
-                    [value]="role.value"
-                    [inputId]="role.inputId"
-                    [attr.aria-label]="role.label"
-                  />
-                  <span class="role-card__icon" aria-hidden="true">
-                    <ng-icon [name]="role.icon" />
-                  </span>
-                  <span class="role-card__copy">
-                    <span class="role-card__name">{{ role.label }}</span>
-                    <span class="role-card__hint">{{ role.hint }}</span>
-                  </span>
-                </label>
-              }
-            </hlm-radio-group>
-          </section>
-        }
-      }
-    }
-  </div>
-
-  <div slot="fixed" class="user-actions">
-    @if (!isLoadingUser()) {
-      @if (step() === 1) {
-        @if (isEdit()) {
-          <button
-            hlmBtn
-            type="button"
-            class="submit-btn"
-            [disabled]="isSubmitting()"
-            (click)="onSubmit()"
-          >
-            @if (isSubmitting()) {
-              <hlm-spinner aria-label="Salvando usuário" />
-              <span>Salvando...</span>
-            } @else {
-              <ng-icon name="lucideCheck" />
-              <span>Salvar</span>
-            }
-          </button>
-        } @else {
-          <button
-            hlmBtn
-            type="button"
-            class="submit-btn"
-            [disabled]="!canProceedStep1()"
-            (click)="goToStep(2)"
-          >
-            <span>Continuar</span>
-            <ng-icon name="lucideArrowRight" />
-          </button>
-        }
-      } @else {
-        <div class="form-footer form-footer--split">
-          <button hlmBtn type="button" variant="outline" class="back-btn" (click)="goToStep(1)">
-            <ng-icon name="lucideArrowLeft" />
-            <span>Voltar</span>
-          </button>
-          <button
-            hlmBtn
-            type="button"
-            class="submit-btn submit-btn--compact"
-            [disabled]="!canSubmit() || isSubmitting()"
-            (click)="onSubmit()"
-          >
-            @if (isSubmitting()) {
-              <hlm-spinner aria-label="Criando usuário" />
-              <span>Criando...</span>
-            } @else {
-              <ng-icon name="lucideCheck" />
-              <span>Criar</span>
-            }
-          </button>
-        </div>
-      }
-    }
-  </div>
-</ion-content>
+@if (layout.isDesktop()) {
+  <app-user-form-desktop
+    [step]="step()"
+    [isEdit]="isEdit()"
+    [isLoadingUser]="isLoadingUser()"
+    [isSubmitting]="isSubmitting()"
+    [submitted]="submitted()"
+    [showPassword]="showPassword()"
+    [selectedRole]="selectedRole()"
+    [canProceedStep1]="canProceedStep1()"
+    [canSubmit]="canSubmit()"
+    [form]="form"
+    [roleOptions]="roleOptions"
+    (showPasswordChange)="showPassword.set($event)"
+    (selectedRoleChange)="selectedRole.set($event)"
+    (goToStep)="goToStep($event)"
+    (submit)="onSubmit()"
+  />
+} @else {
+  <app-user-form-mobile
+    [step]="step()"
+    [isEdit]="isEdit()"
+    [isLoadingUser]="isLoadingUser()"
+    [isSubmitting]="isSubmitting()"
+    [submitted]="submitted()"
+    [showPassword]="showPassword()"
+    [selectedRole]="selectedRole()"
+    [canProceedStep1]="canProceedStep1()"
+    [canSubmit]="canSubmit()"
+    [form]="form"
+    [roleOptions]="roleOptions"
+    (showPasswordChange)="showPassword.set($event)"
+    (selectedRoleChange)="selectedRole.set($event)"
+    (goToStep)="goToStep($event)"
+    (submit)="onSubmit()"
+  />
+}

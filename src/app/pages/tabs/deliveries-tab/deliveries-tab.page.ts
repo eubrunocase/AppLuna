@@ -1,62 +1,26 @@
 import { ChangeDetectorRef, Component, inject } from '@angular/core';
-import {
-  IonContent,
-  IonRefresher,
-  IonRefresherContent,
-  ViewWillEnter,
-} from '@ionic/angular/standalone';
-import { CdkFixedSizeVirtualScroll, CdkVirtualForOf, CdkVirtualScrollViewport } from '@angular/cdk/scrolling';
-import { NgIcon, provideIcons } from '@ng-icons/core';
-import {
-  lucideBarcode,
-  lucideCircleCheck,
-  lucideClock,
-  lucideLayoutGrid,
-  lucidePackage,
-  lucidePackageCheck,
-  lucidePlus,
-} from '@ng-icons/lucide';
-import { HlmButtonImports } from '@spartan-ng/helm/button';
-import { HlmCardImports } from '@spartan-ng/helm/card';
-import { HlmSkeletonImports } from '@spartan-ng/helm/skeleton';
+import { ViewWillEnter } from '@ionic/angular/standalone';
 import { DeliveryService } from '../../../services/delivery.service';
 import { AuthService } from '../../../services/auth.service';
 import { ResponseDeliveryDTO, DeliveryStatus } from '../../../core/models';
 import { AppNavigationService } from '../../../core/navigation/app-navigation.service';
 import { APP_ROUTES } from '../../../core/navigation/app-routes';
 import { AppShellService } from '../../../core/shell/app-shell.service';
+import { LayoutService } from '../../../core/layout/layout.service';
+import { DeliveriesTabDesktopComponent } from './desktop/deliveries-tab-desktop.component';
+import {
+  DeliveriesTabMobileComponent,
+  type DeliveriesTabStatusFilter,
+} from './mobile/deliveries-tab-mobile.component';
 import { catchError, finalize, of } from 'rxjs';
 
-type StatusFilter = 'ALL' | 'PENDING' | 'DELIVERED';
+type StatusFilter = DeliveriesTabStatusFilter;
 
 @Component({
   selector: 'app-deliveries-tab',
   templateUrl: './deliveries-tab.page.html',
-  styleUrl: './deliveries-tab.page.scss',
   standalone: true,
-  imports: [
-    IonContent,
-    IonRefresher,
-    IonRefresherContent,
-    CdkVirtualScrollViewport,
-    CdkFixedSizeVirtualScroll,
-    CdkVirtualForOf,
-    NgIcon,
-    HlmButtonImports,
-    HlmCardImports,
-    HlmSkeletonImports,
-  ],
-  providers: [
-    provideIcons({
-      lucideBarcode,
-      lucideCircleCheck,
-      lucideClock,
-      lucideLayoutGrid,
-      lucidePackage,
-      lucidePackageCheck,
-      lucidePlus,
-    }),
-  ],
+  imports: [DeliveriesTabDesktopComponent, DeliveriesTabMobileComponent],
 })
 export class DeliveriesTabPage implements ViewWillEnter {
   private deliveryService = inject(DeliveryService);
@@ -64,12 +28,14 @@ export class DeliveriesTabPage implements ViewWillEnter {
   private navigation = inject(AppNavigationService);
   private shell = inject(AppShellService);
   private cdr = inject(ChangeDetectorRef);
+  readonly layout = inject(LayoutService);
 
   deliveries: ResponseDeliveryDTO[] = [];
   filteredDeliveries: ResponseDeliveryDTO[] = [];
   isLoading = true;
   statusFilter: StatusFilter = 'ALL';
   canCreate = false;
+  photoMap: Record<string, string> = {};
   private readonly photoById = new Map<string, string>();
 
   readonly skeletonItems = [1, 2, 3];
@@ -145,6 +111,7 @@ export class DeliveriesTabPage implements ViewWillEnter {
 
   private resolvePhotos(deliveries: ResponseDeliveryDTO[]): void {
     this.photoById.clear();
+    this.photoMap = {};
 
     for (const delivery of deliveries) {
       if (!delivery.voucherKey) {
@@ -156,6 +123,7 @@ export class DeliveriesTabPage implements ViewWillEnter {
       ).subscribe((response) => {
         if (response?.downloadUrl) {
           this.photoById.set(delivery.id, response.downloadUrl);
+          this.photoMap = { ...this.photoMap, [delivery.id]: response.downloadUrl };
           this.cdr.markForCheck();
         }
       });

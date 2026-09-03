@@ -1,34 +1,13 @@
 import { ChangeDetectorRef, Component, inject, viewChild } from '@angular/core';
-import {
-  IonContent,
-  IonRefresher,
-  IonRefresherContent,
-  ViewWillEnter,
-} from '@ionic/angular/standalone';
-import { CdkFixedSizeVirtualScroll, CdkVirtualForOf, CdkVirtualScrollViewport } from '@angular/cdk/scrolling';
-import { CommonModule } from '@angular/common';
+import { ViewWillEnter } from '@ionic/angular/standalone';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { NgIcon, provideIcons } from '@ng-icons/core';
-import {
-  lucideBarcode,
-  lucideCheck,
-  lucideCircleCheck,
-  lucideClock,
-  lucideLayoutGrid,
-  lucidePackage,
-  lucidePackageCheck,
-  lucidePlus,
-  lucideShieldCheck,
-  lucideUser,
-  lucideUserCheck,
-} from '@ng-icons/lucide';
+import { lucideUserCheck } from '@ng-icons/lucide';
 import { HlmAlertDialog, HlmAlertDialogImports } from '@spartan-ng/helm/alert-dialog';
 import { HlmButtonImports } from '@spartan-ng/helm/button';
-import { HlmCardImports } from '@spartan-ng/helm/card';
 import { HlmFieldImports } from '@spartan-ng/helm/field';
 import { HlmInputImports } from '@spartan-ng/helm/input';
-import { HlmSkeletonImports } from '@spartan-ng/helm/skeleton';
 import { DeliveryService } from '../../services/delivery.service';
 import { UserService } from '../../services/user.service';
 import { ResponseDeliveryDTO, UserSummaryDTO, DeliveryStatus, UserRoles } from '../../core/models';
@@ -36,47 +15,31 @@ import { AuthService } from '../../services/auth.service';
 import { AppNavigationService } from '../../core/navigation/app-navigation.service';
 import { APP_ROUTES } from '../../core/navigation/app-routes';
 import { AppShellService } from '../../core/shell/app-shell.service';
+import { LayoutService } from '../../core/layout/layout.service';
+import { DeliveriesDesktopComponent } from './desktop/deliveries-desktop.component';
+import {
+  DeliveriesMobileComponent,
+  type DeliveriesStatusFilter,
+} from './mobile/deliveries-mobile.component';
 import { catchError, finalize, of } from 'rxjs';
 
-type StatusFilter = 'ALL' | 'PENDING' | 'DELIVERED';
+type StatusFilter = DeliveriesStatusFilter;
 
 @Component({
   selector: 'app-deliveries',
   templateUrl: './deliveries.page.html',
-  styleUrl: './deliveries.page.scss',
   standalone: true,
   imports: [
-    IonContent,
-    IonRefresher,
-    IonRefresherContent,
-    CdkVirtualScrollViewport,
-    CdkFixedSizeVirtualScroll,
-    CdkVirtualForOf,
-    CommonModule,
     FormsModule,
     NgIcon,
     HlmAlertDialogImports,
     HlmButtonImports,
-    HlmCardImports,
     HlmFieldImports,
     HlmInputImports,
-    HlmSkeletonImports,
+    DeliveriesDesktopComponent,
+    DeliveriesMobileComponent,
   ],
-  providers: [
-    provideIcons({
-      lucideBarcode,
-      lucideCheck,
-      lucideCircleCheck,
-      lucideClock,
-      lucideLayoutGrid,
-      lucidePackage,
-      lucidePackageCheck,
-      lucidePlus,
-      lucideShieldCheck,
-      lucideUser,
-      lucideUserCheck,
-    }),
-  ],
+  providers: [provideIcons({ lucideUserCheck })],
 })
 export class DeliveriesPage implements ViewWillEnter {
   private deliveryService = inject(DeliveryService);
@@ -86,12 +49,14 @@ export class DeliveriesPage implements ViewWillEnter {
   private shell = inject(AppShellService);
   private router = inject(Router);
   private cdr = inject(ChangeDetectorRef);
+  readonly layout = inject(LayoutService);
 
   private readonly pickupDialog = viewChild.required<HlmAlertDialog>('pickupDialog');
 
   deliveries: ResponseDeliveryDTO[] = [];
   filteredDeliveries: ResponseDeliveryDTO[] = [];
   users: UserSummaryDTO[] = [];
+  userNamesMap: Record<string, string> = {};
   isLoading = false;
   statusFilter: StatusFilter = 'ALL';
   pickupName = '';
@@ -145,6 +110,8 @@ export class DeliveriesPage implements ViewWillEnter {
       catchError(() => of([]))
     ).subscribe(users => {
       this.users = users;
+      this.userNamesMap = Object.fromEntries(users.map((u) => [u.id, u.name]));
+      this.cdr.markForCheck();
     });
 
     this.deliveryService.findAll().pipe(

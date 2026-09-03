@@ -1,81 +1,25 @@
 import { ChangeDetectorRef, Component, inject, viewChild } from '@angular/core';
-import { FormsModule } from '@angular/forms';
-import { CdkFixedSizeVirtualScroll, CdkVirtualForOf, CdkVirtualScrollViewport } from '@angular/cdk/scrolling';
-import {
-  IonContent,
-  IonRefresher,
-  IonRefresherContent,
-  ViewWillEnter,
-} from '@ionic/angular/standalone';
-import { NgIcon, provideIcons } from '@ng-icons/core';
-import {
-  lucideBriefcase,
-  lucideBuilding2,
-  lucideLayoutGrid,
-  lucideMail,
-  lucidePencil,
-  lucidePlus,
-  lucideSearch,
-  lucideShieldCheck,
-  lucideTrash2,
-  lucideTriangleAlert,
-  lucideUser,
-  lucideUsers,
-} from '@ng-icons/lucide';
-import { HlmButtonImports } from '@spartan-ng/helm/button';
-import { HlmCardImports } from '@spartan-ng/helm/card';
-import { HlmInputImports } from '@spartan-ng/helm/input';
-import { HlmSkeletonImports } from '@spartan-ng/helm/skeleton';
-import { HlmSpinnerImports } from '@spartan-ng/helm/spinner';
+import { ViewWillEnter } from '@ionic/angular/standalone';
 import { UserService } from '../../services/user.service';
 import { AuthService } from '../../services/auth.service';
 import { isResidentRole, ResponseUserDTO, UserRoles } from '../../core/models';
 import { AppNavigationService } from '../../core/navigation/app-navigation.service';
 import { APP_ROUTES } from '../../core/navigation/app-routes';
 import { AppShellService } from '../../core/shell/app-shell.service';
+import { LayoutService } from '../../core/layout/layout.service';
 import { UiService } from '../../shared/services/ui.service';
 import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog/confirm-dialog.component';
+import { UsersDesktopComponent } from './desktop/users-desktop.component';
+import { UsersMobileComponent, type UsersRoleFilter } from './mobile/users-mobile.component';
 import { catchError, EMPTY, finalize, of } from 'rxjs';
 
-type RoleFilter = 'ALL' | UserRoles.ADMIN_ROLE | UserRoles.EMPLOYEE | UserRoles.RESIDENT_ROLE;
+type RoleFilter = UsersRoleFilter;
 
 @Component({
   selector: 'app-users',
   templateUrl: './users.page.html',
-  styleUrl: './users.page.scss',
   standalone: true,
-  imports: [
-    IonContent,
-    IonRefresher,
-    IonRefresherContent,
-    CdkVirtualScrollViewport,
-    CdkFixedSizeVirtualScroll,
-    CdkVirtualForOf,
-    FormsModule,
-    NgIcon,
-    HlmButtonImports,
-    HlmCardImports,
-    HlmInputImports,
-    HlmSkeletonImports,
-    HlmSpinnerImports,
-    ConfirmDialogComponent,
-  ],
-  providers: [
-    provideIcons({
-      lucideBriefcase,
-      lucideBuilding2,
-      lucideLayoutGrid,
-      lucideMail,
-      lucidePencil,
-      lucidePlus,
-      lucideSearch,
-      lucideShieldCheck,
-      lucideTrash2,
-      lucideTriangleAlert,
-      lucideUser,
-      lucideUsers,
-    }),
-  ],
+  imports: [ConfirmDialogComponent, UsersDesktopComponent, UsersMobileComponent],
 })
 export class UsersPage implements ViewWillEnter {
   private userService = inject(UserService);
@@ -84,6 +28,7 @@ export class UsersPage implements ViewWillEnter {
   private shell = inject(AppShellService);
   private uiService = inject(UiService);
   private cdr = inject(ChangeDetectorRef);
+  readonly layout = inject(LayoutService);
 
   private readonly confirmDialog = viewChild.required<ConfirmDialogComponent>('confirmDialog');
 
@@ -93,6 +38,7 @@ export class UsersPage implements ViewWillEnter {
   roleFilter: RoleFilter = 'ALL';
   searchQuery = '';
   processingId: string | null = null;
+  currentUserId: string | null = null;
 
   confirmTitle = 'Excluir usuário';
   confirmDescription = '';
@@ -117,6 +63,7 @@ export class UsersPage implements ViewWillEnter {
   ];
 
   ionViewWillEnter(): void {
+    this.currentUserId = this.authService.getCurrentUser()?.id ?? null;
     this.loadUsers();
     this.shell.configure({
       title: 'Usuários',

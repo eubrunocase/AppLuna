@@ -1,82 +1,31 @@
 import { ChangeDetectorRef, Component, inject, viewChild } from '@angular/core';
-import { FormsModule } from '@angular/forms';
-import { CdkFixedSizeVirtualScroll, CdkVirtualForOf, CdkVirtualScrollViewport } from '@angular/cdk/scrolling';
-import {
-  IonContent,
-  IonRefresher,
-  IonRefresherContent,
-  ViewWillEnter,
-} from '@ionic/angular/standalone';
-import { NgIcon, provideIcons } from '@ng-icons/core';
-import {
-  lucideBan,
-  lucideBuilding2,
-  lucideCalendar,
-  lucideCircleCheck,
-  lucideClock,
-  lucideKeyRound,
-  lucideLayoutGrid,
-  lucidePlay,
-  lucidePlus,
-  lucideSearch,
-  lucideTv,
-  lucideUndo2,
-  lucideUser,
-} from '@ng-icons/lucide';
-import { HlmButtonImports } from '@spartan-ng/helm/button';
-import { HlmCardImports } from '@spartan-ng/helm/card';
-import { HlmInputImports } from '@spartan-ng/helm/input';
-import { HlmSkeletonImports } from '@spartan-ng/helm/skeleton';
-import { HlmSpinnerImports } from '@spartan-ng/helm/spinner';
+import { ViewWillEnter } from '@ionic/angular/standalone';
 import { catchError, EMPTY, finalize, of } from 'rxjs';
 import { EquipmentReservationResponseDTO, EquipmentReservationStatus, UserRoles } from '../../core/models';
 import { AppNavigationService } from '../../core/navigation/app-navigation.service';
 import { APP_ROUTES } from '../../core/navigation/app-routes';
 import { AppShellService } from '../../core/shell/app-shell.service';
+import { LayoutService } from '../../core/layout/layout.service';
 import { AuthService } from '../../services/auth.service';
 import { EquipmentReservationService } from '../../services/equipment-reservation.service';
 import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog/confirm-dialog.component';
 import { UiService } from '../../shared/services/ui.service';
+import { EquipmentReservationsDesktopComponent } from './desktop/equipment-reservations-desktop.component';
+import {
+  EquipmentReservationsMobileComponent,
+  type EquipmentStatusFilter,
+} from './mobile/equipment-reservations-mobile.component';
 
-type StatusFilter = 'ALL' | EquipmentReservationStatus;
+type StatusFilter = EquipmentStatusFilter;
 
 @Component({
   selector: 'app-equipment-reservations',
   templateUrl: './equipment-reservations.page.html',
-  styleUrl: './equipment-reservations.page.scss',
   standalone: true,
   imports: [
-    IonContent,
-    IonRefresher,
-    IonRefresherContent,
-    CdkVirtualScrollViewport,
-    CdkFixedSizeVirtualScroll,
-    CdkVirtualForOf,
-    FormsModule,
-    NgIcon,
-    HlmButtonImports,
-    HlmCardImports,
-    HlmInputImports,
-    HlmSkeletonImports,
-    HlmSpinnerImports,
     ConfirmDialogComponent,
-  ],
-  providers: [
-    provideIcons({
-      lucideBan,
-      lucideBuilding2,
-      lucideCalendar,
-      lucideCircleCheck,
-      lucideClock,
-      lucideKeyRound,
-      lucideLayoutGrid,
-      lucidePlay,
-      lucidePlus,
-      lucideSearch,
-      lucideTv,
-      lucideUndo2,
-      lucideUser,
-    }),
+    EquipmentReservationsDesktopComponent,
+    EquipmentReservationsMobileComponent,
   ],
 })
 export class EquipmentReservationsPage implements ViewWillEnter {
@@ -86,6 +35,7 @@ export class EquipmentReservationsPage implements ViewWillEnter {
   private shell = inject(AppShellService);
   private uiService = inject(UiService);
   private cdr = inject(ChangeDetectorRef);
+  readonly layout = inject(LayoutService);
 
   private readonly confirmDialog = viewChild.required<ConfirmDialogComponent>('confirmDialog');
 
