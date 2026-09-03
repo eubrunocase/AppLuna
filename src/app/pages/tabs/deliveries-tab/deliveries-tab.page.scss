@@ -98,10 +98,23 @@
   background: #ecfdf5;
   color: #047857;
   font-size: 1.35rem;
+  overflow: hidden;
 
   &--pending {
     background: #fff4ed;
     color: #c2410c;
+  }
+
+  &--photo {
+    background: #f3ebe4;
+    padding: 0;
+  }
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
   }
 }
 

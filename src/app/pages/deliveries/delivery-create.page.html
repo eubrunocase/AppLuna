@@ -267,7 +267,7 @@
             hlmBtn
             type="button"
             class="submit-btn submit-btn--compact"
-            [disabled]="!photoBase64() || isSubmitting()"
+            [disabled]="!capturedPhoto() || isSubmitting()"
             (click)="submitDelivery()"
           >
             @if (isSubmitting()) {

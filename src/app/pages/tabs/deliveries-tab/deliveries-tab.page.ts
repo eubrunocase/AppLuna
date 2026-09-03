@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component, inject, OnInit, viewChild } from '@angular/core';
+import { ChangeDetectorRef, Component, inject, OnInit } from '@angular/core';
 import {
   IonContent,
   IonRefresher,
@@ -8,7 +8,6 @@ import {
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import {
   lucideBarcode,
-  lucideCheck,
   lucideCircleCheck,
   lucideClock,
   lucideLayoutGrid,
@@ -19,15 +18,12 @@ import {
 import { HlmButtonImports } from '@spartan-ng/helm/button';
 import { HlmCardImports } from '@spartan-ng/helm/card';
 import { HlmSkeletonImports } from '@spartan-ng/helm/skeleton';
-import { HlmSpinnerImports } from '@spartan-ng/helm/spinner';
 import { DeliveryService } from '../../../services/delivery.service';
 import { AuthService } from '../../../services/auth.service';
-import { UiService } from '../../../shared/services/ui.service';
 import { ResponseDeliveryDTO, DeliveryStatus } from '../../../core/models';
 import { AppNavigationService } from '../../../core/navigation/app-navigation.service';
 import { APP_ROUTES } from '../../../core/navigation/app-routes';
 import { AppShellService } from '../../../core/shell/app-shell.service';
-import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog.component';
 import { catchError, finalize, of } from 'rxjs';
 
 type StatusFilter = 'ALL' | 'PENDING' | 'DELIVERED';
@@ -45,13 +41,10 @@ type StatusFilter = 'ALL' | 'PENDING' | 'DELIVERED';
     HlmButtonImports,
     HlmCardImports,
     HlmSkeletonImports,
-    HlmSpinnerImports,
-    ConfirmDialogComponent,
   ],
   providers: [
     provideIcons({
       lucideBarcode,
-      lucideCheck,
       lucideCircleCheck,
       lucideClock,
       lucideLayoutGrid,
@@ -64,7 +57,6 @@ type StatusFilter = 'ALL' | 'PENDING' | 'DELIVERED';
 export class DeliveriesTabPage implements OnInit, ViewWillEnter {
   private deliveryService = inject(DeliveryService);
   private authService = inject(AuthService);
-  private uiService = inject(UiService);
   private navigation = inject(AppNavigationService);
   private shell = inject(AppShellService);
   private cdr = inject(ChangeDetectorRef);
@@ -73,16 +65,8 @@ export class DeliveriesTabPage implements OnInit, ViewWillEnter {
   filteredDeliveries: ResponseDeliveryDTO[] = [];
   isLoading = true;
   statusFilter: StatusFilter = 'ALL';
-  canConfirm = false;
   canCreate = false;
-  processingId: string | null = null;
-
-  confirmTitle = '';
-  confirmDescription = '';
-  confirmLabel = 'Confirmar';
-  confirmIcon = 'lucideCheck';
-  private pendingDelivery: ResponseDeliveryDTO | null = null;
-  private readonly confirmDialog = viewChild.required<ConfirmDialogComponent>('confirmDialog');
+  private readonly photoById = new Map<string, string>();
 
   readonly skeletonItems = [1, 2, 3];
 
@@ -97,7 +81,6 @@ export class DeliveriesTabPage implements OnInit, ViewWillEnter {
   ngOnInit(): void {
     const user = this.authService.getCurrentUser();
     this.currentUserId = user?.id ?? null;
-    this.canConfirm = this.authService.isResident();
     this.canCreate = this.authService.isAdmin() || this.authService.isEmployee();
     this.loadDeliveries();
   }
@@ -131,6 +114,7 @@ export class DeliveriesTabPage implements OnInit, ViewWillEnter {
     ).subscribe(deliveries => {
       this.deliveries = deliveries;
       this.filterByStatus();
+      this.resolvePhotos(deliveries);
     });
   }
 
@@ -152,42 +136,27 @@ export class DeliveriesTabPage implements OnInit, ViewWillEnter {
     }
   }
 
-  confirmReceipt(delivery: ResponseDeliveryDTO): void {
-    if (this.processingId) return;
-
-    this.pendingDelivery = delivery;
-    this.confirmTitle = 'Confirmar Recebimento';
-    this.confirmDescription = 'Deseja marcar esta encomenda como recebida?';
-    this.confirmLabel = 'Sim, recebi';
-    this.confirmIcon = 'lucideCheck';
-    this.cdr.detectChanges();
-    this.confirmDialog().open();
+  getPhotoUrl(deliveryId: string): string | null {
+    return this.photoById.get(deliveryId) ?? null;
   }
 
-  confirmDialogAction(): void {
-    const delivery = this.pendingDelivery;
-    this.pendingDelivery = null;
-    if (!delivery) return;
+  private resolvePhotos(deliveries: ResponseDeliveryDTO[]): void {
+    this.photoById.clear();
 
-    const currentUser = this.authService.getCurrentUser();
-    const pickedUpBy = currentUser?.name ?? 'Morador';
-
-    this.processingId = delivery.id;
-    this.deliveryService.confirmReceipt(delivery.id, pickedUpBy).pipe(
-      catchError(() => {
-        this.uiService.showError('Erro ao confirmar recebimento');
-        return of(null);
-      }),
-      finalize(() => {
-        this.processingId = null;
-        this.cdr.markForCheck();
-      })
-    ).subscribe(async result => {
-      if (result) {
-        await this.uiService.showSuccess('Encomenda marcada como recebida!');
-        this.loadDeliveries();
+    for (const delivery of deliveries) {
+      if (!delivery.voucherKey) {
+        continue;
       }
-    });
+
+      this.deliveryService.getDownloadUrl(delivery.id).pipe(
+        catchError(() => of(null)),
+      ).subscribe((response) => {
+        if (response?.downloadUrl) {
+          this.photoById.set(delivery.id, response.downloadUrl);
+          this.cdr.markForCheck();
+        }
+      });
+    }
   }
 
   openCreate(): void {

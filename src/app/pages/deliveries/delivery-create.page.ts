@@ -26,8 +26,9 @@ import { AppNavigationService } from '../../core/navigation/app-navigation.servi
 import { APP_ROUTES } from '../../core/navigation/app-routes';
 import { AppShellService } from '../../core/shell/app-shell.service';
 import { UserService } from '../../services/user.service';
+import { AuthService } from '../../services/auth.service';
 import { UiService } from '../../shared/services/ui.service';
-import { NativeCameraService } from '../../shared/services/native-camera.service';
+import { CapturedPhoto, NativeCameraService } from '../../shared/services/native-camera.service';
 import { isResidentRole, ResponseUserDTO } from '../../core/models';
 import {
   SearchableComboboxComponent,
@@ -74,6 +75,7 @@ export class DeliveryCreatePage implements OnInit, ViewWillEnter {
   private fb = inject(FormBuilder);
   private deliveryService = inject(DeliveryService);
   private userService = inject(UserService);
+  private authService = inject(AuthService);
   private navigation = inject(AppNavigationService);
   private uiService = inject(UiService);
   private nativeCamera = inject(NativeCameraService);
@@ -85,7 +87,7 @@ export class DeliveryCreatePage implements OnInit, ViewWillEnter {
   readonly recipientMode = signal<RecipientMode>('resident');
   readonly customRecipientName = signal('');
   readonly photoPreview = signal<string | null>(null);
-  readonly photoBase64 = signal<string | null>(null);
+  readonly capturedPhoto = signal<CapturedPhoto | null>(null);
   readonly isCapturingPhoto = signal(false);
 
   readonly recipientControl = new FormControl<string | null>(null);
@@ -161,7 +163,7 @@ export class DeliveryCreatePage implements OnInit, ViewWillEnter {
   }
 
   private async handlePhotoCapture(
-    capture: () => Promise<{ previewUrl: string; base64: string } | null>
+    capture: () => Promise<CapturedPhoto | null>
   ): Promise<void> {
     if (this.isCapturingPhoto()) {
       return;
@@ -173,8 +175,12 @@ export class DeliveryCreatePage implements OnInit, ViewWillEnter {
       if (!photo) {
         return;
       }
+      const previous = this.photoPreview();
+      if (previous?.startsWith('blob:')) {
+        URL.revokeObjectURL(previous);
+      }
       this.photoPreview.set(photo.previewUrl);
-      this.photoBase64.set(photo.base64);
+      this.capturedPhoto.set(photo);
     } catch {
       await this.uiService.showError('Não foi possível capturar a foto. Tente novamente.');
     } finally {
@@ -183,33 +189,48 @@ export class DeliveryCreatePage implements OnInit, ViewWillEnter {
   }
 
   submitDelivery(): void {
-    if (!this.canProceedStep1() || !this.photoBase64() || this.isSubmitting()) {
+    if (!this.canProceedStep1() || !this.capturedPhoto() || this.isSubmitting()) {
       return;
     }
 
+    const photo = this.capturedPhoto()!;
     const { protocolNumber, discrimination } = this.detailsForm.value;
     const isResident = this.recipientMode() === 'resident';
+    const currentUser = this.authService.getCurrentUser();
+    const userId = isResident ? this.recipientControl.value : currentUser?.id;
+
+    if (!userId) {
+      void this.uiService.showError('Não foi possível identificar o destinatário da encomenda.');
+      return;
+    }
 
     this.isSubmitting.set(true);
-    this.deliveryService.create({
-      user: isResident ? this.recipientControl.value! : null,
-      protocolNumber: protocolNumber?.trim() || null,
-      discrimination: discrimination?.trim() || null,
-      image: this.photoBase64(),
-      otherRecipient: isResident ? null : this.customRecipientName().trim(),
-    }).pipe(
-      catchError(err => {
-        const message = err?.message || err?.error?.message || 'Erro ao registrar encomenda';
-        void this.uiService.showError(message);
-        return of(null);
-      }),
-      finalize(() => this.isSubmitting.set(false)),
-    ).subscribe(result => {
-      if (result) {
-        this.step.set(4);
-        this.updateShell();
-      }
-    });
+    this.deliveryService
+      .createWithPhoto(
+        {
+          user: userId,
+          protocolNumber: protocolNumber?.trim() || null,
+          discrimination: discrimination?.trim() || null,
+          otherRecipient: isResident ? null : this.customRecipientName().trim(),
+        },
+        photo.blob,
+        photo.fileName,
+        photo.contentType,
+      )
+      .pipe(
+        catchError((err) => {
+          const message = err?.message || err?.error?.message || 'Erro ao registrar encomenda';
+          void this.uiService.showError(message);
+          return of(null);
+        }),
+        finalize(() => this.isSubmitting.set(false)),
+      )
+      .subscribe((result) => {
+        if (result) {
+          this.step.set(4);
+          this.updateShell();
+        }
+      });
   }
 
   registerAnother(): void {
@@ -227,8 +248,12 @@ export class DeliveryCreatePage implements OnInit, ViewWillEnter {
     this.recipientMode.set('resident');
     this.recipientControl.setValue(null);
     this.customRecipientName.set('');
+    const previous = this.photoPreview();
+    if (previous?.startsWith('blob:')) {
+      URL.revokeObjectURL(previous);
+    }
     this.photoPreview.set(null);
-    this.photoBase64.set(null);
+    this.capturedPhoto.set(null);
     this.isSubmitting.set(false);
     this.detailsForm.reset();
   }

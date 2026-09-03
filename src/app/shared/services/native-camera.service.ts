@@ -4,7 +4,9 @@ import { Capacitor } from '@capacitor/core';
 
 export interface CapturedPhoto {
   previewUrl: string;
-  base64: string;
+  blob: Blob;
+  contentType: string;
+  fileName: string;
 }
 
 const PHOTO_OPTIONS = {
@@ -57,16 +59,21 @@ export class NativeCameraService {
   }
 
   private async toCapturedPhoto(result: MediaResult): Promise<CapturedPhoto> {
-    const format = result.metadata?.format ?? 'jpeg';
+    const format = (result.metadata?.format ?? 'jpeg').toLowerCase();
+    const contentType = format === 'png' ? 'image/png' : format === 'webp' ? 'image/webp' : 'image/jpeg';
+    const fileName = `encomenda-${Date.now()}.${format === 'png' ? 'png' : format === 'webp' ? 'webp' : 'jpg'}`;
 
     if (Capacitor.getPlatform() === 'web') {
       const base64 = result.thumbnail;
       if (!base64) {
         throw new Error('Foto capturada sem dados de imagem.');
       }
+      const blob = this.base64ToBlob(base64, contentType);
       return {
-        previewUrl: `data:image/${format};base64,${base64}`,
-        base64,
+        previewUrl: URL.createObjectURL(blob),
+        blob,
+        contentType,
+        fileName,
       };
     }
 
@@ -75,22 +82,28 @@ export class NativeCameraService {
       throw new Error('Foto capturada sem caminho de arquivo.');
     }
 
-    const base64 = await this.readBase64FromWebPath(previewUrl);
-    return { previewUrl, base64 };
+    const response = await fetch(previewUrl);
+    if (!response.ok) {
+      throw new Error('Não foi possível ler a foto capturada.');
+    }
+    const blob = await response.blob();
+    const resolvedType = blob.type || contentType;
+
+    return {
+      previewUrl,
+      blob: blob.type ? blob : new Blob([blob], { type: resolvedType }),
+      contentType: resolvedType,
+      fileName,
+    };
   }
 
-  private readBase64FromWebPath(webPath: string): Promise<string> {
-    return fetch(webPath)
-      .then(response => response.blob())
-      .then(blob => new Promise<string>((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => {
-          const dataUrl = reader.result as string;
-          resolve(dataUrl.includes(',') ? dataUrl.split(',')[1] : dataUrl);
-        };
-        reader.onerror = () => reject(reader.error);
-        reader.readAsDataURL(blob);
-      }));
+  private base64ToBlob(base64: string, contentType: string): Blob {
+    const binary = atob(base64);
+    const bytes = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i++) {
+      bytes[i] = binary.charCodeAt(i);
+    }
+    return new Blob([bytes], { type: contentType });
   }
 
   private isUserCancelled(error: unknown): boolean {

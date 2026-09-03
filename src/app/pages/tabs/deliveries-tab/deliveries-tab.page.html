@@ -46,9 +46,13 @@
               <div
                 class="delivery-card__icon"
                 [class.delivery-card__icon--pending]="delivery.status === 'PENDING'"
-                aria-hidden="true"
+                [class.delivery-card__icon--photo]="!!getPhotoUrl(delivery.id)"
               >
-                <ng-icon name="lucidePackage" />
+                @if (getPhotoUrl(delivery.id); as photoUrl) {
+                  <img [src]="photoUrl" [alt]="delivery.discrimination || 'Foto da encomenda'" />
+                } @else {
+                  <ng-icon name="lucidePackage" aria-hidden="true" />
+                }
               </div>
 
               <div class="delivery-card__body">
@@ -80,26 +84,6 @@
                 }
               </div>
             </div>
-
-            @if (canConfirm && delivery.status === 'PENDING') {
-              <div class="delivery-card__actions">
-                <button
-                  hlmBtn
-                  type="button"
-                  class="action-btn action-btn--confirm"
-                  [disabled]="processingId === delivery.id"
-                  (click)="confirmReceipt(delivery)"
-                >
-                  @if (processingId === delivery.id) {
-                    <hlm-spinner aria-label="Confirmando recebimento" />
-                    Confirmando...
-                  } @else {
-                    <ng-icon name="lucideCheck" />
-                    Marcar como recebida
-                  }
-                </button>
-              </div>
-            }
           </article>
         }
       </div>
@@ -115,15 +99,6 @@
       </div>
     }
   </div>
-
-  <app-confirm-dialog
-    #confirmDialog
-    [title]="confirmTitle"
-    [description]="confirmDescription"
-    [confirmLabel]="confirmLabel"
-    [icon]="confirmIcon"
-    (confirmed)="confirmDialogAction()"
-  />
 
   @if (canCreate) {
     <button

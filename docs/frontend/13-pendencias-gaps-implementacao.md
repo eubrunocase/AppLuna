@@ -27,7 +27,7 @@ Use esta tabela ao receber pedidos do usuário. Se o pedido **reforçar** uma di
 
 | # | Requisito | O que o doc diz | O que o app faz hoje | Severidade |
 |---|-----------|-----------------|---------------------|------------|
-| 1 | `RF-ENC-03`, `US-12` | **Funcionário** registra retirada | Morador pode "Marcar como recebida" na aba Entregas | **Alta** |
+| 1 | `RF-ENC-03`, `US-12` | **Funcionário** registra retirada | Gestão (`DeliveriesPage`) + API restrita a Admin/Employee; aba do morador só consulta | Resolvido |
 | 2 | `RF-ENC-01`, `US-11` | Protocolo, discriminação e **foto obrigatórios** | Campos opcionais; sem upload de foto | **Alta** |
 | 3 | `RF-ENC-01` | Destinatário morador **ou** nome livre | Apenas combobox de morador cadastrado | **Média** |
 | 4 | `RF-OCR-04` | Funcionário vê listagem ocorrências | Funcionário sem aba Ocorrências | **Média** |

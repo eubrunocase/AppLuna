@@ -75,9 +75,7 @@
 |------|-----------|---------------|-----------|
 | Funcionário | Sim | Sim (`DeliveriesPage`) | Sim |
 | Síndico | Sim (gestão total) | Sim | Sim |
-| Morador | **Não** | Aba morador tem "Marcar como recebida" | **Não — divergência** |
-
-> **Atenção:** Se o usuário pedir "morador confirma retirada", isso **contradiz** `RF-ENC-03` e `US-12`. Avisar antes de manter ou expandir essa ação.
+| Morador | **Não** | Aba morador só lista/consulta | Sim |
 
 ## Status
 
