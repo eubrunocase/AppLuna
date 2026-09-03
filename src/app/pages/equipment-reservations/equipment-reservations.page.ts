@@ -1,5 +1,6 @@
-import { ChangeDetectorRef, Component, inject, OnInit, viewChild } from '@angular/core';
+import { ChangeDetectorRef, Component, inject, viewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { CdkFixedSizeVirtualScroll, CdkVirtualForOf, CdkVirtualScrollViewport } from '@angular/cdk/scrolling';
 import {
   IonContent,
   IonRefresher,
@@ -48,6 +49,9 @@ type StatusFilter = 'ALL' | EquipmentReservationStatus;
     IonContent,
     IonRefresher,
     IonRefresherContent,
+    CdkVirtualScrollViewport,
+    CdkFixedSizeVirtualScroll,
+    CdkVirtualForOf,
     FormsModule,
     NgIcon,
     HlmButtonImports,
@@ -75,7 +79,7 @@ type StatusFilter = 'ALL' | EquipmentReservationStatus;
     }),
   ],
 })
-export class EquipmentReservationsPage implements OnInit, ViewWillEnter {
+export class EquipmentReservationsPage implements ViewWillEnter {
   private equipmentService = inject(EquipmentReservationService);
   private authService = inject(AuthService);
   private navigation = inject(AppNavigationService);
@@ -101,6 +105,8 @@ export class EquipmentReservationsPage implements OnInit, ViewWillEnter {
   private pendingAction: { type: 'handover' | 'return'; reservation: EquipmentReservationResponseDTO } | null = null;
 
   readonly skeletonItems = [1, 2, 3];
+  readonly itemSize = 188;
+  readonly trackById = (_: number, item: EquipmentReservationResponseDTO) => item.id;
 
   readonly statusFilters: { value: StatusFilter; label: string; icon: string }[] = [
     { value: 'ALL', label: 'Todos', icon: 'lucideLayoutGrid' },
@@ -110,14 +116,10 @@ export class EquipmentReservationsPage implements OnInit, ViewWillEnter {
     { value: EquipmentReservationStatus.CANCELED, label: 'Cancelados', icon: 'lucideBan' },
   ];
 
-  ngOnInit(): void {
+  ionViewWillEnter(): void {
     const role = this.authService.getCurrentUser()?.role;
     this.canManage = this.authService.isAdmin() || this.authService.isEmployee();
     this.canCreate = role === UserRoles.ADMIN_ROLE;
-    this.loadReservations();
-  }
-
-  ionViewWillEnter(): void {
     this.loadReservations();
     this.shell.configure({
       title: 'Equipamentos',

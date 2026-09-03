@@ -49,97 +49,99 @@
         }
       </div>
     } @else if (filteredReservations.length > 0) {
-      <div class="loan-list">
-        @for (reservation of filteredReservations; track reservation.id) {
-          <article
-            hlmCard
-            size="sm"
-            class="loan-card"
-            [class.loan-card--confirmed]="reservation.status === 'CONFIRMED'"
-            [class.loan-card--in-use]="reservation.status === 'IN_USE'"
-          >
-            <div class="loan-card__inner">
-              <div class="loan-card__icon" [class]="'loan-card__icon--' + reservation.status" aria-hidden="true">
-                <ng-icon name="lucideTv" />
-              </div>
-
-              <div class="loan-card__body">
-                <div class="loan-card__top">
-                  <h3>{{ reservation.equipmentName || 'Televisão comunitária' }}</h3>
-                  <span [class]="'status-pill status-pill--' + reservation.status">
-                    <span class="status-pill__dot" aria-hidden="true"></span>
-                    {{ getStatusLabel(reservation.status) }}
-                  </span>
-                </div>
-
-                <p class="loan-card__meta">
-                  <ng-icon name="lucideUser" />
-                  {{ reservation.userName }}
-                </p>
-                <p class="loan-card__meta">
-                  <ng-icon name="lucideBuilding2" />
-                  Apto {{ reservation.userApartment }}
-                </p>
-                <p class="loan-card__meta">
-                  <ng-icon name="lucideCalendar" />
-                  {{ formatDate(reservation.date) }} · {{ reservation.startTime }}–{{ reservation.endTime }}
-                </p>
-                @if (reservation.pickedUpAt) {
-                  <p class="loan-card__meta loan-card__meta--success">
-                    <ng-icon name="lucideKeyRound" />
-                    Retirado {{ formatDateTime(reservation.pickedUpAt) }}
-                  </p>
-                }
-                @if (reservation.returnedAt) {
-                  <p class="loan-card__meta loan-card__meta--success">
-                    <ng-icon name="lucideCircleCheck" />
-                    Devolvido {{ formatDateTime(reservation.returnedAt) }}
-                  </p>
-                }
-              </div>
+      <cdk-virtual-scroll-viewport
+        class="luna-virtual-viewport luna-virtual-viewport--with-search loan-list"
+        [itemSize]="itemSize"
+      >
+        <article
+          *cdkVirtualFor="let reservation of filteredReservations; trackBy: trackById"
+          hlmCard
+          size="sm"
+          class="loan-card"
+          [class.loan-card--confirmed]="reservation.status === 'CONFIRMED'"
+          [class.loan-card--in-use]="reservation.status === 'IN_USE'"
+        >
+          <div class="loan-card__inner">
+            <div class="loan-card__icon" [class]="'loan-card__icon--' + reservation.status" aria-hidden="true">
+              <ng-icon name="lucideTv" />
             </div>
 
-            @if (canManage && (reservation.status === 'CONFIRMED' || reservation.status === 'IN_USE')) {
-              <div class="loan-card__actions">
-                @if (reservation.status === 'CONFIRMED') {
-                  <button
-                    hlmBtn
-                    type="button"
-                    class="action-btn"
-                    [disabled]="processingId === reservation.id"
-                    (click)="askHandover(reservation)"
-                  >
-                    @if (processingId === reservation.id) {
-                      <hlm-spinner aria-label="Entregando controle" />
-                      Entregando...
-                    } @else {
-                      <ng-icon name="lucideKeyRound" />
-                      Entregar controle
-                    }
-                  </button>
-                }
-                @if (reservation.status === 'IN_USE') {
-                  <button
-                    hlmBtn
-                    type="button"
-                    class="action-btn action-btn--success"
-                    [disabled]="processingId === reservation.id"
-                    (click)="askReturn(reservation)"
-                  >
-                    @if (processingId === reservation.id) {
-                      <hlm-spinner aria-label="Registrando devolução" />
-                      Devolvendo...
-                    } @else {
-                      <ng-icon name="lucideUndo2" />
-                      Confirmar devolução
-                    }
-                  </button>
-                }
+            <div class="loan-card__body">
+              <div class="loan-card__top">
+                <h3>{{ reservation.equipmentName || 'Televisão comunitária' }}</h3>
+                <span [class]="'status-pill status-pill--' + reservation.status">
+                  <span class="status-pill__dot" aria-hidden="true"></span>
+                  {{ getStatusLabel(reservation.status) }}
+                </span>
               </div>
-            }
-          </article>
-        }
-      </div>
+
+              <p class="loan-card__meta">
+                <ng-icon name="lucideUser" />
+                {{ reservation.userName }}
+              </p>
+              <p class="loan-card__meta">
+                <ng-icon name="lucideBuilding2" />
+                Apto {{ reservation.userApartment }}
+              </p>
+              <p class="loan-card__meta">
+                <ng-icon name="lucideCalendar" />
+                {{ formatDate(reservation.date) }} · {{ reservation.startTime }}–{{ reservation.endTime }}
+              </p>
+              @if (reservation.pickedUpAt) {
+                <p class="loan-card__meta loan-card__meta--success">
+                  <ng-icon name="lucideKeyRound" />
+                  Retirado {{ formatDateTime(reservation.pickedUpAt) }}
+                </p>
+              }
+              @if (reservation.returnedAt) {
+                <p class="loan-card__meta loan-card__meta--success">
+                  <ng-icon name="lucideCircleCheck" />
+                  Devolvido {{ formatDateTime(reservation.returnedAt) }}
+                </p>
+              }
+            </div>
+          </div>
+
+          @if (canManage && (reservation.status === 'CONFIRMED' || reservation.status === 'IN_USE')) {
+            <div class="loan-card__actions">
+              @if (reservation.status === 'CONFIRMED') {
+                <button
+                  hlmBtn
+                  type="button"
+                  class="action-btn"
+                  [disabled]="processingId === reservation.id"
+                  (click)="askHandover(reservation)"
+                >
+                  @if (processingId === reservation.id) {
+                    <hlm-spinner aria-label="Entregando controle" />
+                    Entregando...
+                  } @else {
+                    <ng-icon name="lucideKeyRound" />
+                    Entregar controle
+                  }
+                </button>
+              }
+              @if (reservation.status === 'IN_USE') {
+                <button
+                  hlmBtn
+                  type="button"
+                  class="action-btn action-btn--success"
+                  [disabled]="processingId === reservation.id"
+                  (click)="askReturn(reservation)"
+                >
+                  @if (processingId === reservation.id) {
+                    <hlm-spinner aria-label="Registrando devolução" />
+                    Devolvendo...
+                  } @else {
+                    <ng-icon name="lucideUndo2" />
+                    Confirmar devolução
+                  }
+                </button>
+              }
+            </div>
+          }
+        </article>
+      </cdk-virtual-scroll-viewport>
     } @else {
       <div class="empty-state" role="status">
         <img

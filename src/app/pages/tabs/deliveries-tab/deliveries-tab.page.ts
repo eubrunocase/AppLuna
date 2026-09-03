@@ -1,10 +1,11 @@
-import { ChangeDetectorRef, Component, inject, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, inject } from '@angular/core';
 import {
   IonContent,
   IonRefresher,
   IonRefresherContent,
   ViewWillEnter,
 } from '@ionic/angular/standalone';
+import { CdkFixedSizeVirtualScroll, CdkVirtualForOf, CdkVirtualScrollViewport } from '@angular/cdk/scrolling';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import {
   lucideBarcode,
@@ -37,6 +38,9 @@ type StatusFilter = 'ALL' | 'PENDING' | 'DELIVERED';
     IonContent,
     IonRefresher,
     IonRefresherContent,
+    CdkVirtualScrollViewport,
+    CdkFixedSizeVirtualScroll,
+    CdkVirtualForOf,
     NgIcon,
     HlmButtonImports,
     HlmCardImports,
@@ -54,7 +58,7 @@ type StatusFilter = 'ALL' | 'PENDING' | 'DELIVERED';
     }),
   ],
 })
-export class DeliveriesTabPage implements OnInit, ViewWillEnter {
+export class DeliveriesTabPage implements ViewWillEnter {
   private deliveryService = inject(DeliveryService);
   private authService = inject(AuthService);
   private navigation = inject(AppNavigationService);
@@ -69,6 +73,7 @@ export class DeliveriesTabPage implements OnInit, ViewWillEnter {
   private readonly photoById = new Map<string, string>();
 
   readonly skeletonItems = [1, 2, 3];
+  readonly itemSize = 132;
 
   readonly statusFilters: { value: StatusFilter; label: string; icon: string }[] = [
     { value: 'ALL', label: 'Todas', icon: 'lucideLayoutGrid' },
@@ -78,14 +83,12 @@ export class DeliveriesTabPage implements OnInit, ViewWillEnter {
 
   private currentUserId: string | null = null;
 
-  ngOnInit(): void {
+  readonly trackById = (_: number, item: ResponseDeliveryDTO) => item.id;
+
+  ionViewWillEnter(): void {
     const user = this.authService.getCurrentUser();
     this.currentUserId = user?.id ?? null;
     this.canCreate = this.authService.isAdmin() || this.authService.isEmployee();
-    this.loadDeliveries();
-  }
-
-  ionViewWillEnter(): void {
     this.loadDeliveries();
     this.shell.configure({
       title: 'Minhas Entregas',

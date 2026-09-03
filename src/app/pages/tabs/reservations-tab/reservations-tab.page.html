@@ -90,143 +90,147 @@
         }
       </div>
     } @else if (filteredReservations.length > 0) {
-      <div class="reservation-list">
-        @for (reservation of filteredReservations; track reservation.id) {
-          <article
-            hlmCard
-            size="sm"
-            class="reservation-card"
-            [class.reservation-card--pending]="isPendingHighlight(reservation)"
-          >
-            <div class="reservation-card__inner">
-              <div class="reservation-card__media">
-                @if (getSpaceImage(reservation); as imageSrc) {
-                  <img [src]="imageSrc" [alt]="getReservationTitle(reservation)" />
-                } @else {
-                  <span class="reservation-card__fallback" aria-hidden="true">
-                    <ng-icon name="lucideTv" />
-                  </span>
-                }
-                <span class="reservation-card__date">
-                  <span class="reservation-card__day">{{ getDay(reservation.date) }}</span>
-                  <span class="reservation-card__month">{{ getMonth(reservation.date) }}</span>
+      <cdk-virtual-scroll-viewport
+        class="luna-virtual-viewport luna-virtual-viewport--compact reservation-list"
+        [itemSize]="itemSize"
+        role="list"
+      >
+        <article
+          *cdkVirtualFor="let reservation of filteredReservations; trackBy: trackById"
+          hlmCard
+          size="sm"
+          class="reservation-card"
+          [class.reservation-card--pending]="isPendingHighlight(reservation)"
+          role="listitem"
+        >
+          <div class="reservation-card__inner">
+            <div class="reservation-card__media">
+              @if (getSpaceImage(reservation); as imageSrc) {
+                <img [src]="imageSrc" [alt]="getReservationTitle(reservation)" loading="lazy" />
+              } @else {
+                <span class="reservation-card__fallback" aria-hidden="true">
+                  <ng-icon name="lucideTv" />
+                </span>
+              }
+              <span class="reservation-card__date">
+                <span class="reservation-card__day">{{ getDay(reservation.date) }}</span>
+                <span class="reservation-card__month">{{ getMonth(reservation.date) }}</span>
+              </span>
+            </div>
+
+            <div class="reservation-card__body">
+              <div class="reservation-card__top">
+                <h3>{{ getReservationTitle(reservation) }}</h3>
+                <span [class]="'status-pill status-pill--' + reservation.status">
+                  <span class="status-pill__dot" aria-hidden="true"></span>
+                  {{ getStatusLabel(reservation.status) }}
                 </span>
               </div>
 
-              <div class="reservation-card__body">
-                <div class="reservation-card__top">
-                  <h3>{{ getReservationTitle(reservation) }}</h3>
-                  <span [class]="'status-pill status-pill--' + reservation.status">
-                    <span class="status-pill__dot" aria-hidden="true"></span>
-                    {{ getStatusLabel(reservation.status) }}
-                  </span>
-                </div>
+              @if (isAdmin && viewMode === 'all' && reservation.kind === 'space' && reservation.user) {
+                <p class="reservation-card__meta">
+                  <ng-icon name="lucideUser" />
+                  {{ reservation.user.name }}
+                </p>
+              }
 
-                @if (isAdmin && viewMode === 'all' && reservation.kind === 'space' && reservation.user) {
-                  <p class="reservation-card__meta">
-                    <ng-icon name="lucideUser" />
-                    {{ reservation.user.name }}
-                  </p>
-                }
-
-                @if (reservation.kind === 'space') {
-                  <p class="reservation-card__meta">
-                    <ng-icon name="lucideClock" />
-                    Solicitado em {{ formatDate(reservation.createdAt!) }}
-                  </p>
-                } @else {
-                  <p class="reservation-card__meta">
-                    <ng-icon name="lucideClock" />
-                    {{ reservation.startTime }} – {{ reservation.endTime }}
-                  </p>
-                }
-              </div>
+              @if (reservation.kind === 'space') {
+                <p class="reservation-card__meta">
+                  <ng-icon name="lucideClock" />
+                  Solicitado em {{ formatDate(reservation.createdAt!) }}
+                </p>
+              } @else {
+                <p class="reservation-card__meta">
+                  <ng-icon name="lucideClock" />
+                  {{ reservation.startTime }} – {{ reservation.endTime }}
+                </p>
+              }
             </div>
+          </div>
 
-            @if (reservation.kind === 'equipment' && (reservation.pickedUpAt || reservation.returnedAt || reservation.canceledAt)) {
-              <div class="reservation-card__extra">
-                @if (reservation.pickedUpAt) {
-                  <p>Retirado em {{ formatDateTime(reservation.pickedUpAt) }}</p>
-                }
-                @if (reservation.returnedAt) {
-                  <p>Devolvido em {{ formatDateTime(reservation.returnedAt) }}</p>
-                }
-                @if (reservation.canceledAt) {
-                  <p>Cancelado em {{ formatDateTime(reservation.canceledAt) }}</p>
-                }
-              </div>
-            }
+          @if (reservation.kind === 'equipment' && (reservation.pickedUpAt || reservation.returnedAt || reservation.canceledAt)) {
+            <div class="reservation-card__extra">
+              @if (reservation.pickedUpAt) {
+                <p>Retirado em {{ formatDateTime(reservation.pickedUpAt) }}</p>
+              }
+              @if (reservation.returnedAt) {
+                <p>Devolvido em {{ formatDateTime(reservation.returnedAt) }}</p>
+              }
+              @if (reservation.canceledAt) {
+                <p>Cancelado em {{ formatDateTime(reservation.canceledAt) }}</p>
+              }
+            </div>
+          }
 
-            @if (canApprove(reservation)) {
-              <div class="reservation-card__actions">
-                <button
-                  hlmBtn
-                  type="button"
-                  class="action-btn action-btn--approve"
-                  [disabled]="processingId === reservation.id"
-                  (click)="approveReservation(reservation)"
-                >
-                  @if (processingId === reservation.id) {
-                    <hlm-spinner aria-label="Aprovando reserva" />
-                    Aprovar
-                  } @else {
-                    <ng-icon name="lucideCheck" />
-                    Aprovar
-                  }
-                </button>
-                <button
-                  hlmBtn
-                  type="button"
-                  variant="outline"
-                  class="action-btn action-btn--reject"
-                  [disabled]="processingId === reservation.id"
-                  (click)="rejectReservation(reservation)"
-                >
-                  <ng-icon name="lucideX" />
-                  Rejeitar
-                </button>
-              </div>
-            }
+          @if (canApprove(reservation)) {
+            <div class="reservation-card__actions">
+              <button
+                hlmBtn
+                type="button"
+                class="action-btn action-btn--approve"
+                [disabled]="processingId === reservation.id"
+                (click)="approveReservation(reservation)"
+              >
+                @if (processingId === reservation.id) {
+                  <hlm-spinner aria-label="Aprovando reserva" />
+                  Aprovar
+                } @else {
+                  <ng-icon name="lucideCheck" />
+                  Aprovar
+                }
+              </button>
+              <button
+                hlmBtn
+                type="button"
+                variant="outline"
+                class="action-btn action-btn--reject"
+                [disabled]="processingId === reservation.id"
+                (click)="rejectReservation(reservation)"
+              >
+                <ng-icon name="lucideX" />
+                Rejeitar
+              </button>
+            </div>
+          }
 
-            @if (canCancelApprovedSpace(reservation)) {
-              <div class="reservation-card__actions">
-                <button
-                  hlmBtn
-                  type="button"
-                  variant="outline"
-                  class="action-btn action-btn--cancel"
-                  [disabled]="processingId === reservation.id"
-                  (click)="cancelSpaceReservation(reservation)"
-                >
+          @if (canCancelApprovedSpace(reservation)) {
+            <div class="reservation-card__actions">
+              <button
+                hlmBtn
+                type="button"
+                variant="outline"
+                class="action-btn action-btn--cancel"
+                [disabled]="processingId === reservation.id"
+                (click)="cancelSpaceReservation(reservation)"
+              >
+                <ng-icon name="lucideBan" />
+                Cancelar reserva
+              </button>
+            </div>
+          }
+
+          @if (canCancelEquipment(reservation)) {
+            <div class="reservation-card__actions">
+              <button
+                hlmBtn
+                type="button"
+                variant="outline"
+                class="action-btn action-btn--cancel"
+                [disabled]="processingId === reservation.id"
+                (click)="cancelEquipmentReservation(reservation)"
+              >
+                @if (processingId === reservation.id) {
+                  <hlm-spinner aria-label="Cancelando reserva" />
+                  Cancelar reserva
+                } @else {
                   <ng-icon name="lucideBan" />
                   Cancelar reserva
-                </button>
-              </div>
-            }
-
-            @if (canCancelEquipment(reservation)) {
-              <div class="reservation-card__actions">
-                <button
-                  hlmBtn
-                  type="button"
-                  variant="outline"
-                  class="action-btn action-btn--cancel"
-                  [disabled]="processingId === reservation.id"
-                  (click)="cancelEquipmentReservation(reservation)"
-                >
-                  @if (processingId === reservation.id) {
-                    <hlm-spinner aria-label="Cancelando reserva" />
-                    Cancelar reserva
-                  } @else {
-                    <ng-icon name="lucideBan" />
-                    Cancelar reserva
-                  }
-                </button>
-              </div>
-            }
-          </article>
-        }
-      </div>
+                }
+              </button>
+            </div>
+          }
+        </article>
+      </cdk-virtual-scroll-viewport>
     } @else {
       <div class="empty-state" role="status">
         <img

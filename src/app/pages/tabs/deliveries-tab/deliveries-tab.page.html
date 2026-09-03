@@ -34,59 +34,63 @@
         }
       </div>
     } @else if (filteredDeliveries.length > 0) {
-      <div class="delivery-list">
-        @for (delivery of filteredDeliveries; track delivery.id) {
-          <article
-            hlmCard
-            size="sm"
-            class="delivery-card"
-            [class.delivery-card--pending]="delivery.status === 'PENDING'"
-          >
-            <div class="delivery-card__inner">
-              <div
-                class="delivery-card__icon"
-                [class.delivery-card__icon--pending]="delivery.status === 'PENDING'"
-                [class.delivery-card__icon--photo]="!!getPhotoUrl(delivery.id)"
-              >
-                @if (getPhotoUrl(delivery.id); as photoUrl) {
-                  <img [src]="photoUrl" [alt]="delivery.discrimination || 'Foto da encomenda'" />
-                } @else {
-                  <ng-icon name="lucidePackage" aria-hidden="true" />
-                }
-              </div>
-
-              <div class="delivery-card__body">
-                <div class="delivery-card__top">
-                  <h3>{{ delivery.discrimination || 'Encomenda' }}</h3>
-                  <span [class]="'status-pill status-pill--' + delivery.status">
-                    <span class="status-pill__dot" aria-hidden="true"></span>
-                    {{ getStatusLabel(delivery.status) }}
-                  </span>
-                </div>
-
-                @if (delivery.protocolNumber) {
-                  <p class="delivery-card__meta">
-                    <ng-icon name="lucideBarcode" />
-                    {{ delivery.protocolNumber }}
-                  </p>
-                }
-
-                <p class="delivery-card__meta">
-                  <ng-icon name="lucideClock" />
-                  {{ formatDate(delivery.createdAt) }}
-                </p>
-
-                @if (delivery.pickedUpBy) {
-                  <p class="delivery-card__meta delivery-card__meta--success">
-                    <ng-icon name="lucideCircleCheck" />
-                    Retirado por {{ delivery.pickedUpBy }}
-                  </p>
-                }
-              </div>
+      <cdk-virtual-scroll-viewport
+        class="luna-virtual-viewport delivery-list"
+        [itemSize]="itemSize"
+        role="list"
+      >
+        <article
+          *cdkVirtualFor="let delivery of filteredDeliveries; trackBy: trackById"
+          hlmCard
+          size="sm"
+          class="delivery-card"
+          [class.delivery-card--pending]="delivery.status === 'PENDING'"
+          role="listitem"
+        >
+          <div class="delivery-card__inner">
+            <div
+              class="delivery-card__icon"
+              [class.delivery-card__icon--pending]="delivery.status === 'PENDING'"
+              [class.delivery-card__icon--photo]="!!getPhotoUrl(delivery.id)"
+            >
+              @if (getPhotoUrl(delivery.id); as photoUrl) {
+                <img [src]="photoUrl" [alt]="delivery.discrimination || 'Foto da encomenda'" loading="lazy" />
+              } @else {
+                <ng-icon name="lucidePackage" aria-hidden="true" />
+              }
             </div>
-          </article>
-        }
-      </div>
+
+            <div class="delivery-card__body">
+              <div class="delivery-card__top">
+                <h3>{{ delivery.discrimination || 'Encomenda' }}</h3>
+                <span [class]="'status-pill status-pill--' + delivery.status">
+                  <span class="status-pill__dot" aria-hidden="true"></span>
+                  {{ getStatusLabel(delivery.status) }}
+                </span>
+              </div>
+
+              @if (delivery.protocolNumber) {
+                <p class="delivery-card__meta">
+                  <ng-icon name="lucideBarcode" />
+                  {{ delivery.protocolNumber }}
+                </p>
+              }
+
+              <p class="delivery-card__meta">
+                <ng-icon name="lucideClock" />
+                {{ formatDate(delivery.createdAt) }}
+              </p>
+
+              @if (delivery.pickedUpBy) {
+                <p class="delivery-card__meta delivery-card__meta--success">
+                  <ng-icon name="lucideCircleCheck" />
+                  Retirado por {{ delivery.pickedUpBy }}
+                </p>
+              }
+            </div>
+          </div>
+        </article>
+      </cdk-virtual-scroll-viewport>
     } @else {
       <div class="empty-state" role="status">
         <img

@@ -1,10 +1,11 @@
-import { ChangeDetectorRef, Component, inject, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, inject } from '@angular/core';
 import {
   IonContent,
   IonRefresher,
   IonRefresherContent,
   ViewWillEnter,
 } from '@ionic/angular/standalone';
+import { CdkFixedSizeVirtualScroll, CdkVirtualForOf, CdkVirtualScrollViewport } from '@angular/cdk/scrolling';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import {
   lucideClock,
@@ -31,6 +32,9 @@ import { catchError, finalize, of } from 'rxjs';
     IonContent,
     IonRefresher,
     IonRefresherContent,
+    CdkVirtualScrollViewport,
+    CdkFixedSizeVirtualScroll,
+    CdkVirtualForOf,
     NgIcon,
     HlmCardImports,
     HlmSkeletonImports,
@@ -44,7 +48,7 @@ import { catchError, finalize, of } from 'rxjs';
     }),
   ],
 })
-export class OccurrencesTabPage implements OnInit, ViewWillEnter {
+export class OccurrencesTabPage implements ViewWillEnter {
   private occurrenceService = inject(OccurrenceService);
   private navigation = inject(AppNavigationService);
   private shell = inject(AppShellService);
@@ -55,10 +59,9 @@ export class OccurrencesTabPage implements OnInit, ViewWillEnter {
   isLoading = true;
 
   readonly skeletonItems = [1, 2, 3];
+  readonly itemSize = 112;
 
-  ngOnInit(): void {
-    this.loadOccurrences();
-  }
+  readonly trackById = (_: number, item: OccurrenceResponseDTO) => item.id;
 
   ionViewWillEnter(): void {
     this.loadOccurrences();

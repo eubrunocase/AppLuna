@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component, inject, OnInit, viewChild } from '@angular/core';
+import { ChangeDetectorRef, Component, inject, viewChild } from '@angular/core';
 import {
   IonContent,
   IonRefresher,
@@ -6,6 +6,7 @@ import {
   ViewWillEnter,
 } from '@ionic/angular/standalone';
 import { ActivatedRoute } from '@angular/router';
+import { CdkFixedSizeVirtualScroll, CdkVirtualForOf, CdkVirtualScrollViewport } from '@angular/cdk/scrolling';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import {
   lucideArrowRight,
@@ -71,6 +72,9 @@ interface UnifiedReservation {
     IonContent,
     IonRefresher,
     IonRefresherContent,
+    CdkVirtualScrollViewport,
+    CdkFixedSizeVirtualScroll,
+    CdkVirtualForOf,
     NgIcon,
     HlmButtonImports,
     HlmCardImports,
@@ -97,7 +101,7 @@ interface UnifiedReservation {
     }),
   ],
 })
-export class ReservationsTabPage implements OnInit, ViewWillEnter {
+export class ReservationsTabPage implements ViewWillEnter {
   private reservationService = inject(ReservationService);
   private equipmentService = inject(EquipmentReservationService);
   private authService = inject(AuthService);
@@ -130,6 +134,9 @@ export class ReservationsTabPage implements OnInit, ViewWillEnter {
   private readonly confirmDialog = viewChild.required<ConfirmDialogComponent>('confirmDialog');
 
   readonly skeletonItems = [1, 2, 3, 4];
+  readonly itemSize = 168;
+
+  readonly trackById = (_: number, item: UnifiedReservation) => `${item.kind}-${item.id}`;
 
   readonly typeFilters: { value: TypeFilter; label: string; icon: string }[] = [
     { value: 'ALL', label: 'Todas', icon: 'lucideLayoutGrid' },
@@ -159,12 +166,6 @@ export class ReservationsTabPage implements OnInit, ViewWillEnter {
 
   get isEquipmentFilter(): boolean {
     return this.typeFilter === 'TELEVISAO';
-  }
-
-  ngOnInit(): void {
-    this.isAdmin = this.authService.isAdmin();
-    this.applyQueryParams();
-    this.loadReservations();
   }
 
   ionViewWillEnter(): void {
@@ -216,7 +217,8 @@ export class ReservationsTabPage implements OnInit, ViewWillEnter {
     }
 
     const isAllMode = this.isAdmin && this.viewMode === 'all';
-    const spaces$ = (isAllMode
+    // Admin: um único getAll — evita segundo request só para badge PENDING
+    const spaces$ = (this.isAdmin
       ? this.reservationService.getAll()
       : this.reservationService.getByUser(currentUser.id)
     ).pipe(catchError(() => of([] as ReservationResponseDTO[])));
@@ -228,30 +230,20 @@ export class ReservationsTabPage implements OnInit, ViewWillEnter {
     forkJoin([spaces$, equipment$]).pipe(
       finalize(() => this.stopLoading())
     ).subscribe(([spaces, equipment]) => {
-      this.reservations = spaces;
+      if (this.isAdmin) {
+        this.pendingApprovalCount = spaces.filter(r => r.status === ReservationStatus.PENDING).length;
+      } else {
+        this.pendingApprovalCount = 0;
+      }
+
+      const displaySpaces = this.isAdmin && !isAllMode
+        ? spaces.filter(r => r.user?.id === currentUser.id)
+        : spaces;
+
+      this.reservations = displaySpaces;
       this.equipmentReservations = equipment;
-      this.allReservations = this.mergeReservations(spaces, equipment);
+      this.allReservations = this.mergeReservations(displaySpaces, equipment);
       this.filterByStatus();
-      this.syncPendingApprovalCount(isAllMode, spaces);
-    });
-  }
-
-  private syncPendingApprovalCount(isAllMode: boolean, spaces: ReservationResponseDTO[]): void {
-    if (!this.isAdmin) {
-      this.pendingApprovalCount = 0;
-      return;
-    }
-
-    if (isAllMode) {
-      this.pendingApprovalCount = spaces.filter(r => r.status === ReservationStatus.PENDING).length;
-      return;
-    }
-
-    this.reservationService.getAll().pipe(
-      catchError(() => of([] as ReservationResponseDTO[]))
-    ).subscribe(all => {
-      this.pendingApprovalCount = all.filter(r => r.status === ReservationStatus.PENDING).length;
-      this.cdr.markForCheck();
     });
   }
 

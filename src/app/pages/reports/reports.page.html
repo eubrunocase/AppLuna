@@ -65,28 +65,34 @@
               }
             </div>
           } @else if (report().length > 0) {
-            <div class="report-list">
-              @for (item of report(); track item.date + item.apartment + item.spaceType + item.residentName) {
-                <article hlmCard size="sm" class="report-card">
-                  <div class="report-card__inner">
-                    <div class="report-card__icon" aria-hidden="true">
-                      <ng-icon [name]="getSpaceIcon(item.spaceType)" />
-                    </div>
-                    <div class="report-card__body">
-                      <h3>{{ item.residentName }}</h3>
-                      <p class="report-card__meta">
-                        <ng-icon name="lucideBuilding2" />
-                        Apto {{ item.apartment }}
-                      </p>
-                      <p class="report-card__meta">
-                        <ng-icon name="lucideCalendar" />
-                        {{ formatDate(item.date) }} · {{ getSpaceTypeLabel(item.spaceType) }}
-                      </p>
-                    </div>
+            <cdk-virtual-scroll-viewport
+              class="luna-virtual-viewport report-list"
+              [itemSize]="itemSize"
+            >
+              <article
+                *cdkVirtualFor="let item of report(); trackBy: trackByReport"
+                hlmCard
+                size="sm"
+                class="report-card"
+              >
+                <div class="report-card__inner">
+                  <div class="report-card__icon" aria-hidden="true">
+                    <ng-icon [name]="getSpaceIcon(item.spaceType)" />
                   </div>
-                </article>
-              }
-            </div>
+                  <div class="report-card__body">
+                    <h3>{{ item.residentName }}</h3>
+                    <p class="report-card__meta">
+                      <ng-icon name="lucideBuilding2" />
+                      Apto {{ item.apartment }}
+                    </p>
+                    <p class="report-card__meta">
+                      <ng-icon name="lucideCalendar" />
+                      {{ formatDate(item.date) }} · {{ getSpaceTypeLabel(item.spaceType) }}
+                    </p>
+                  </div>
+                </div>
+              </article>
+            </cdk-virtual-scroll-viewport>
           } @else {
             <div class="empty-state" role="status">
               <img

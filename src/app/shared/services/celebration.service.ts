@@ -1,11 +1,11 @@
 import { Injectable } from '@angular/core';
-import confetti from 'canvas-confetti';
 
 const LUNA_COLORS = ['#C05C46', '#E3A847', '#3D8B5F', '#F4D6A0', '#F9F6EE'];
 
 @Injectable({ providedIn: 'root' })
 export class CelebrationService {
-  celebrateSuccess(): void {
+  async celebrateSuccess(): Promise<void> {
+    const { default: confetti } = await import('canvas-confetti');
     const base = {
       colors: LUNA_COLORS,
       disableForReducedMotion: true,

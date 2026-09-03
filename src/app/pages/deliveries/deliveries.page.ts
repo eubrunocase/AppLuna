@@ -1,10 +1,11 @@
-import { ChangeDetectorRef, Component, inject, OnInit, viewChild } from '@angular/core';
+import { ChangeDetectorRef, Component, inject, viewChild } from '@angular/core';
 import {
   IonContent,
   IonRefresher,
   IonRefresherContent,
   ViewWillEnter,
 } from '@ionic/angular/standalone';
+import { CdkFixedSizeVirtualScroll, CdkVirtualForOf, CdkVirtualScrollViewport } from '@angular/cdk/scrolling';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -48,6 +49,9 @@ type StatusFilter = 'ALL' | 'PENDING' | 'DELIVERED';
     IonContent,
     IonRefresher,
     IonRefresherContent,
+    CdkVirtualScrollViewport,
+    CdkFixedSizeVirtualScroll,
+    CdkVirtualForOf,
     CommonModule,
     FormsModule,
     NgIcon,
@@ -74,7 +78,7 @@ type StatusFilter = 'ALL' | 'PENDING' | 'DELIVERED';
     }),
   ],
 })
-export class DeliveriesPage implements OnInit, ViewWillEnter {
+export class DeliveriesPage implements ViewWillEnter {
   private deliveryService = inject(DeliveryService);
   private userService = inject(UserService);
   private authService = inject(AuthService);
@@ -97,6 +101,8 @@ export class DeliveriesPage implements OnInit, ViewWillEnter {
   canConfirm = false;
 
   readonly skeletonItems = [1, 2, 3];
+  readonly itemSize = 200;
+  readonly trackById = (_: number, item: ResponseDeliveryDTO) => item.id;
 
   readonly statusFilters: { value: StatusFilter; label: string; icon: string }[] = [
     { value: 'ALL', label: 'Todas', icon: 'lucideLayoutGrid' },
@@ -104,12 +110,9 @@ export class DeliveriesPage implements OnInit, ViewWillEnter {
     { value: 'DELIVERED', label: 'Entregues', icon: 'lucidePackageCheck' },
   ];
 
-  ngOnInit(): void {
+  ionViewWillEnter(): void {
     this.setupPermissions();
     this.loadData();
-  }
-
-  ionViewWillEnter(): void {
     this.shell.configure({
       title: 'Entregas',
       showBack: true,

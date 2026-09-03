@@ -1,5 +1,6 @@
-import { ChangeDetectorRef, Component, inject, OnInit, viewChild } from '@angular/core';
+import { ChangeDetectorRef, Component, inject, viewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { CdkFixedSizeVirtualScroll, CdkVirtualForOf, CdkVirtualScrollViewport } from '@angular/cdk/scrolling';
 import {
   IonContent,
   IonRefresher,
@@ -47,6 +48,9 @@ type RoleFilter = 'ALL' | UserRoles.ADMIN_ROLE | UserRoles.EMPLOYEE | UserRoles.
     IonContent,
     IonRefresher,
     IonRefresherContent,
+    CdkVirtualScrollViewport,
+    CdkFixedSizeVirtualScroll,
+    CdkVirtualForOf,
     FormsModule,
     NgIcon,
     HlmButtonImports,
@@ -73,7 +77,7 @@ type RoleFilter = 'ALL' | UserRoles.ADMIN_ROLE | UserRoles.EMPLOYEE | UserRoles.
     }),
   ],
 })
-export class UsersPage implements OnInit, ViewWillEnter {
+export class UsersPage implements ViewWillEnter {
   private userService = inject(UserService);
   private authService = inject(AuthService);
   private navigation = inject(AppNavigationService);
@@ -97,6 +101,9 @@ export class UsersPage implements OnInit, ViewWillEnter {
 
   readonly skeletonItems = [1, 2, 3];
   readonly compactSkeletonItems = [1, 2, 3, 4, 5, 6];
+  readonly itemSize = 168;
+  readonly compactItemSize = 72;
+  readonly trackById = (_: number, item: ResponseUserDTO) => item.id;
 
   get isCompactList(): boolean {
     return this.roleFilter !== 'ALL';
@@ -108,10 +115,6 @@ export class UsersPage implements OnInit, ViewWillEnter {
     { value: UserRoles.EMPLOYEE, label: 'Funcionários', icon: 'lucideBriefcase' },
     { value: UserRoles.ADMIN_ROLE, label: 'Síndicos', icon: 'lucideShieldCheck' },
   ];
-
-  ngOnInit(): void {
-    this.loadUsers();
-  }
 
   ionViewWillEnter(): void {
     this.loadUsers();

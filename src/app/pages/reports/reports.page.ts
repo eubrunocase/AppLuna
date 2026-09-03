@@ -1,5 +1,6 @@
 import { ChangeDetectorRef, Component, computed, inject, OnDestroy, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { CdkFixedSizeVirtualScroll, CdkVirtualForOf, CdkVirtualScrollViewport } from '@angular/cdk/scrolling';
 import { IonContent, ViewWillEnter } from '@ionic/angular/standalone';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import {
@@ -41,6 +42,9 @@ type ReportStep = 1 | 2 | 3;
   standalone: true,
   imports: [
     IonContent,
+    CdkVirtualScrollViewport,
+    CdkFixedSizeVirtualScroll,
+    CdkVirtualForOf,
     FormsModule,
     NgIcon,
     HlmButtonImports,
@@ -81,6 +85,9 @@ export class ReportsPage implements OnDestroy, ViewWillEnter {
   readonly isExporting = signal(false);
 
   readonly skeletonItems = [1, 2, 3];
+  readonly itemSize = 112;
+  readonly trackByReport = (_: number, item: MonthlyReservationReportDTO) =>
+    item.date + item.apartment + item.spaceType + item.residentName;
   readonly months = [
     { value: 1, label: 'Janeiro' },
     { value: 2, label: 'Fevereiro' },

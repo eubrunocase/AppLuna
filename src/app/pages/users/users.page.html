@@ -65,99 +65,111 @@
       }
     } @else if (filteredUsers.length > 0) {
       @if (isCompactList) {
-        <div class="user-table" role="list">
-          @for (user of filteredUsers; track user.id) {
-            <div class="user-row" role="listitem">
-              <div class="user-row__info">
-                <p class="user-row__name">{{ user.name }}</p>
-                <p class="user-row__meta">Apto {{ user.apartment }} · {{ user.email }}</p>
+        <cdk-virtual-scroll-viewport
+          class="luna-virtual-viewport luna-virtual-viewport--with-search"
+          [itemSize]="compactItemSize"
+          role="list"
+        >
+          <div
+            *cdkVirtualFor="let user of filteredUsers; trackBy: trackById"
+            class="user-row"
+            role="listitem"
+          >
+            <div class="user-row__info">
+              <p class="user-row__name">{{ user.name }}</p>
+              <p class="user-row__meta">Apto {{ user.apartment }} · {{ user.email }}</p>
+            </div>
+            <div class="user-row__actions">
+              <button
+                type="button"
+                class="icon-action"
+                [attr.aria-label]="'Editar ' + user.name"
+                (click)="openEdit(user)"
+              >
+                <ng-icon name="lucidePencil" />
+              </button>
+              <button
+                type="button"
+                class="icon-action icon-action--danger"
+                [attr.aria-label]="'Excluir ' + user.name"
+                [disabled]="processingId === user.id || isCurrentUser(user)"
+                (click)="askDelete(user)"
+              >
+                @if (processingId === user.id) {
+                  <hlm-spinner aria-label="Excluindo usuário" />
+                } @else {
+                  <ng-icon name="lucideTrash2" />
+                }
+              </button>
+            </div>
+          </div>
+        </cdk-virtual-scroll-viewport>
+      } @else {
+        <cdk-virtual-scroll-viewport
+          class="luna-virtual-viewport luna-virtual-viewport--with-search"
+          [itemSize]="itemSize"
+        >
+          <article
+            *cdkVirtualFor="let user of filteredUsers; trackBy: trackById"
+            hlmCard
+            size="sm"
+            class="user-card"
+          >
+            <div class="user-card__inner">
+              <div class="user-card__icon" [class]="'user-card__icon--' + getRoleModifier(user.role)" aria-hidden="true">
+                <ng-icon [name]="getRoleIcon(user.role)" />
               </div>
-              <div class="user-row__actions">
-                <button
-                  type="button"
-                  class="icon-action"
-                  [attr.aria-label]="'Editar ' + user.name"
-                  (click)="openEdit(user)"
-                >
-                  <ng-icon name="lucidePencil" />
-                </button>
-                <button
-                  type="button"
-                  class="icon-action icon-action--danger"
-                  [attr.aria-label]="'Excluir ' + user.name"
-                  [disabled]="processingId === user.id || isCurrentUser(user)"
-                  (click)="askDelete(user)"
-                >
-                  @if (processingId === user.id) {
-                    <hlm-spinner aria-label="Excluindo usuário" />
-                  } @else {
-                    <ng-icon name="lucideTrash2" />
-                  }
-                </button>
+
+              <div class="user-card__body">
+                <div class="user-card__top">
+                  <h3>{{ user.name }}</h3>
+                  <span [class]="'status-pill status-pill--' + getRoleModifier(user.role)">
+                    <span class="status-pill__dot" aria-hidden="true"></span>
+                    {{ getRoleLabel(user.role) }}
+                  </span>
+                </div>
+
+                <p class="user-card__meta">
+                  <ng-icon name="lucideBuilding2" />
+                  Apto {{ user.apartment }}
+                </p>
+                <p class="user-card__meta">
+                  <ng-icon name="lucideMail" />
+                  {{ user.email }}
+                </p>
               </div>
             </div>
-          }
-        </div>
-      } @else {
-        <div class="user-list">
-          @for (user of filteredUsers; track user.id) {
-            <article hlmCard size="sm" class="user-card">
-              <div class="user-card__inner">
-                <div class="user-card__icon" [class]="'user-card__icon--' + getRoleModifier(user.role)" aria-hidden="true">
-                  <ng-icon [name]="getRoleIcon(user.role)" />
-                </div>
 
-                <div class="user-card__body">
-                  <div class="user-card__top">
-                    <h3>{{ user.name }}</h3>
-                    <span [class]="'status-pill status-pill--' + getRoleModifier(user.role)">
-                      <span class="status-pill__dot" aria-hidden="true"></span>
-                      {{ getRoleLabel(user.role) }}
-                    </span>
-                  </div>
-
-                  <p class="user-card__meta">
-                    <ng-icon name="lucideBuilding2" />
-                    Apto {{ user.apartment }}
-                  </p>
-                  <p class="user-card__meta">
-                    <ng-icon name="lucideMail" />
-                    {{ user.email }}
-                  </p>
-                </div>
-              </div>
-
-              <div class="user-card__actions">
-                <button
-                  hlmBtn
-                  type="button"
-                  variant="outline"
-                  class="action-btn"
-                  (click)="openEdit(user)"
-                >
-                  <ng-icon name="lucidePencil" />
-                  Editar
-                </button>
-                <button
-                  hlmBtn
-                  type="button"
-                  variant="outline"
-                  class="action-btn action-btn--danger"
-                  [disabled]="processingId === user.id || isCurrentUser(user)"
-                  (click)="askDelete(user)"
-                >
-                  @if (processingId === user.id) {
-                    <hlm-spinner aria-label="Excluindo usuário" />
-                    Excluindo...
-                  } @else {
-                    <ng-icon name="lucideTrash2" />
-                    Excluir
-                  }
-                </button>
-              </div>
-            </article>
-          }
-        </div>
+            <div class="user-card__actions">
+              <button
+                hlmBtn
+                type="button"
+                variant="outline"
+                class="action-btn"
+                (click)="openEdit(user)"
+              >
+                <ng-icon name="lucidePencil" />
+                Editar
+              </button>
+              <button
+                hlmBtn
+                type="button"
+                variant="outline"
+                class="action-btn action-btn--danger"
+                [disabled]="processingId === user.id || isCurrentUser(user)"
+                (click)="askDelete(user)"
+              >
+                @if (processingId === user.id) {
+                  <hlm-spinner aria-label="Excluindo usuário" />
+                  Excluindo...
+                } @else {
+                  <ng-icon name="lucideTrash2" />
+                  Excluir
+                }
+              </button>
+            </div>
+          </article>
+        </cdk-virtual-scroll-viewport>
       }
     } @else {
       <div class="empty-state" role="status">

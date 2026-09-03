@@ -27,7 +27,6 @@ import { HlmCardImports } from '@spartan-ng/helm/card';
 import { HlmFieldImports } from '@spartan-ng/helm/field';
 import { HlmInputImports } from '@spartan-ng/helm/input';
 import { HlmSpinnerImports } from '@spartan-ng/helm/spinner';
-import gsap from 'gsap';
 import { catchError, finalize, of } from 'rxjs';
 import { AuthService } from '../../services/auth.service';
 import { UiService } from '../../shared/services/ui.service';
@@ -471,7 +470,7 @@ export class LoginPage implements AfterViewInit, OnDestroy {
   private zone = inject(NgZone);
   private cdr = inject(ChangeDetectorRef);
 
-  private timeline?: gsap.core.Timeline;
+  private timeline?: { kill: () => void };
 
   form: FormGroup = this.fb.group({
     email: ['', [Validators.required, Validators.email]],
@@ -485,7 +484,9 @@ export class LoginPage implements AfterViewInit, OnDestroy {
   ngAfterViewInit(): void {
     // Espera o próximo frame para o layout estabilizar (comportamento nativo)
     requestAnimationFrame(() => {
-      this.zone.runOutsideAngular(() => this.playSplash());
+      this.zone.runOutsideAngular(() => {
+        void this.playSplash();
+      });
     });
   }
 
@@ -493,12 +494,14 @@ export class LoginPage implements AfterViewInit, OnDestroy {
     this.timeline?.kill();
   }
 
-  private playSplash(): void {
+  private async playSplash(): Promise<void> {
     const root = this.splashRoot?.nativeElement;
     const logo = this.splashLogo?.nativeElement;
     const shell = this.loginShell?.nativeElement;
     const card = this.loginCard?.nativeElement;
     if (!root || !logo || !shell) return;
+
+    const { default: gsap } = await import('gsap');
 
     const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     if (reduceMotion) {
@@ -516,9 +519,10 @@ export class LoginPage implements AfterViewInit, OnDestroy {
       gsap.set(card, { opacity: 0, y: 12 });
     }
 
-    this.timeline = gsap.timeline();
+    const timeline = gsap.timeline();
+    this.timeline = timeline;
 
-    this.timeline
+    timeline
       .to(logo, {
         opacity: 1,
         scale: 1,
@@ -565,7 +569,7 @@ export class LoginPage implements AfterViewInit, OnDestroy {
       );
 
     if (card) {
-      this.timeline.to(
+      timeline.to(
         card,
         {
           opacity: 1,

@@ -29,25 +29,33 @@
         }
       </div>
     } @else if (occurrences.length > 0) {
-      <div class="occurrence-list">
-        @for (occurrence of occurrences; track occurrence.id) {
-          <article hlmCard size="sm" class="occurrence-card">
-            <div class="occurrence-card__inner">
-              <div class="occurrence-card__icon" aria-hidden="true">
-                <ng-icon name="lucideTriangleAlert" />
-              </div>
-
-              <div class="occurrence-card__body">
-                <p class="occurrence-card__description">{{ occurrence.description }}</p>
-                <p class="occurrence-card__meta">
-                  <ng-icon name="lucideClock" />
-                  {{ formatDate(occurrence.incidentDate) }}
-                </p>
-              </div>
+      <cdk-virtual-scroll-viewport
+        class="luna-virtual-viewport luna-virtual-viewport--with-banner occurrence-list"
+        [itemSize]="itemSize"
+        role="list"
+      >
+        <article
+          *cdkVirtualFor="let occurrence of occurrences; trackBy: trackById"
+          hlmCard
+          size="sm"
+          class="occurrence-card"
+          role="listitem"
+        >
+          <div class="occurrence-card__inner">
+            <div class="occurrence-card__icon" aria-hidden="true">
+              <ng-icon name="lucideTriangleAlert" />
             </div>
-          </article>
-        }
-      </div>
+
+            <div class="occurrence-card__body">
+              <p class="occurrence-card__description">{{ occurrence.description }}</p>
+              <p class="occurrence-card__meta">
+                <ng-icon name="lucideClock" />
+                {{ formatDate(occurrence.incidentDate) }}
+              </p>
+            </div>
+          </div>
+        </article>
+      </cdk-virtual-scroll-viewport>
     } @else {
       <div class="empty-state" role="status">
         <img

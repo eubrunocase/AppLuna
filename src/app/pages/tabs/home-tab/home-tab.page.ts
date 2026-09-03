@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component, inject, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, inject } from '@angular/core';
 import {
   IonContent,
   ViewWillEnter,
@@ -45,7 +45,7 @@ interface HomeQuickAction {
     }),
   ],
 })
-export class HomeTabPage implements OnInit, ViewWillEnter, ViewWillLeave {
+export class HomeTabPage implements ViewWillEnter, ViewWillLeave {
   private authService = inject(AuthService);
   private reservationService = inject(ReservationService);
   private deliveryService = inject(DeliveryService);
@@ -96,10 +96,6 @@ export class HomeTabPage implements OnInit, ViewWillEnter, ViewWillLeave {
 
   get statSkeletonItems(): number[] {
     return Array.from({ length: this.statColumns }, (_, index) => index);
-  }
-
-  ngOnInit(): void {
-    this.refreshUserState();
   }
 
   ionViewWillEnter(): void {
