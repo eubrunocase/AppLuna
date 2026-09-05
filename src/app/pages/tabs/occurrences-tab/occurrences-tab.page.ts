@@ -5,7 +5,6 @@ import {
   IonRefresherContent,
   ViewWillEnter,
 } from '@ionic/angular/standalone';
-import { CdkFixedSizeVirtualScroll, CdkVirtualForOf, CdkVirtualScrollViewport } from '@angular/cdk/scrolling';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import {
   lucideClock,
@@ -21,6 +20,7 @@ import { AppNavigationService } from '../../../core/navigation/app-navigation.se
 import { APP_ROUTES } from '../../../core/navigation/app-routes';
 import { AppShellService } from '../../../core/shell/app-shell.service';
 import { UiService } from '../../../shared/services/ui.service';
+import { LunaItemListComponent } from '../../../shared/components/luna-item-list/luna-item-list.component';
 import { catchError, finalize, of } from 'rxjs';
 
 @Component({
@@ -32,12 +32,10 @@ import { catchError, finalize, of } from 'rxjs';
     IonContent,
     IonRefresher,
     IonRefresherContent,
-    CdkVirtualScrollViewport,
-    CdkFixedSizeVirtualScroll,
-    CdkVirtualForOf,
     NgIcon,
     HlmCardImports,
     HlmSkeletonImports,
+    LunaItemListComponent,
   ],
   providers: [
     provideIcons({
@@ -59,9 +57,6 @@ export class OccurrencesTabPage implements ViewWillEnter {
   isLoading = true;
 
   readonly skeletonItems = [1, 2, 3];
-  readonly itemSize = 112;
-
-  readonly trackById = (_: number, item: OccurrenceResponseDTO) => item.id;
 
   ionViewWillEnter(): void {
     this.loadOccurrences();

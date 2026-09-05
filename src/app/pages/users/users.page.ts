@@ -1,6 +1,5 @@
 import { ChangeDetectorRef, Component, inject, viewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { CdkFixedSizeVirtualScroll, CdkVirtualForOf, CdkVirtualScrollViewport } from '@angular/cdk/scrolling';
 import {
   IonContent,
   IonRefresher,
@@ -35,6 +34,7 @@ import { APP_ROUTES } from '../../core/navigation/app-routes';
 import { AppShellService } from '../../core/shell/app-shell.service';
 import { UiService } from '../../shared/services/ui.service';
 import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog/confirm-dialog.component';
+import { LunaItemListComponent } from '../../shared/components/luna-item-list/luna-item-list.component';
 import { catchError, EMPTY, finalize, of } from 'rxjs';
 
 type RoleFilter = 'ALL' | UserRoles.ADMIN_ROLE | UserRoles.EMPLOYEE | UserRoles.RESIDENT_ROLE;
@@ -48,9 +48,6 @@ type RoleFilter = 'ALL' | UserRoles.ADMIN_ROLE | UserRoles.EMPLOYEE | UserRoles.
     IonContent,
     IonRefresher,
     IonRefresherContent,
-    CdkVirtualScrollViewport,
-    CdkFixedSizeVirtualScroll,
-    CdkVirtualForOf,
     FormsModule,
     NgIcon,
     HlmButtonImports,
@@ -59,6 +56,7 @@ type RoleFilter = 'ALL' | UserRoles.ADMIN_ROLE | UserRoles.EMPLOYEE | UserRoles.
     HlmSkeletonImports,
     HlmSpinnerImports,
     ConfirmDialogComponent,
+    LunaItemListComponent,
   ],
   providers: [
     provideIcons({
@@ -101,9 +99,6 @@ export class UsersPage implements ViewWillEnter {
 
   readonly skeletonItems = [1, 2, 3];
   readonly compactSkeletonItems = [1, 2, 3, 4, 5, 6];
-  readonly itemSize = 168;
-  readonly compactItemSize = 72;
-  readonly trackById = (_: number, item: ResponseUserDTO) => item.id;
 
   get isCompactList(): boolean {
     return this.roleFilter !== 'ALL';

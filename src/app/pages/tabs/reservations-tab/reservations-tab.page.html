@@ -75,7 +75,7 @@
     </div>
 
     @if (isLoading) {
-      <div class="reservation-list" role="status" aria-label="Carregando reservas">
+      <app-luna-item-list role="status" ariaLabel="Carregando reservas">
         @for (item of skeletonItems; track item) {
           <div hlmCard size="sm" class="reservation-card reservation-card--skeleton" aria-hidden="true">
             <div class="reservation-card__inner">
@@ -88,15 +88,11 @@
             </div>
           </div>
         }
-      </div>
+      </app-luna-item-list>
     } @else if (filteredReservations.length > 0) {
-      <cdk-virtual-scroll-viewport
-        class="luna-virtual-viewport luna-virtual-viewport--compact reservation-list"
-        [itemSize]="itemSize"
-        role="list"
-      >
+      <app-luna-item-list>
+        @for (reservation of filteredReservations; track reservation.kind + '-' + reservation.id) {
         <article
-          *cdkVirtualFor="let reservation of filteredReservations; trackBy: trackById"
           hlmCard
           size="sm"
           class="reservation-card"
@@ -230,7 +226,8 @@
             </div>
           }
         </article>
-      </cdk-virtual-scroll-viewport>
+        }
+      </app-luna-item-list>
     } @else {
       <div class="empty-state" role="status">
         <img

@@ -5,7 +5,6 @@ import {
   IonRefresherContent,
   ViewWillEnter,
 } from '@ionic/angular/standalone';
-import { CdkFixedSizeVirtualScroll, CdkVirtualForOf, CdkVirtualScrollViewport } from '@angular/cdk/scrolling';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import {
   lucideBarcode,
@@ -25,6 +24,7 @@ import { ResponseDeliveryDTO, DeliveryStatus } from '../../../core/models';
 import { AppNavigationService } from '../../../core/navigation/app-navigation.service';
 import { APP_ROUTES } from '../../../core/navigation/app-routes';
 import { AppShellService } from '../../../core/shell/app-shell.service';
+import { LunaItemListComponent } from '../../../shared/components/luna-item-list/luna-item-list.component';
 import { catchError, finalize, of } from 'rxjs';
 
 type StatusFilter = 'ALL' | 'PENDING' | 'DELIVERED';
@@ -38,13 +38,11 @@ type StatusFilter = 'ALL' | 'PENDING' | 'DELIVERED';
     IonContent,
     IonRefresher,
     IonRefresherContent,
-    CdkVirtualScrollViewport,
-    CdkFixedSizeVirtualScroll,
-    CdkVirtualForOf,
     NgIcon,
     HlmButtonImports,
     HlmCardImports,
     HlmSkeletonImports,
+    LunaItemListComponent,
   ],
   providers: [
     provideIcons({
@@ -73,7 +71,6 @@ export class DeliveriesTabPage implements ViewWillEnter {
   private readonly photoById = new Map<string, string>();
 
   readonly skeletonItems = [1, 2, 3];
-  readonly itemSize = 132;
 
   readonly statusFilters: { value: StatusFilter; label: string; icon: string }[] = [
     { value: 'ALL', label: 'Todas', icon: 'lucideLayoutGrid' },
@@ -82,8 +79,6 @@ export class DeliveriesTabPage implements ViewWillEnter {
   ];
 
   private currentUserId: string | null = null;
-
-  readonly trackById = (_: number, item: ResponseDeliveryDTO) => item.id;
 
   ionViewWillEnter(): void {
     const user = this.authService.getCurrentUser();

@@ -115,29 +115,11 @@ ion-content.shell-page-content {
   --padding-bottom: var(--app-content-bottom);
 }
 
-// Virtual scroll — altura útil abaixo do header/chips/dock
-.luna-virtual-viewport {
-  width: 100%;
-  height: calc(100dvh - var(--app-content-top) - var(--app-content-bottom) - 5.25rem);
-  min-height: 16rem;
-
-  &--with-search {
-    height: calc(100dvh - var(--app-content-top) - var(--app-content-bottom) - 8.5rem);
-  }
-
-  &--with-banner {
-    height: calc(100dvh - var(--app-content-top) - var(--app-content-bottom) - 9.5rem);
-  }
-
-  &--compact {
-    height: calc(100dvh - var(--app-content-top) - var(--app-content-bottom) - 10.5rem);
-  }
-}
-
-@media (max-width: 768px), (hover: none) and (pointer: coarse) {
+@media (max-width: 1023px), (hover: none) and (pointer: coarse) {
   ion-content::part(scroll) {
     scrollbar-width: none;
     -ms-overflow-style: none;
+    overscroll-behavior: none;
   }
 
   ion-content::part(scroll)::-webkit-scrollbar {

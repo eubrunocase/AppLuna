@@ -14,7 +14,7 @@
     </div>
 
     @if (isLoading) {
-      <div class="occurrence-list" role="status" aria-label="Carregando ocorrências">
+      <app-luna-item-list role="status" ariaLabel="Carregando ocorrências">
         @for (item of skeletonItems; track item) {
           <div hlmCard size="sm" class="occurrence-card occurrence-card--skeleton" aria-hidden="true">
             <div class="occurrence-card__inner">
@@ -27,35 +27,27 @@
             </div>
           </div>
         }
-      </div>
+      </app-luna-item-list>
     } @else if (occurrences.length > 0) {
-      <cdk-virtual-scroll-viewport
-        class="luna-virtual-viewport luna-virtual-viewport--with-banner occurrence-list"
-        [itemSize]="itemSize"
-        role="list"
-      >
-        <article
-          *cdkVirtualFor="let occurrence of occurrences; trackBy: trackById"
-          hlmCard
-          size="sm"
-          class="occurrence-card"
-          role="listitem"
-        >
-          <div class="occurrence-card__inner">
-            <div class="occurrence-card__icon" aria-hidden="true">
-              <ng-icon name="lucideTriangleAlert" />
-            </div>
+      <app-luna-item-list>
+        @for (occurrence of occurrences; track occurrence.id) {
+          <article hlmCard size="sm" class="occurrence-card" role="listitem">
+            <div class="occurrence-card__inner">
+              <div class="occurrence-card__icon" aria-hidden="true">
+                <ng-icon name="lucideTriangleAlert" />
+              </div>
 
-            <div class="occurrence-card__body">
-              <p class="occurrence-card__description">{{ occurrence.description }}</p>
-              <p class="occurrence-card__meta">
-                <ng-icon name="lucideClock" />
-                {{ formatDate(occurrence.incidentDate) }}
-              </p>
+              <div class="occurrence-card__body">
+                <p class="occurrence-card__description">{{ occurrence.description }}</p>
+                <p class="occurrence-card__meta">
+                  <ng-icon name="lucideClock" />
+                  {{ formatDate(occurrence.incidentDate) }}
+                </p>
+              </div>
             </div>
-          </div>
-        </article>
-      </cdk-virtual-scroll-viewport>
+          </article>
+        }
+      </app-luna-item-list>
     } @else {
       <div class="empty-state" role="status">
         <img

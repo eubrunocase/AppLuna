@@ -48,7 +48,7 @@
           }
         </div>
       } @else {
-        <div class="user-list" role="status" aria-label="Carregando usuários">
+        <app-luna-item-list role="status" ariaLabel="Carregando usuários">
           @for (item of skeletonItems; track item) {
             <div hlmCard size="sm" class="user-card user-card--skeleton" aria-hidden="true">
               <div class="user-card__inner">
@@ -61,20 +61,13 @@
               </div>
             </div>
           }
-        </div>
+        </app-luna-item-list>
       }
     } @else if (filteredUsers.length > 0) {
       @if (isCompactList) {
-        <cdk-virtual-scroll-viewport
-          class="luna-virtual-viewport luna-virtual-viewport--with-search"
-          [itemSize]="compactItemSize"
-          role="list"
-        >
-          <div
-            *cdkVirtualFor="let user of filteredUsers; trackBy: trackById"
-            class="user-row"
-            role="listitem"
-          >
+        <div class="user-table" role="list">
+          @for (user of filteredUsers; track user.id) {
+          <div class="user-row" role="listitem">
             <div class="user-row__info">
               <p class="user-row__name">{{ user.name }}</p>
               <p class="user-row__meta">Apto {{ user.apartment }} · {{ user.email }}</p>
@@ -103,18 +96,12 @@
               </button>
             </div>
           </div>
-        </cdk-virtual-scroll-viewport>
+          }
+        </div>
       } @else {
-        <cdk-virtual-scroll-viewport
-          class="luna-virtual-viewport luna-virtual-viewport--with-search"
-          [itemSize]="itemSize"
-        >
-          <article
-            *cdkVirtualFor="let user of filteredUsers; trackBy: trackById"
-            hlmCard
-            size="sm"
-            class="user-card"
-          >
+        <app-luna-item-list>
+          @for (user of filteredUsers; track user.id) {
+          <article hlmCard size="sm" class="user-card">
             <div class="user-card__inner">
               <div class="user-card__icon" [class]="'user-card__icon--' + getRoleModifier(user.role)" aria-hidden="true">
                 <ng-icon [name]="getRoleIcon(user.role)" />
@@ -169,7 +156,8 @@
               </button>
             </div>
           </article>
-        </cdk-virtual-scroll-viewport>
+          }
+        </app-luna-item-list>
       }
     } @else {
       <div class="empty-state" role="status">

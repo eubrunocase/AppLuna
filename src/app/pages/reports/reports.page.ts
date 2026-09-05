@@ -1,6 +1,5 @@
 import { ChangeDetectorRef, Component, computed, inject, OnDestroy, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { CdkFixedSizeVirtualScroll, CdkVirtualForOf, CdkVirtualScrollViewport } from '@angular/cdk/scrolling';
 import { IonContent, ViewWillEnter } from '@ionic/angular/standalone';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import {
@@ -30,6 +29,7 @@ import { AppShellService } from '../../core/shell/app-shell.service';
 import { ReservationService } from '../../services/reservation.service';
 import { getSpaceCatalogEntry } from '../reservations/space-catalog';
 import { LunaDatePickerComponent } from '../../shared/components/luna-date-picker/luna-date-picker.component';
+import { LunaItemListComponent } from '../../shared/components/luna-item-list/luna-item-list.component';
 import { CelebrationService } from '../../shared/services/celebration.service';
 import { UiService } from '../../shared/services/ui.service';
 
@@ -42,9 +42,6 @@ type ReportStep = 1 | 2 | 3;
   standalone: true,
   imports: [
     IonContent,
-    CdkVirtualScrollViewport,
-    CdkFixedSizeVirtualScroll,
-    CdkVirtualForOf,
     FormsModule,
     NgIcon,
     HlmButtonImports,
@@ -53,6 +50,7 @@ type ReportStep = 1 | 2 | 3;
     HlmSkeletonImports,
     HlmSpinnerImports,
     LunaDatePickerComponent,
+    LunaItemListComponent,
   ],
   providers: [
     provideIcons({
@@ -85,9 +83,6 @@ export class ReportsPage implements OnDestroy, ViewWillEnter {
   readonly isExporting = signal(false);
 
   readonly skeletonItems = [1, 2, 3];
-  readonly itemSize = 112;
-  readonly trackByReport = (_: number, item: MonthlyReservationReportDTO) =>
-    item.date + item.apartment + item.spaceType + item.residentName;
   readonly months = [
     { value: 1, label: 'Janeiro' },
     { value: 2, label: 'Fevereiro' },

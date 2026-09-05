@@ -1,6 +1,5 @@
 import { ChangeDetectorRef, Component, inject, viewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { CdkFixedSizeVirtualScroll, CdkVirtualForOf, CdkVirtualScrollViewport } from '@angular/cdk/scrolling';
 import {
   IonContent,
   IonRefresher,
@@ -36,6 +35,7 @@ import { AppShellService } from '../../core/shell/app-shell.service';
 import { AuthService } from '../../services/auth.service';
 import { EquipmentReservationService } from '../../services/equipment-reservation.service';
 import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog/confirm-dialog.component';
+import { LunaItemListComponent } from '../../shared/components/luna-item-list/luna-item-list.component';
 import { UiService } from '../../shared/services/ui.service';
 
 type StatusFilter = 'ALL' | EquipmentReservationStatus;
@@ -49,9 +49,6 @@ type StatusFilter = 'ALL' | EquipmentReservationStatus;
     IonContent,
     IonRefresher,
     IonRefresherContent,
-    CdkVirtualScrollViewport,
-    CdkFixedSizeVirtualScroll,
-    CdkVirtualForOf,
     FormsModule,
     NgIcon,
     HlmButtonImports,
@@ -60,6 +57,7 @@ type StatusFilter = 'ALL' | EquipmentReservationStatus;
     HlmSkeletonImports,
     HlmSpinnerImports,
     ConfirmDialogComponent,
+    LunaItemListComponent,
   ],
   providers: [
     provideIcons({
@@ -105,8 +103,6 @@ export class EquipmentReservationsPage implements ViewWillEnter {
   private pendingAction: { type: 'handover' | 'return'; reservation: EquipmentReservationResponseDTO } | null = null;
 
   readonly skeletonItems = [1, 2, 3];
-  readonly itemSize = 188;
-  readonly trackById = (_: number, item: EquipmentReservationResponseDTO) => item.id;
 
   readonly statusFilters: { value: StatusFilter; label: string; icon: string }[] = [
     { value: 'ALL', label: 'Todos', icon: 'lucideLayoutGrid' },

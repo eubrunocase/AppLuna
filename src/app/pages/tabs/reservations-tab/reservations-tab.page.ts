@@ -6,7 +6,6 @@ import {
   ViewWillEnter,
 } from '@ionic/angular/standalone';
 import { ActivatedRoute } from '@angular/router';
-import { CdkFixedSizeVirtualScroll, CdkVirtualForOf, CdkVirtualScrollViewport } from '@angular/cdk/scrolling';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import {
   lucideArrowRight,
@@ -39,6 +38,7 @@ import { AppShellService } from '../../../core/shell/app-shell.service';
 import { ReservationDraftService } from '../../reservations/reservation-draft.service';
 import { getSpaceCatalogEntry } from '../../reservations/space-catalog';
 import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog.component';
+import { LunaItemListComponent } from '../../../shared/components/luna-item-list/luna-item-list.component';
 import { catchError, finalize, forkJoin, of } from 'rxjs';
 
 type ReservationKind = 'space' | 'equipment';
@@ -72,15 +72,13 @@ interface UnifiedReservation {
     IonContent,
     IonRefresher,
     IonRefresherContent,
-    CdkVirtualScrollViewport,
-    CdkFixedSizeVirtualScroll,
-    CdkVirtualForOf,
     NgIcon,
     HlmButtonImports,
     HlmCardImports,
     HlmSkeletonImports,
     HlmSpinnerImports,
     ConfirmDialogComponent,
+    LunaItemListComponent,
   ],
   providers: [
     provideIcons({
@@ -134,9 +132,6 @@ export class ReservationsTabPage implements ViewWillEnter {
   private readonly confirmDialog = viewChild.required<ConfirmDialogComponent>('confirmDialog');
 
   readonly skeletonItems = [1, 2, 3, 4];
-  readonly itemSize = 168;
-
-  readonly trackById = (_: number, item: UnifiedReservation) => `${item.kind}-${item.id}`;
 
   readonly typeFilters: { value: TypeFilter; label: string; icon: string }[] = [
     { value: 'ALL', label: 'Todas', icon: 'lucideLayoutGrid' },

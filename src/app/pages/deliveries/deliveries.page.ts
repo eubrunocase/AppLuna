@@ -5,7 +5,6 @@ import {
   IonRefresherContent,
   ViewWillEnter,
 } from '@ionic/angular/standalone';
-import { CdkFixedSizeVirtualScroll, CdkVirtualForOf, CdkVirtualScrollViewport } from '@angular/cdk/scrolling';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -36,6 +35,7 @@ import { AuthService } from '../../services/auth.service';
 import { AppNavigationService } from '../../core/navigation/app-navigation.service';
 import { APP_ROUTES } from '../../core/navigation/app-routes';
 import { AppShellService } from '../../core/shell/app-shell.service';
+import { LunaItemListComponent } from '../../shared/components/luna-item-list/luna-item-list.component';
 import { catchError, finalize, of } from 'rxjs';
 
 type StatusFilter = 'ALL' | 'PENDING' | 'DELIVERED';
@@ -49,9 +49,6 @@ type StatusFilter = 'ALL' | 'PENDING' | 'DELIVERED';
     IonContent,
     IonRefresher,
     IonRefresherContent,
-    CdkVirtualScrollViewport,
-    CdkFixedSizeVirtualScroll,
-    CdkVirtualForOf,
     CommonModule,
     FormsModule,
     NgIcon,
@@ -61,6 +58,7 @@ type StatusFilter = 'ALL' | 'PENDING' | 'DELIVERED';
     HlmFieldImports,
     HlmInputImports,
     HlmSkeletonImports,
+    LunaItemListComponent,
   ],
   providers: [
     provideIcons({
@@ -101,8 +99,6 @@ export class DeliveriesPage implements ViewWillEnter {
   canConfirm = false;
 
   readonly skeletonItems = [1, 2, 3];
-  readonly itemSize = 200;
-  readonly trackById = (_: number, item: ResponseDeliveryDTO) => item.id;
 
   readonly statusFilters: { value: StatusFilter; label: string; icon: string }[] = [
     { value: 'ALL', label: 'Todas', icon: 'lucideLayoutGrid' },
