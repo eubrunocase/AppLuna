@@ -1,26 +1,60 @@
 import { ChangeDetectorRef, Component, inject } from '@angular/core';
-import { ViewWillEnter } from '@ionic/angular/standalone';
+import {
+  IonContent,
+  IonRefresher,
+  IonRefresherContent,
+  ViewWillEnter,
+} from '@ionic/angular/standalone';
+import { NgIcon, provideIcons } from '@ng-icons/core';
+import {
+  lucideBarcode,
+  lucideCircleCheck,
+  lucideClock,
+  lucideLayoutGrid,
+  lucidePackage,
+  lucidePackageCheck,
+  lucidePlus,
+} from '@ng-icons/lucide';
+import { HlmButtonImports } from '@spartan-ng/helm/button';
+import { HlmCardImports } from '@spartan-ng/helm/card';
+import { HlmSkeletonImports } from '@spartan-ng/helm/skeleton';
 import { DeliveryService } from '../../../services/delivery.service';
 import { AuthService } from '../../../services/auth.service';
 import { ResponseDeliveryDTO, DeliveryStatus } from '../../../core/models';
 import { AppNavigationService } from '../../../core/navigation/app-navigation.service';
 import { APP_ROUTES } from '../../../core/navigation/app-routes';
 import { AppShellService } from '../../../core/shell/app-shell.service';
-import { LayoutService } from '../../../core/layout/layout.service';
-import { DeliveriesTabDesktopComponent } from './desktop/deliveries-tab-desktop.component';
-import {
-  DeliveriesTabMobileComponent,
-  type DeliveriesTabStatusFilter,
-} from './mobile/deliveries-tab-mobile.component';
+import { LunaItemListComponent } from '../../../shared/components/luna-item-list/luna-item-list.component';
 import { catchError, finalize, of } from 'rxjs';
 
-type StatusFilter = DeliveriesTabStatusFilter;
+type StatusFilter = 'ALL' | 'PENDING' | 'DELIVERED';
 
 @Component({
   selector: 'app-deliveries-tab',
   templateUrl: './deliveries-tab.page.html',
+  styleUrl: './deliveries-tab.page.scss',
   standalone: true,
-  imports: [DeliveriesTabDesktopComponent, DeliveriesTabMobileComponent],
+  imports: [
+    IonContent,
+    IonRefresher,
+    IonRefresherContent,
+    NgIcon,
+    HlmButtonImports,
+    HlmCardImports,
+    HlmSkeletonImports,
+    LunaItemListComponent,
+  ],
+  providers: [
+    provideIcons({
+      lucideBarcode,
+      lucideCircleCheck,
+      lucideClock,
+      lucideLayoutGrid,
+      lucidePackage,
+      lucidePackageCheck,
+      lucidePlus,
+    }),
+  ],
 })
 export class DeliveriesTabPage implements ViewWillEnter {
   private deliveryService = inject(DeliveryService);
@@ -28,18 +62,15 @@ export class DeliveriesTabPage implements ViewWillEnter {
   private navigation = inject(AppNavigationService);
   private shell = inject(AppShellService);
   private cdr = inject(ChangeDetectorRef);
-  readonly layout = inject(LayoutService);
 
   deliveries: ResponseDeliveryDTO[] = [];
   filteredDeliveries: ResponseDeliveryDTO[] = [];
   isLoading = true;
   statusFilter: StatusFilter = 'ALL';
   canCreate = false;
-  photoMap: Record<string, string> = {};
   private readonly photoById = new Map<string, string>();
 
   readonly skeletonItems = [1, 2, 3];
-  readonly itemSize = 132;
 
   readonly statusFilters: { value: StatusFilter; label: string; icon: string }[] = [
     { value: 'ALL', label: 'Todas', icon: 'lucideLayoutGrid' },
@@ -48,8 +79,6 @@ export class DeliveriesTabPage implements ViewWillEnter {
   ];
 
   private currentUserId: string | null = null;
-
-  readonly trackById = (_: number, item: ResponseDeliveryDTO) => item.id;
 
   ionViewWillEnter(): void {
     const user = this.authService.getCurrentUser();
@@ -111,7 +140,6 @@ export class DeliveriesTabPage implements ViewWillEnter {
 
   private resolvePhotos(deliveries: ResponseDeliveryDTO[]): void {
     this.photoById.clear();
-    this.photoMap = {};
 
     for (const delivery of deliveries) {
       if (!delivery.voucherKey) {
@@ -123,7 +151,6 @@ export class DeliveriesTabPage implements ViewWillEnter {
       ).subscribe((response) => {
         if (response?.downloadUrl) {
           this.photoById.set(delivery.id, response.downloadUrl);
-          this.photoMap = { ...this.photoMap, [delivery.id]: response.downloadUrl };
           this.cdr.markForCheck();
         }
       });

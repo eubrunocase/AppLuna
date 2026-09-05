@@ -1,34 +1,75 @@
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
-import { ViewWillEnter } from '@ionic/angular/standalone';
-import { FormBuilder, FormControl, FormGroup } from '@angular/forms';
+import { IonContent, ViewWillEnter } from '@ionic/angular/standalone';
+import { FormBuilder, FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
+import { NgIcon, provideIcons } from '@ng-icons/core';
+import {
+  lucideArrowLeft,
+  lucideArrowRight,
+  lucideBarcode,
+  lucideCamera,
+  lucideCheck,
+  lucideImage,
+  lucideCircleCheck,
+  lucidePackage,
+  lucidePlus,
+  lucideUser,
+  lucideUserPlus,
+} from '@ng-icons/lucide';
+import { HlmButtonImports } from '@spartan-ng/helm/button';
+import { HlmCardImports } from '@spartan-ng/helm/card';
+import { HlmFieldImports } from '@spartan-ng/helm/field';
+import { HlmInputImports } from '@spartan-ng/helm/input';
+import { HlmSpinnerImports } from '@spartan-ng/helm/spinner';
 import { DeliveryService } from '../../services/delivery.service';
 import { AppNavigationService } from '../../core/navigation/app-navigation.service';
 import { APP_ROUTES } from '../../core/navigation/app-routes';
 import { AppShellService } from '../../core/shell/app-shell.service';
-import { LayoutService } from '../../core/layout/layout.service';
 import { UserService } from '../../services/user.service';
 import { AuthService } from '../../services/auth.service';
 import { UiService } from '../../shared/services/ui.service';
 import { CapturedPhoto, NativeCameraService } from '../../shared/services/native-camera.service';
 import { isResidentRole, ResponseUserDTO } from '../../core/models';
-import { SearchableComboboxOption } from '../../shared/components/searchable-combobox/searchable-combobox.component';
-import { DeliveryCreateDesktopComponent } from './desktop/delivery-create-desktop.component';
 import {
-  DeliveryCreateMobileComponent,
-  type DeliveryCreateStep,
-  type DeliveryRecipientMode,
-} from './mobile/delivery-create-mobile.component';
+  SearchableComboboxComponent,
+  SearchableComboboxOption,
+} from '../../shared/components/searchable-combobox/searchable-combobox.component';
 import { catchError, finalize, map, of } from 'rxjs';
 
-type DeliveryStep = DeliveryCreateStep;
-type RecipientMode = DeliveryRecipientMode;
+type DeliveryStep = 1 | 2 | 3 | 4;
+type RecipientMode = 'resident' | 'custom';
 
 @Component({
   selector: 'app-delivery-create',
   templateUrl: './delivery-create.page.html',
+  styleUrl: './delivery-create.page.scss',
   standalone: true,
-  imports: [DeliveryCreateDesktopComponent, DeliveryCreateMobileComponent],
+  imports: [
+    IonContent,
+    ReactiveFormsModule,
+    NgIcon,
+    HlmButtonImports,
+    HlmCardImports,
+    HlmFieldImports,
+    HlmInputImports,
+    HlmSpinnerImports,
+    SearchableComboboxComponent,
+  ],
+  providers: [
+    provideIcons({
+      lucideArrowLeft,
+      lucideArrowRight,
+      lucideBarcode,
+      lucideCamera,
+      lucideCheck,
+      lucideImage,
+      lucideCircleCheck,
+      lucidePackage,
+      lucidePlus,
+      lucideUser,
+      lucideUserPlus,
+    }),
+  ],
 })
 export class DeliveryCreatePage implements OnInit, ViewWillEnter {
   private fb = inject(FormBuilder);
@@ -40,7 +81,6 @@ export class DeliveryCreatePage implements OnInit, ViewWillEnter {
   private nativeCamera = inject(NativeCameraService);
   private shell = inject(AppShellService);
   private router = inject(Router);
-  readonly layout = inject(LayoutService);
 
   readonly step = signal<DeliveryStep>(1);
   readonly users = signal<ResponseUserDTO[]>([]);

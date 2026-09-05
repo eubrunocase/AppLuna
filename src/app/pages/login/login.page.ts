@@ -370,7 +370,7 @@ import { UiService } from '../../shared/services/ui.service';
 
     @media (min-width: 1024px) {
       .login-shell {
-        flex-direction: row-reverse;
+        flex-direction: row;
         min-height: 100dvh;
       }
 

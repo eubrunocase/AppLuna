@@ -1,67 +1,167 @@
-@if (layout.isDesktop()) {
-  <app-deliveries-desktop
-    [statusFilters]="statusFilters"
-    [statusFilter]="statusFilter"
-    [isLoading]="isLoading"
-    [filteredDeliveries]="filteredDeliveries"
-    [canCreate]="canCreate"
-    [canConfirm]="canConfirm"
-    [userNames]="userNamesMap"
-    (statusFilterChange)="setStatusFilter($event)"
-    (create)="openCreateModal()"
-    (confirmPickup)="openPickupDialog($event)"
-    (refreshList)="loadData()"
-  />
-} @else {
-  <app-deliveries-mobile
-    [statusFilters]="statusFilters"
-    [statusFilter]="statusFilter"
-    [isLoading]="isLoading"
-    [skeletonItems]="skeletonItems"
-    [filteredDeliveries]="filteredDeliveries"
-    [itemSize]="itemSize"
-    [canCreate]="canCreate"
-    [canConfirm]="canConfirm"
-    [userNames]="userNamesMap"
-    (refresh)="refresh($event)"
-    (statusFilterChange)="setStatusFilter($event)"
-    (create)="openCreateModal()"
-    (confirmPickup)="openPickupDialog($event)"
-  />
-}
+<ion-content class="shell-page-content deliveries-content">
+  <ion-refresher slot="fixed" (ionRefresh)="refresh($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
 
-<hlm-alert-dialog #pickupDialog="hlmAlertDialog">
-  <hlm-alert-dialog-content *hlmAlertDialogPortal="let ctx">
-    <hlm-alert-dialog-header>
-      <hlm-alert-dialog-media>
-        <ng-icon name="lucideUserCheck" />
-      </hlm-alert-dialog-media>
-      <h2 hlmAlertDialogTitle>Confirmar Retirada</h2>
-      <p hlmAlertDialogDescription>Informe o nome de quem está retirando a encomenda.</p>
-    </hlm-alert-dialog-header>
-
-    <div class="pickup-dialog__field" style="display:flex;flex-direction:column;gap:0.5rem;padding:0 0.25rem 0.5rem;">
-      <label hlmFieldLabel for="pickup-name">Nome completo</label>
-      <input
-        hlmInput
-        id="pickup-name"
-        type="text"
-        [(ngModel)]="pickupName"
-        placeholder="Nome de quem retira"
-        autocomplete="name"
-      />
+  <div class="deliveries-shell">
+    <div class="chip-row" role="tablist" aria-label="Status da entrega">
+      @for (filter of statusFilters; track filter.value) {
+        <button
+          type="button"
+          class="filter-chip"
+          [class.filter-chip--active]="statusFilter === filter.value"
+          (click)="setStatusFilter(filter.value)"
+        >
+          <ng-icon [name]="filter.icon" />
+          {{ filter.label }}
+        </button>
+      }
     </div>
 
-    <hlm-alert-dialog-footer>
-      <button hlmAlertDialogCancel type="button">Cancelar</button>
-      <button
-        hlmAlertDialogAction
-        type="button"
-        [disabled]="!pickupName.trim()"
-        (click)="confirmPickup()"
-      >
-        Confirmar
+    @if (canCreate) {
+      <button hlmBtn type="button" class="create-btn" (click)="openCreateModal()">
+        <ng-icon name="lucidePlus" />
+        Nova encomenda
       </button>
-    </hlm-alert-dialog-footer>
-  </hlm-alert-dialog-content>
-</hlm-alert-dialog>
+    }
+
+    @if (isLoading) {
+      <app-luna-item-list role="status" ariaLabel="Carregando entregas">
+        @for (item of skeletonItems; track item) {
+          <div hlmCard size="sm" class="delivery-card delivery-card--skeleton" aria-hidden="true">
+            <div class="delivery-card__header">
+              <span hlmSkeleton class="delivery-card__skeleton-protocol"></span>
+              <span hlmSkeleton class="delivery-card__skeleton-badge"></span>
+            </div>
+            <div class="delivery-card__details">
+              <span hlmSkeleton class="delivery-card__skeleton-line"></span>
+              <span hlmSkeleton class="delivery-card__skeleton-line delivery-card__skeleton-line--short"></span>
+            </div>
+          </div>
+        }
+      </app-luna-item-list>
+    } @else if (filteredDeliveries.length > 0) {
+      <app-luna-item-list>
+        @for (delivery of filteredDeliveries; track delivery.id) {
+        <article
+          hlmCard
+          size="sm"
+          class="delivery-card"
+          [class.delivery-card--pending]="delivery.status === 'PENDING'"
+        >
+          <div class="delivery-card__header">
+            <div class="delivery-card__protocol">
+              <ng-icon name="lucideBarcode" />
+              <span>{{ delivery.protocolNumber || 'Sem protocolo' }}</span>
+            </div>
+            <span [class]="'status-pill status-pill--' + delivery.status">
+              <span class="status-pill__dot" aria-hidden="true"></span>
+              {{ getStatusLabel(delivery.status) }}
+            </span>
+          </div>
+
+          <div class="delivery-card__details">
+            <p class="delivery-card__meta">
+              <ng-icon name="lucideUser" />
+              <strong>Destinatário:</strong> {{ getUserName(delivery.user) }}
+            </p>
+
+            @if (delivery.discrimination) {
+              <p class="delivery-card__meta">
+                <ng-icon name="lucidePackage" />
+                <strong>Descrição:</strong> {{ delivery.discrimination }}
+              </p>
+            }
+
+            @if (delivery.otherRecipient) {
+              <p class="delivery-card__meta">
+                <ng-icon name="lucideShieldCheck" />
+                <strong>Recebedor:</strong> {{ delivery.otherRecipient }}
+              </p>
+            }
+
+            <p class="delivery-card__meta">
+              <ng-icon name="lucideClock" />
+              <strong>Recebido em:</strong> {{ formatDate(delivery.createdAt) }}
+            </p>
+
+            @if (delivery.deliveredAt) {
+              <p class="delivery-card__meta">
+                <ng-icon name="lucideCircleCheck" />
+                <strong>Entregue em:</strong> {{ formatDate(delivery.deliveredAt) }}
+              </p>
+            }
+
+            @if (delivery.pickedUpBy) {
+              <p class="delivery-card__meta delivery-card__meta--success">
+                <ng-icon name="lucideUserCheck" />
+                <strong>Retirado por:</strong> {{ delivery.pickedUpBy }}
+              </p>
+            }
+          </div>
+
+          @if (canConfirm && delivery.status === 'PENDING') {
+            <div class="delivery-card__actions">
+              <button
+                hlmBtn
+                type="button"
+                class="action-btn action-btn--confirm"
+                (click)="openPickupDialog(delivery)"
+              >
+                <ng-icon name="lucideCheck" />
+                Confirmar Retirada
+              </button>
+            </div>
+          }
+        </article>
+        }
+      </app-luna-item-list>
+    } @else {
+      <div class="empty-state" role="status">
+        <img
+          class="empty-state__image"
+          src="assets/illustrations/deliveries-empty.svg"
+          alt=""
+        />
+        <p class="empty-state__title">Nenhuma entrega encontrada</p>
+        <p class="empty-state__message">As encomendas registradas aparecerão aqui</p>
+      </div>
+    }
+  </div>
+
+  <hlm-alert-dialog #pickupDialog="hlmAlertDialog">
+    <hlm-alert-dialog-content *hlmAlertDialogPortal="let ctx">
+      <hlm-alert-dialog-header>
+        <hlm-alert-dialog-media>
+          <ng-icon name="lucideUserCheck" />
+        </hlm-alert-dialog-media>
+        <h2 hlmAlertDialogTitle>Confirmar Retirada</h2>
+        <p hlmAlertDialogDescription>Informe o nome de quem está retirando a encomenda.</p>
+      </hlm-alert-dialog-header>
+
+      <div class="pickup-dialog__field">
+        <label hlmFieldLabel for="pickup-name">Nome completo</label>
+        <input
+          hlmInput
+          id="pickup-name"
+          type="text"
+          [(ngModel)]="pickupName"
+          placeholder="Nome de quem retira"
+          autocomplete="name"
+        />
+      </div>
+
+      <hlm-alert-dialog-footer>
+        <button hlmAlertDialogCancel type="button">Cancelar</button>
+        <button
+          hlmAlertDialogAction
+          type="button"
+          [disabled]="!pickupName.trim()"
+          (click)="confirmPickup()"
+        >
+          Confirmar
+        </button>
+      </hlm-alert-dialog-footer>
+    </hlm-alert-dialog-content>
+  </hlm-alert-dialog>
+</ion-content>

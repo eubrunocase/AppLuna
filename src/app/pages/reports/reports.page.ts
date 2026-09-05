@@ -1,5 +1,24 @@
 import { ChangeDetectorRef, Component, computed, inject, OnDestroy, signal } from '@angular/core';
-import { ViewWillEnter } from '@ionic/angular/standalone';
+import { FormsModule } from '@angular/forms';
+import { IonContent, ViewWillEnter } from '@ionic/angular/standalone';
+import { NgIcon, provideIcons } from '@ng-icons/core';
+import {
+  lucideArrowLeft,
+  lucideArrowRight,
+  lucideBuilding2,
+  lucideCalendar,
+  lucideDownload,
+  lucideFileText,
+  lucideFileType,
+  lucideFlame,
+  lucideInfo,
+  lucidePartyPopper,
+} from '@ng-icons/lucide';
+import { HlmButtonImports } from '@spartan-ng/helm/button';
+import { HlmCardImports } from '@spartan-ng/helm/card';
+import { HlmRadioGroupImports } from '@spartan-ng/helm/radio-group';
+import { HlmSkeletonImports } from '@spartan-ng/helm/skeleton';
+import { HlmSpinnerImports } from '@spartan-ng/helm/spinner';
 import { EMPTY, Subscription, catchError, finalize, interval, of, startWith, switchMap, takeWhile } from 'rxjs';
 import {
   MonthlyReservationReportDTO,
@@ -7,19 +26,46 @@ import {
   ReportFormat,
 } from '../../core/models';
 import { AppShellService } from '../../core/shell/app-shell.service';
-import { LayoutService } from '../../core/layout/layout.service';
 import { ReservationService } from '../../services/reservation.service';
 import { getSpaceCatalogEntry } from '../reservations/space-catalog';
+import { LunaDatePickerComponent } from '../../shared/components/luna-date-picker/luna-date-picker.component';
+import { LunaItemListComponent } from '../../shared/components/luna-item-list/luna-item-list.component';
 import { CelebrationService } from '../../shared/services/celebration.service';
 import { UiService } from '../../shared/services/ui.service';
-import { ReportsDesktopComponent } from './desktop/reports-desktop.component';
-import { ReportsMobileComponent, type ReportStep } from './mobile/reports-mobile.component';
+
+type ReportStep = 1 | 2 | 3;
 
 @Component({
   selector: 'app-reports',
   templateUrl: './reports.page.html',
+  styleUrl: './reports.page.scss',
   standalone: true,
-  imports: [ReportsDesktopComponent, ReportsMobileComponent],
+  imports: [
+    IonContent,
+    FormsModule,
+    NgIcon,
+    HlmButtonImports,
+    HlmCardImports,
+    HlmRadioGroupImports,
+    HlmSkeletonImports,
+    HlmSpinnerImports,
+    LunaDatePickerComponent,
+    LunaItemListComponent,
+  ],
+  providers: [
+    provideIcons({
+      lucideArrowLeft,
+      lucideArrowRight,
+      lucideBuilding2,
+      lucideCalendar,
+      lucideDownload,
+      lucideFileText,
+      lucideFileType,
+      lucideFlame,
+      lucideInfo,
+      lucidePartyPopper,
+    }),
+  ],
 })
 export class ReportsPage implements OnDestroy, ViewWillEnter {
   private reservationService = inject(ReservationService);
@@ -27,7 +73,6 @@ export class ReportsPage implements OnDestroy, ViewWillEnter {
   private uiService = inject(UiService);
   private celebration = inject(CelebrationService);
   private cdr = inject(ChangeDetectorRef);
-  readonly layout = inject(LayoutService);
 
   readonly step = signal<ReportStep>(1);
   readonly selectedMonth = signal(new Date().getMonth() + 1);
@@ -38,9 +83,6 @@ export class ReportsPage implements OnDestroy, ViewWillEnter {
   readonly isExporting = signal(false);
 
   readonly skeletonItems = [1, 2, 3];
-  readonly itemSize = 112;
-  readonly trackByReport = (_: number, item: MonthlyReservationReportDTO) =>
-    item.date + item.apartment + item.spaceType + item.residentName;
   readonly months = [
     { value: 1, label: 'Janeiro' },
     { value: 2, label: 'Fevereiro' },

@@ -1,22 +1,46 @@
 import { Component, ChangeDetectorRef, inject } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { ViewWillEnter } from '@ionic/angular/standalone';
+import { IonContent, ViewWillEnter } from '@ionic/angular/standalone';
+import { NgIcon, provideIcons } from '@ng-icons/core';
+import {
+  lucideArrowLeft,
+  lucideCalendarCheck,
+  lucideCircleCheck,
+  lucideCircleX,
+} from '@ng-icons/lucide';
+import { HlmButtonImports } from '@spartan-ng/helm/button';
+import { HlmCardImports } from '@spartan-ng/helm/card';
+import { HlmSpinnerImports } from '@spartan-ng/helm/spinner';
 import { catchError, finalize, Observable, of } from 'rxjs';
 import { AppNavigationService } from '../../core/navigation/app-navigation.service';
 import { AppShellService } from '../../core/shell/app-shell.service';
-import { LayoutService } from '../../core/layout/layout.service';
 import { ReservationService } from '../../services/reservation.service';
 import { UiService } from '../../shared/services/ui.service';
+import { LunaDatePickerComponent } from '../../shared/components/luna-date-picker/luna-date-picker.component';
 import { ReservationDraftService } from './reservation-draft.service';
 import { APP_ROUTES } from '../../core/navigation/app-routes';
-import { ReservationDateStepDesktopComponent } from './desktop/reservation-date-step-desktop.component';
-import { ReservationDateStepMobileComponent } from './mobile/reservation-date-step-mobile.component';
 
 @Component({
   selector: 'app-reservation-date-step',
   templateUrl: './reservation-date-step.page.html',
+  styleUrl: './reservation-flow.scss',
   standalone: true,
-  imports: [ReservationDateStepDesktopComponent, ReservationDateStepMobileComponent],
+  imports: [
+    IonContent,
+    NgIcon,
+    HlmButtonImports,
+    HlmCardImports,
+    HlmSpinnerImports,
+    LunaDatePickerComponent,
+  ],
+  providers: [
+    provideIcons({
+      lucideArrowLeft,
+      lucideCalendarCheck,
+      lucideCircleCheck,
+      lucideCircleX,
+    }),
+  ],
 })
 export class ReservationDateStepPage implements ViewWillEnter {
   private route = inject(ActivatedRoute);
@@ -27,7 +51,6 @@ export class ReservationDateStepPage implements ViewWillEnter {
   private draft = inject(ReservationDraftService);
   private uiService = inject(UiService);
   private cdr = inject(ChangeDetectorRef);
-  readonly layout = inject(LayoutService);
 
   isSubmitting = false;
   isCheckingAvailability = false;

@@ -1,31 +1,123 @@
-@if (layout.isDesktop()) {
-  <app-home-tab-desktop
-    [isAdmin]="isAdmin"
-    [canSeeReservationsSummary]="canSeeReservationsSummary"
-    [isLoadingStats]="isLoadingStats"
-    [pendingApprovals]="pendingApprovals"
-    [pendingDeliveries]="pendingDeliveries"
-    [activeReservations]="activeReservations"
-    [statSkeletonItems]="statSkeletonItems"
-    (pendingApprovalsClick)="goToPendingApprovals()"
-    (deliveriesClick)="goToDeliveries()"
-    (reservationsClick)="goToReservations()"
-  />
-} @else {
-  <app-home-tab-mobile
-    [isAdmin]="isAdmin"
-    [canSeeReservationsSummary]="canSeeReservationsSummary"
-    [isLoadingStats]="isLoadingStats"
-    [pendingApprovals]="pendingApprovals"
-    [pendingDeliveries]="pendingDeliveries"
-    [activeReservations]="activeReservations"
-    [statColumns]="statColumns"
-    [statSkeletonItems]="statSkeletonItems"
-    [quickActions]="quickActions"
-    (contentScroll)="onContentScroll($event)"
-    (pendingApprovalsClick)="goToPendingApprovals()"
-    (deliveriesClick)="goToDeliveries()"
-    (reservationsClick)="goToReservations()"
-    (quickAction)="runQuickAction($event)"
-  />
-}
+<ion-content
+  class="shell-page-content home-content"
+  [scrollEvents]="true"
+  (ionScroll)="onContentScroll($event)"
+>
+  <div class="home-shell">
+    <div
+      #statsGrid
+      class="home-stats home-enter home-enter--stats"
+      role="region"
+      aria-label="Resumo rápido"
+      [class.home-stats--few]="statColumns <= 2"
+      [class.home-stats--single]="statColumns === 1"
+      [style.--stat-cols]="statColumns"
+    >
+      @if (isLoadingStats) {
+        @for (item of statSkeletonItems; track item) {
+          <div hlmCard size="sm" class="stat-card stat-card--skeleton" aria-hidden="true">
+            <div hlmCardContent class="stat-card__inner">
+              <div class="stat-card__top">
+                <span hlmSkeleton class="stat-card__skeleton-icon"></span>
+                <span hlmSkeleton class="stat-card__skeleton-value"></span>
+              </div>
+              <span hlmSkeleton class="stat-card__skeleton-label"></span>
+            </div>
+          </div>
+        }
+      } @else {
+        @if (isAdmin) {
+          <button type="button" hlmCard size="sm" class="stat-card" (click)="goToPendingApprovals()">
+            <div hlmCardContent class="stat-card__inner">
+              <div class="stat-card__top">
+                <span class="stat-card__icon">
+                  <ng-icon name="lucideClipboardList" />
+                </span>
+                <span class="stat-card__value">{{ pendingApprovals }}</span>
+              </div>
+              <span class="stat-card__label">Aprovações pendentes</span>
+            </div>
+          </button>
+        }
+
+        <button type="button" hlmCard size="sm" class="stat-card" (click)="goToDeliveries()">
+          <div hlmCardContent class="stat-card__inner">
+            <div class="stat-card__top">
+              <span class="stat-card__icon">
+                <ng-icon name="lucidePackage" />
+              </span>
+              <span class="stat-card__value">{{ pendingDeliveries }}</span>
+            </div>
+            <span class="stat-card__label">Encomendas</span>
+          </div>
+        </button>
+
+        @if (canSeeReservationsSummary) {
+          <button type="button" hlmCard size="sm" class="stat-card" (click)="goToReservations()">
+            <div hlmCardContent class="stat-card__inner">
+              <div class="stat-card__top">
+                <span class="stat-card__icon">
+                  <ng-icon name="lucideCalendar" />
+                </span>
+                <span class="stat-card__value">{{ activeReservations }}</span>
+              </div>
+              <span class="stat-card__label">Reservas</span>
+            </div>
+          </button>
+        }
+      }
+    </div>
+
+    <div class="home-body">
+      <section class="home-section home-enter home-enter--section-1" aria-labelledby="quick-access-title">
+        <div class="home-section__header">
+          <h2 id="quick-access-title" class="home-section__title">Acesso Rápido</h2>
+          <p class="home-section__subtitle">Atalhos para as ações mais usadas</p>
+        </div>
+
+        <div class="quick-grid">
+          @for (action of quickActions; track action.id) {
+            <button
+              type="button"
+              hlmCard
+              size="sm"
+              class="quick-card"
+              (click)="runQuickAction(action.id)"
+            >
+              <div class="quick-card__inner">
+                <span class="quick-card__label">{{ action.label }}</span>
+                <img
+                  class="quick-card__image"
+                  [src]="action.iconSrc"
+                  [alt]=""
+                  aria-hidden="true"
+                />
+              </div>
+            </button>
+          }
+        </div>
+      </section>
+
+      <section class="home-section home-section--notices home-enter home-enter--section-2" aria-labelledby="notices-title">
+        <div class="home-section__header">
+          <h2 id="notices-title" class="home-section__title">Avisos</h2>
+          <p class="home-section__subtitle">Informações importantes do condomínio</p>
+        </div>
+
+        <div hlmCard size="sm" class="notice-card">
+          <div hlmCardContent class="notice-card__inner">
+            <span class="notice-card__icon">
+              <ng-icon name="lucideInfo" />
+            </span>
+            <div class="notice-card__content">
+              <p class="notice-card__title">Mantenha seus dados atualizados</p>
+              <p class="notice-card__message">
+                Revise suas informações na área de gerenciamento para receber avisos e entregas corretamente.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
+</ion-content>

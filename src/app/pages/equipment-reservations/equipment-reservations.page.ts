@@ -1,31 +1,80 @@
 import { ChangeDetectorRef, Component, inject, viewChild } from '@angular/core';
-import { ViewWillEnter } from '@ionic/angular/standalone';
+import { FormsModule } from '@angular/forms';
+import {
+  IonContent,
+  IonRefresher,
+  IonRefresherContent,
+  ViewWillEnter,
+} from '@ionic/angular/standalone';
+import { NgIcon, provideIcons } from '@ng-icons/core';
+import {
+  lucideBan,
+  lucideBuilding2,
+  lucideCalendar,
+  lucideCircleCheck,
+  lucideClock,
+  lucideKeyRound,
+  lucideLayoutGrid,
+  lucidePlay,
+  lucidePlus,
+  lucideSearch,
+  lucideTv,
+  lucideUndo2,
+  lucideUser,
+} from '@ng-icons/lucide';
+import { HlmButtonImports } from '@spartan-ng/helm/button';
+import { HlmCardImports } from '@spartan-ng/helm/card';
+import { HlmInputImports } from '@spartan-ng/helm/input';
+import { HlmSkeletonImports } from '@spartan-ng/helm/skeleton';
+import { HlmSpinnerImports } from '@spartan-ng/helm/spinner';
 import { catchError, EMPTY, finalize, of } from 'rxjs';
 import { EquipmentReservationResponseDTO, EquipmentReservationStatus, UserRoles } from '../../core/models';
 import { AppNavigationService } from '../../core/navigation/app-navigation.service';
 import { APP_ROUTES } from '../../core/navigation/app-routes';
 import { AppShellService } from '../../core/shell/app-shell.service';
-import { LayoutService } from '../../core/layout/layout.service';
 import { AuthService } from '../../services/auth.service';
 import { EquipmentReservationService } from '../../services/equipment-reservation.service';
 import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog/confirm-dialog.component';
+import { LunaItemListComponent } from '../../shared/components/luna-item-list/luna-item-list.component';
 import { UiService } from '../../shared/services/ui.service';
-import { EquipmentReservationsDesktopComponent } from './desktop/equipment-reservations-desktop.component';
-import {
-  EquipmentReservationsMobileComponent,
-  type EquipmentStatusFilter,
-} from './mobile/equipment-reservations-mobile.component';
 
-type StatusFilter = EquipmentStatusFilter;
+type StatusFilter = 'ALL' | EquipmentReservationStatus;
 
 @Component({
   selector: 'app-equipment-reservations',
   templateUrl: './equipment-reservations.page.html',
+  styleUrl: './equipment-reservations.page.scss',
   standalone: true,
   imports: [
+    IonContent,
+    IonRefresher,
+    IonRefresherContent,
+    FormsModule,
+    NgIcon,
+    HlmButtonImports,
+    HlmCardImports,
+    HlmInputImports,
+    HlmSkeletonImports,
+    HlmSpinnerImports,
     ConfirmDialogComponent,
-    EquipmentReservationsDesktopComponent,
-    EquipmentReservationsMobileComponent,
+    LunaItemListComponent,
+  ],
+  providers: [
+    provideIcons({
+      lucideBan,
+      lucideBuilding2,
+      lucideCalendar,
+      lucideCircleCheck,
+      lucideClock,
+      lucideKeyRound,
+      lucideLayoutGrid,
+      lucidePlay,
+      lucidePlus,
+      lucideSearch,
+      lucideTv,
+      lucideUndo2,
+      lucideUser,
+    }),
   ],
 })
 export class EquipmentReservationsPage implements ViewWillEnter {
@@ -35,7 +84,6 @@ export class EquipmentReservationsPage implements ViewWillEnter {
   private shell = inject(AppShellService);
   private uiService = inject(UiService);
   private cdr = inject(ChangeDetectorRef);
-  readonly layout = inject(LayoutService);
 
   private readonly confirmDialog = viewChild.required<ConfirmDialogComponent>('confirmDialog');
 
@@ -55,8 +103,6 @@ export class EquipmentReservationsPage implements ViewWillEnter {
   private pendingAction: { type: 'handover' | 'return'; reservation: EquipmentReservationResponseDTO } | null = null;
 
   readonly skeletonItems = [1, 2, 3];
-  readonly itemSize = 188;
-  readonly trackById = (_: number, item: EquipmentReservationResponseDTO) => item.id;
 
   readonly statusFilters: { value: StatusFilter; label: string; icon: string }[] = [
     { value: 'ALL', label: 'Todos', icon: 'lucideLayoutGrid' },

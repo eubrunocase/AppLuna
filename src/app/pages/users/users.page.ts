@@ -1,25 +1,79 @@
 import { ChangeDetectorRef, Component, inject, viewChild } from '@angular/core';
-import { ViewWillEnter } from '@ionic/angular/standalone';
+import { FormsModule } from '@angular/forms';
+import {
+  IonContent,
+  IonRefresher,
+  IonRefresherContent,
+  ViewWillEnter,
+} from '@ionic/angular/standalone';
+import { NgIcon, provideIcons } from '@ng-icons/core';
+import {
+  lucideBriefcase,
+  lucideBuilding2,
+  lucideLayoutGrid,
+  lucideMail,
+  lucidePencil,
+  lucidePlus,
+  lucideSearch,
+  lucideShieldCheck,
+  lucideTrash2,
+  lucideTriangleAlert,
+  lucideUser,
+  lucideUsers,
+} from '@ng-icons/lucide';
+import { HlmButtonImports } from '@spartan-ng/helm/button';
+import { HlmCardImports } from '@spartan-ng/helm/card';
+import { HlmInputImports } from '@spartan-ng/helm/input';
+import { HlmSkeletonImports } from '@spartan-ng/helm/skeleton';
+import { HlmSpinnerImports } from '@spartan-ng/helm/spinner';
 import { UserService } from '../../services/user.service';
 import { AuthService } from '../../services/auth.service';
 import { isResidentRole, ResponseUserDTO, UserRoles } from '../../core/models';
 import { AppNavigationService } from '../../core/navigation/app-navigation.service';
 import { APP_ROUTES } from '../../core/navigation/app-routes';
 import { AppShellService } from '../../core/shell/app-shell.service';
-import { LayoutService } from '../../core/layout/layout.service';
 import { UiService } from '../../shared/services/ui.service';
 import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog/confirm-dialog.component';
-import { UsersDesktopComponent } from './desktop/users-desktop.component';
-import { UsersMobileComponent, type UsersRoleFilter } from './mobile/users-mobile.component';
+import { LunaItemListComponent } from '../../shared/components/luna-item-list/luna-item-list.component';
 import { catchError, EMPTY, finalize, of } from 'rxjs';
 
-type RoleFilter = UsersRoleFilter;
+type RoleFilter = 'ALL' | UserRoles.ADMIN_ROLE | UserRoles.EMPLOYEE | UserRoles.RESIDENT_ROLE;
 
 @Component({
   selector: 'app-users',
   templateUrl: './users.page.html',
+  styleUrl: './users.page.scss',
   standalone: true,
-  imports: [ConfirmDialogComponent, UsersDesktopComponent, UsersMobileComponent],
+  imports: [
+    IonContent,
+    IonRefresher,
+    IonRefresherContent,
+    FormsModule,
+    NgIcon,
+    HlmButtonImports,
+    HlmCardImports,
+    HlmInputImports,
+    HlmSkeletonImports,
+    HlmSpinnerImports,
+    ConfirmDialogComponent,
+    LunaItemListComponent,
+  ],
+  providers: [
+    provideIcons({
+      lucideBriefcase,
+      lucideBuilding2,
+      lucideLayoutGrid,
+      lucideMail,
+      lucidePencil,
+      lucidePlus,
+      lucideSearch,
+      lucideShieldCheck,
+      lucideTrash2,
+      lucideTriangleAlert,
+      lucideUser,
+      lucideUsers,
+    }),
+  ],
 })
 export class UsersPage implements ViewWillEnter {
   private userService = inject(UserService);
@@ -28,7 +82,6 @@ export class UsersPage implements ViewWillEnter {
   private shell = inject(AppShellService);
   private uiService = inject(UiService);
   private cdr = inject(ChangeDetectorRef);
-  readonly layout = inject(LayoutService);
 
   private readonly confirmDialog = viewChild.required<ConfirmDialogComponent>('confirmDialog');
 
@@ -38,7 +91,6 @@ export class UsersPage implements ViewWillEnter {
   roleFilter: RoleFilter = 'ALL';
   searchQuery = '';
   processingId: string | null = null;
-  currentUserId: string | null = null;
 
   confirmTitle = 'Excluir usuário';
   confirmDescription = '';
@@ -47,9 +99,6 @@ export class UsersPage implements ViewWillEnter {
 
   readonly skeletonItems = [1, 2, 3];
   readonly compactSkeletonItems = [1, 2, 3, 4, 5, 6];
-  readonly itemSize = 168;
-  readonly compactItemSize = 72;
-  readonly trackById = (_: number, item: ResponseUserDTO) => item.id;
 
   get isCompactList(): boolean {
     return this.roleFilter !== 'ALL';
@@ -63,7 +112,6 @@ export class UsersPage implements ViewWillEnter {
   ];
 
   ionViewWillEnter(): void {
-    this.currentUserId = this.authService.getCurrentUser()?.id ?? null;
     this.loadUsers();
     this.shell.configure({
       title: 'Usuários',

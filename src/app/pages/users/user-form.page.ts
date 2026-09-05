@@ -1,27 +1,69 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
-import { FormBuilder, Validators } from '@angular/forms';
+import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
-import { ViewWillEnter } from '@ionic/angular/standalone';
+import { IonContent, ViewWillEnter } from '@ionic/angular/standalone';
+import { NgIcon, provideIcons } from '@ng-icons/core';
+import {
+  lucideArrowLeft,
+  lucideArrowRight,
+  lucideBriefcase,
+  lucideBuilding2,
+  lucideCheck,
+  lucideEye,
+  lucideEyeOff,
+  lucideLock,
+  lucideMail,
+  lucideShieldCheck,
+  lucideUser,
+} from '@ng-icons/lucide';
+import { HlmButtonImports } from '@spartan-ng/helm/button';
+import { HlmFieldImports } from '@spartan-ng/helm/field';
+import { HlmInputImports } from '@spartan-ng/helm/input';
+import { HlmRadioGroupImports } from '@spartan-ng/helm/radio-group';
+import { HlmSpinnerImports } from '@spartan-ng/helm/spinner';
 import { UserService } from '../../services/user.service';
 import { AppNavigationService } from '../../core/navigation/app-navigation.service';
 import { APP_ROUTES } from '../../core/navigation/app-routes';
 import { AppShellService } from '../../core/shell/app-shell.service';
-import { LayoutService } from '../../core/layout/layout.service';
 import { UiService } from '../../shared/services/ui.service';
 import { CelebrationService } from '../../shared/services/celebration.service';
 import { RequestUserDTO, ResponseUserDTO, UserRoles } from '../../core/models';
-import { UserFormDesktopComponent } from './desktop/user-form-desktop.component';
-import {
-  UserFormMobileComponent,
-  type UserFormStep,
-} from './mobile/user-form-mobile.component';
 import { catchError, finalize, of } from 'rxjs';
+
+type UserFormStep = 1 | 2;
 
 @Component({
   selector: 'app-user-form',
   templateUrl: './user-form.page.html',
+  styleUrl: './user-form.page.scss',
   standalone: true,
-  imports: [UserFormDesktopComponent, UserFormMobileComponent],
+  imports: [
+    IonContent,
+    FormsModule,
+    ReactiveFormsModule,
+    NgIcon,
+    HlmButtonImports,
+    HlmFieldImports,
+    HlmInputImports,
+    HlmRadioGroupImports,
+    HlmSpinnerImports,
+  ],
+  providers: [
+    provideIcons({
+      lucideArrowLeft,
+      lucideArrowRight,
+      lucideBriefcase,
+      lucideBuilding2,
+      lucideCheck,
+      lucideEye,
+      lucideEyeOff,
+      lucideLock,
+      lucideMail,
+      lucideShieldCheck,
+      lucideUser,
+    }),
+  ],
 })
 export class UserFormPage implements OnInit, ViewWillEnter {
   private fb = inject(FormBuilder);
@@ -31,7 +73,6 @@ export class UserFormPage implements OnInit, ViewWillEnter {
   private shell = inject(AppShellService);
   private uiService = inject(UiService);
   private celebration = inject(CelebrationService);
-  readonly layout = inject(LayoutService);
 
   readonly step = signal<UserFormStep>(1);
   readonly isEdit = signal(false);
@@ -124,6 +165,11 @@ export class UserFormPage implements OnInit, ViewWillEnter {
   ionViewWillEnter(): void {
     this.updateShell();
     this.shell.setExpandContent(null);
+  }
+
+  showError(field: 'name' | 'apartment' | 'email' | 'password'): boolean {
+    const control = this.form.controls[field];
+    return control.invalid && (control.touched || this.submitted());
   }
 
   goToStep(next: UserFormStep): void {
