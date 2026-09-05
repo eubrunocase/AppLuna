@@ -1,0 +1,142 @@
+.occurrence-steps {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.occurrence-steps__item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.45rem 0.85rem;
+  border-radius: 999px;
+  border: 1px solid rgba(192, 92, 70, 0.16);
+  background: #ffffff;
+  color: #8a5a4e;
+  font-size: 0.8125rem;
+  font-weight: 650;
+
+  &--active {
+    border-color: #c05c46;
+    background: rgba(192, 92, 70, 0.08);
+    color: #c05c46;
+  }
+
+  &--done {
+    border-color: rgba(4, 120, 87, 0.25);
+    color: #047857;
+  }
+}
+
+.occurrence-steps__num {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.35rem;
+  height: 1.35rem;
+  border-radius: 999px;
+  background: currentColor;
+  color: #fff;
+  font-size: 0.7rem;
+  font-weight: 700;
+}
+
+.occurrence-form-panel {
+  padding: 1.5rem;
+  max-width: 48rem;
+}
+
+.occurrence-textarea {
+  min-height: 14rem !important;
+  border-radius: 0.85rem !important;
+}
+
+.field-hint {
+  margin: 0.45rem 0 0;
+  font-size: 0.75rem;
+  color: #8a5a4e;
+}
+
+.picker-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.picker-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  padding: 1rem;
+  border-radius: 1rem;
+  background: #f9f6ee;
+  border: 1px solid rgba(192, 92, 70, 0.12);
+}
+
+.picker-panel__eyebrow {
+  font-size: 0.6875rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #c05c46;
+}
+
+.picker-panel__hint {
+  margin: 0.15rem 0 0;
+  font-size: 0.8125rem;
+  color: #8a5a4e;
+}
+
+.notice-panel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 1.5rem 1rem;
+}
+
+.notice-panel img {
+  width: min(280px, 100%);
+  height: auto;
+  margin-bottom: 0.75rem;
+}
+
+.notice-panel__badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  margin-bottom: 0.5rem;
+  border-radius: 0.75rem;
+  background: #fff4ed;
+  color: #c2410c;
+  font-size: 1.15rem;
+}
+
+.notice-panel h2 {
+  margin: 0 0 0.4rem;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #361a14;
+}
+
+.notice-panel p {
+  margin: 0;
+  max-width: 28rem;
+  font-size: 0.9rem;
+  color: #8a5a4e;
+  line-height: 1.5;
+}
+
+.occurrence-actions {
+  display: flex;
+  gap: 0.65rem;
+  margin-top: 1.25rem;
+}
+
+@media (max-width: 800px) {
+  .picker-grid {
+    grid-template-columns: 1fr;
+  }
+}

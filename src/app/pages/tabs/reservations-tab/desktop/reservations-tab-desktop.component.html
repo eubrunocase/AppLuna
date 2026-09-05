@@ -1,0 +1,199 @@
+<div class="desktop-page">
+  <div class="desktop-page__toolbar">
+    <div>
+      <h1 class="m-0 text-xl font-bold text-[#361a14]">
+        {{ isAdmin() && viewMode() === 'all' ? 'Reservas do Condomínio' : 'Minhas Reservas' }}
+      </h1>
+      <p class="m-0 mt-1 text-sm text-[#8a6f66]">Gerencie e filtre reservas de espaços e TV</p>
+    </div>
+    <div class="flex flex-wrap gap-2">
+      <button hlmBtn type="button" variant="outline" size="sm" (click)="refreshList.emit()">
+        <ng-icon name="lucideRefreshCw" />
+        Atualizar
+      </button>
+      <button hlmBtn type="button" size="sm" (click)="create.emit()">
+        <ng-icon name="lucidePlus" />
+        Nova reserva
+      </button>
+    </div>
+  </div>
+
+  @if (isAdmin() && viewMode() === 'mine' && pendingApprovalCount() > 0) {
+    <button
+      hlmBtn
+      type="button"
+      variant="outline"
+      class="justify-between w-full"
+      (click)="focusPending.emit()"
+    >
+      <span>{{ pendingApprovalCount() }} {{ pendingApprovalCount() === 1 ? 'reserva aguarda' : 'reservas aguardam' }} decisão</span>
+      <span>Revisar</span>
+    </button>
+  }
+
+  @if (isAdmin()) {
+    <div class="desktop-page__filters" role="tablist" aria-label="Escopo">
+      <button
+        hlmBtn
+        type="button"
+        size="sm"
+        [variant]="viewMode() === 'mine' ? 'default' : 'outline'"
+        (click)="viewModeChange.emit('mine')"
+      >
+        <ng-icon name="lucideUser" />
+        Minhas
+      </button>
+      <button
+        hlmBtn
+        type="button"
+        size="sm"
+        [variant]="viewMode() === 'all' ? 'default' : 'outline'"
+        (click)="viewModeChange.emit('all')"
+      >
+        <ng-icon name="lucideUsers" />
+        Condomínio
+      </button>
+    </div>
+  }
+
+  <div class="desktop-page__filters" role="tablist" aria-label="Tipo">
+    @for (filter of typeFilters(); track filter.value) {
+      <button
+        hlmBtn
+        type="button"
+        size="sm"
+        [variant]="typeFilter() === filter.value ? 'default' : 'outline'"
+        (click)="typeFilterChange.emit(filter.value)"
+      >
+        <ng-icon [name]="filter.icon" />
+        {{ filter.label }}
+      </button>
+    }
+  </div>
+
+  <div class="desktop-page__filters" role="tablist" aria-label="Status">
+    @for (filter of statusFilters(); track filter.value) {
+      <button
+        hlmBtn
+        type="button"
+        size="sm"
+        [variant]="statusFilter() === filter.value ? 'default' : 'outline'"
+        (click)="statusFilterChange.emit(filter.value)"
+      >
+        {{ filter.label }}
+      </button>
+    }
+  </div>
+
+  <div class="desktop-page__panel">
+    @if (isLoading()) {
+      <div class="desktop-empty">
+        <hlm-spinner aria-label="Carregando reservas" />
+        <p class="desktop-empty__message">Carregando reservas...</p>
+      </div>
+    } @else if (filteredReservations().length === 0) {
+      <div class="desktop-empty">
+        <img class="desktop-empty__image" src="assets/illustrations/reservations-empty.svg" alt="" />
+        <p class="desktop-empty__title">Nenhuma reserva encontrada</p>
+        <p class="desktop-empty__message">Suas reservas aparecerão aqui</p>
+      </div>
+    } @else {
+      <div hlmTableContainer>
+        <table hlmTable>
+          <thead hlmTHead>
+            <tr hlmTr>
+              <th hlmTh>Data</th>
+              <th hlmTh>Espaço / Título</th>
+              <th hlmTh>Status</th>
+              @if (isAdmin() && viewMode() === 'all') {
+                <th hlmTh>Usuário</th>
+              }
+              <th hlmTh>Horário / Extra</th>
+              <th hlmTh class="text-end">Ações</th>
+            </tr>
+          </thead>
+          <tbody hlmTBody>
+            @for (reservation of filteredReservations(); track reservation.kind + '-' + reservation.id) {
+              <tr hlmTr>
+                <td hlmTd>{{ formatDate(reservation.date) }}</td>
+                <td hlmTd>{{ getReservationTitle(reservation) }}</td>
+                <td hlmTd>
+                  <span hlmBadge [variant]="statusBadgeVariant(reservation.status)">
+                    {{ getStatusLabel(reservation.status) }}
+                  </span>
+                </td>
+                @if (isAdmin() && viewMode() === 'all') {
+                  <td hlmTd>{{ reservation.kind === 'space' ? (reservation.user?.name || '—') : '—' }}</td>
+                }
+                <td hlmTd>
+                  @if (reservation.kind === 'equipment') {
+                    {{ reservation.startTime }} – {{ reservation.endTime }}
+                  } @else {
+                    —
+                  }
+                </td>
+                <td hlmTd>
+                  <div class="flex flex-wrap justify-end gap-1">
+                    @if (canApprove(reservation)) {
+                      <button
+                        hlmBtn
+                        type="button"
+                        size="sm"
+                        [disabled]="processingId() === reservation.id"
+                        (click)="approve.emit(reservation)"
+                      >
+                        @if (processingId() === reservation.id) {
+                          <hlm-spinner />
+                        } @else {
+                          <ng-icon name="lucideCheck" />
+                        }
+                        Aprovar
+                      </button>
+                      <button
+                        hlmBtn
+                        type="button"
+                        size="sm"
+                        variant="outline"
+                        [disabled]="processingId() === reservation.id"
+                        (click)="reject.emit(reservation)"
+                      >
+                        <ng-icon name="lucideX" />
+                        Rejeitar
+                      </button>
+                    }
+                    @if (canCancelApprovedSpace(reservation)) {
+                      <button
+                        hlmBtn
+                        type="button"
+                        size="sm"
+                        variant="outline"
+                        [disabled]="processingId() === reservation.id"
+                        (click)="cancelSpace.emit(reservation)"
+                      >
+                        <ng-icon name="lucideBan" />
+                        Cancelar
+                      </button>
+                    }
+                    @if (canCancelEquipment(reservation)) {
+                      <button
+                        hlmBtn
+                        type="button"
+                        size="sm"
+                        variant="outline"
+                        [disabled]="processingId() === reservation.id"
+                        (click)="cancelEquipment.emit(reservation)"
+                      >
+                        <ng-icon name="lucideBan" />
+                        Cancelar
+                      </button>
+                    }
+                  </div>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  </div>
+</div>

@@ -64,6 +64,33 @@
       ],
       "@spartan-ng/helm/textarea": [
         "./libs/ui/textarea/src/index.ts"
+      ],
+      "@spartan-ng/helm/badge": [
+        "./libs/ui/badge/src/index.ts"
+      ],
+      "@spartan-ng/helm/table": [
+        "./libs/ui/table/src/index.ts"
+      ],
+      "@spartan-ng/helm/breadcrumb": [
+        "./libs/ui/breadcrumb/src/index.ts"
+      ],
+      "@spartan-ng/helm/tooltip": [
+        "./libs/ui/tooltip/src/index.ts"
+      ],
+      "@spartan-ng/helm/sheet": [
+        "./libs/ui/sheet/src/index.ts"
+      ],
+      "@spartan-ng/helm/dropdown-menu": [
+        "./libs/ui/dropdown-menu/src/index.ts"
+      ],
+      "@spartan-ng/helm/tabs": [
+        "./libs/ui/tabs/src/index.ts"
+      ],
+      "@spartan-ng/helm/sidebar": [
+        "./libs/ui/sidebar/src/index.ts"
+      ],
+      "@spartan-ng/helm/collapsible": [
+        "./libs/ui/collapsible/src/index.ts"
       ]
     }
   },

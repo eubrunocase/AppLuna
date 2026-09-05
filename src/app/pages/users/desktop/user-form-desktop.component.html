@@ -1,0 +1,172 @@
+<div class="desktop-page">
+  <div class="desktop-page__toolbar">
+    <div>
+      <h1 class="m-0 text-xl font-bold text-[#361a14]">
+        {{ isEdit() ? 'Editar usuário' : 'Novo usuário' }}
+      </h1>
+      <p class="m-0 mt-1 text-sm text-[#8a6f66]">
+        @if (isEdit()) {
+          Atualize os dados cadastrais
+        } @else {
+          {{ step() === 1 ? 'Etapa 1 de 2 — dados da pessoa' : 'Etapa 2 de 2 — escolha o papel' }}
+        }
+      </p>
+    </div>
+  </div>
+
+  @if (!isEdit() && !isLoadingUser()) {
+    <div class="user-steps" aria-label="Progresso">
+      @for (s of steps; track s.id) {
+        <span
+          class="user-steps__item"
+          [class.user-steps__item--active]="step() === s.id"
+          [class.user-steps__item--done]="step() > s.id"
+        >
+          <span class="user-steps__num">{{ s.id }}</span>
+          {{ s.label }}
+        </span>
+      }
+    </div>
+  }
+
+  <div class="desktop-page__panel user-form-panel">
+    @if (isLoadingUser()) {
+      <div class="user-loading" role="status">
+        <hlm-spinner aria-label="Carregando usuário" />
+        <span>Carregando usuário...</span>
+      </div>
+    } @else if (step() === 1) {
+      <h2 class="m-0 text-lg font-bold text-[#361a14]">
+        {{ isEdit() ? 'Dados do usuário' : 'Quem é a pessoa?' }}
+      </h2>
+      <p class="m-0 mt-1 mb-3 text-sm text-[#8a6f66]">
+        {{ isEdit() ? 'Atualize nome, unidade e senha se precisar' : 'Nome, unidade, e-mail e senha de acesso' }}
+      </p>
+
+      <form [formGroup]="form()" class="user-form">
+        <hlm-field-group>
+          <hlm-field>
+            <label hlmFieldLabel for="user-name-desktop">Nome completo</label>
+            <div class="input-with-icon">
+              <ng-icon name="lucideUser" class="field-icon" aria-hidden="true" />
+              <input hlmInput id="user-name-desktop" type="text" formControlName="name" class="user-input pl-9" placeholder="Ex: Ana Souza" [attr.aria-invalid]="showError('name')" />
+            </div>
+            @if (showError('name')) {
+              <hlm-field-error [forceShow]="true">Informe o nome</hlm-field-error>
+            }
+          </hlm-field>
+
+          <hlm-field>
+            <label hlmFieldLabel for="user-apartment-desktop">Apartamento</label>
+            <div class="input-with-icon">
+              <ng-icon name="lucideBuilding2" class="field-icon" aria-hidden="true" />
+              <input hlmInput id="user-apartment-desktop" type="text" formControlName="apartment" class="user-input pl-9" placeholder="Ex: 101" [attr.aria-invalid]="showError('apartment')" />
+            </div>
+            @if (showError('apartment')) {
+              <hlm-field-error [forceShow]="true">Informe o apartamento</hlm-field-error>
+            }
+          </hlm-field>
+
+          <hlm-field>
+            <label hlmFieldLabel for="user-email-desktop">E-mail</label>
+            <div class="input-with-icon">
+              <ng-icon name="lucideMail" class="field-icon" aria-hidden="true" />
+              <input hlmInput id="user-email-desktop" type="email" formControlName="email" class="user-input pl-9" placeholder="nome@email.com" [attr.aria-invalid]="showError('email')" />
+            </div>
+            @if (showError('email')) {
+              <hlm-field-error [forceShow]="true">Informe um e-mail válido</hlm-field-error>
+            }
+          </hlm-field>
+
+          <hlm-field>
+            <label hlmFieldLabel for="user-password-desktop">
+              {{ isEdit() ? 'Nova senha (opcional)' : 'Senha' }}
+            </label>
+            <div class="input-with-icon">
+              <ng-icon name="lucideLock" class="field-icon" aria-hidden="true" />
+              <input
+                hlmInput
+                id="user-password-desktop"
+                [type]="showPassword() ? 'text' : 'password'"
+                formControlName="password"
+                class="user-input pl-9 pr-10"
+                [placeholder]="isEdit() ? 'Deixe em branco para manter' : 'Mínimo de 4 caracteres'"
+                [attr.aria-invalid]="showError('password')"
+              />
+              <button
+                type="button"
+                class="password-toggle"
+                [attr.aria-label]="showPassword() ? 'Ocultar senha' : 'Mostrar senha'"
+                (click)="showPasswordChange.emit(!showPassword())"
+              >
+                <ng-icon [name]="showPassword() ? 'lucideEyeOff' : 'lucideEye'" />
+              </button>
+            </div>
+            @if (showError('password')) {
+              <hlm-field-error [forceShow]="true">A senha precisa ter ao menos 4 caracteres</hlm-field-error>
+            }
+          </hlm-field>
+        </hlm-field-group>
+      </form>
+
+      <div class="user-actions">
+        @if (isEdit()) {
+          <button hlmBtn type="button" [disabled]="isSubmitting()" (click)="submit.emit()">
+            @if (isSubmitting()) { <hlm-spinner /> Salvando... } @else { <ng-icon name="lucideCheck" /> Salvar }
+          </button>
+        } @else {
+          <button hlmBtn type="button" [disabled]="!canProceedStep1()" (click)="goToStep.emit(2)">
+            Continuar
+            <ng-icon name="lucideArrowRight" />
+          </button>
+        }
+      </div>
+    } @else {
+      <h2 class="m-0 text-lg font-bold text-[#361a14]">Qual o papel?</h2>
+      <p class="m-0 mt-1 mb-3 text-sm text-[#8a6f66]">Isso define o que a pessoa vê no app</p>
+
+      <hlm-radio-group
+        class="role-grid"
+        name="user-role-desktop"
+        [ngModel]="selectedRole()"
+        (ngModelChange)="selectedRoleChange.emit($event)"
+        aria-label="Papel do usuário"
+      >
+        @for (role of roleOptions(); track role.value) {
+          <label
+            class="role-card"
+            [class.role-card--selected]="selectedRole() === role.value"
+            [for]="role.inputId + '-desktop'"
+          >
+            <hlm-radio
+              class="role-card__radio"
+              [value]="role.value"
+              [inputId]="role.inputId + '-desktop'"
+              [attr.aria-label]="role.label"
+            />
+            <span class="role-card__icon"><ng-icon [name]="role.icon" /></span>
+            <span>
+              <span class="role-card__name">{{ role.label }}</span>
+              <span class="role-card__hint">{{ role.hint }}</span>
+            </span>
+          </label>
+        }
+      </hlm-radio-group>
+
+      <div class="user-actions">
+        <button hlmBtn type="button" variant="outline" (click)="goToStep.emit(1)">
+          <ng-icon name="lucideArrowLeft" />
+          Voltar
+        </button>
+        <button
+          hlmBtn
+          type="button"
+          [disabled]="!canSubmit() || isSubmitting()"
+          (click)="submit.emit()"
+        >
+          @if (isSubmitting()) { <hlm-spinner /> Criando... } @else { <ng-icon name="lucideCheck" /> Criar }
+        </button>
+      </div>
+    }
+  </div>
+</div>

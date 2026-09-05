@@ -19,6 +19,7 @@ import { OccurrenceResponseDTO } from '../../../core/models';
 import { AppNavigationService } from '../../../core/navigation/app-navigation.service';
 import { APP_ROUTES } from '../../../core/navigation/app-routes';
 import { AppShellService } from '../../../core/shell/app-shell.service';
+import { LayoutService } from '../../../core/layout/layout.service';
 import { UiService } from '../../../shared/services/ui.service';
 import { LunaItemListComponent } from '../../../shared/components/luna-item-list/luna-item-list.component';
 import { catchError, finalize, of } from 'rxjs';
@@ -26,7 +27,6 @@ import { catchError, finalize, of } from 'rxjs';
 @Component({
   selector: 'app-occurrences-tab',
   templateUrl: './occurrences-tab.page.html',
-  styleUrl: './occurrences-tab.page.scss',
   standalone: true,
   imports: [
     IonContent,
@@ -52,6 +52,7 @@ export class OccurrencesTabPage implements ViewWillEnter {
   private shell = inject(AppShellService);
   private uiService = inject(UiService);
   private cdr = inject(ChangeDetectorRef);
+  readonly layout = inject(LayoutService);
 
   occurrences: OccurrenceResponseDTO[] = [];
   isLoading = true;

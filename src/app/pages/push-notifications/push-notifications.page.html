@@ -1,0 +1,15 @@
+@if (layout.isDesktop()) {
+  <app-push-notifications-desktop
+    [isSubscribed]="isSubscribed"
+    [isLoading]="isLoading"
+    [errorMessage]="errorMessage"
+    (toggle)="toggleSubscription()"
+  />
+} @else {
+  <app-push-notifications-mobile
+    [isSubscribed]="isSubscribed"
+    [isLoading]="isLoading"
+    [errorMessage]="errorMessage"
+    (toggle)="toggleSubscription()"
+  />
+}

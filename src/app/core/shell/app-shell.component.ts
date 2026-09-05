@@ -15,15 +15,22 @@ import { NgIcon, provideIcons } from '@ng-icons/core';
 import {
   lucideCalendar,
   lucideChevronLeft,
+  lucideClipboardList,
+  lucideFileText,
   lucideHome,
   lucideMoonStar,
   lucidePackage,
   lucideTriangleAlert,
+  lucideTv,
+  lucideUsers,
 } from '@ng-icons/lucide';
 import { HlmButtonImports } from '@spartan-ng/helm/button';
+import { HlmBreadcrumbImports } from '@spartan-ng/helm/breadcrumb';
+import { HlmSeparatorImports } from '@spartan-ng/helm/separator';
 import { filter, Subscription } from 'rxjs';
+import { LayoutService } from '../layout/layout.service';
 import { AppNavigationService } from '../navigation/app-navigation.service';
-import { AppTabId, resolveTabFromUrl } from '../navigation/app-routes';
+import { APP_ROUTES, AppTabId, resolveTabFromUrl } from '../navigation/app-routes';
 import { TabStackService } from '../navigation/tab-stack.service';
 import { AuthService } from '../../services/auth.service';
 import { AppShellService } from './app-shell.service';
@@ -36,6 +43,8 @@ import { LogoutConfirmComponent } from '../../shared/components/logout-confirm/l
     IonRouterOutlet,
     NgIcon,
     HlmButtonImports,
+    HlmBreadcrumbImports,
+    HlmSeparatorImports,
     LogoutConfirmComponent,
     NgComponentOutlet,
   ],
@@ -47,6 +56,10 @@ import { LogoutConfirmComponent } from '../../shared/components/logout-confirm/l
       lucideCalendar,
       lucidePackage,
       lucideTriangleAlert,
+      lucideUsers,
+      lucideFileText,
+      lucideTv,
+      lucideClipboardList,
     }),
   ],
   templateUrl: './app-shell.component.html',
@@ -57,6 +70,7 @@ export class AppShellComponent implements OnInit, AfterViewInit, OnDestroy {
   private readonly navigation = inject(AppNavigationService);
   private readonly tabStacks = inject(TabStackService);
   private readonly authService = inject(AuthService);
+  readonly layout = inject(LayoutService);
   readonly shell = inject(AppShellService);
 
   private readonly shellRoot = viewChild<ElementRef<HTMLElement>>('shellRoot');
@@ -64,9 +78,14 @@ export class AppShellComponent implements OnInit, AfterViewInit, OnDestroy {
 
   canSeeReservations = false;
   canSeeOccurrences = false;
+  canManageAdmin = false;
+  canManageDeliveries = false;
+  canManageEquipment = false;
   activeTab: AppTabId = 'home';
   userFirstName = '';
   userRoleLabel = '';
+
+  readonly routes = APP_ROUTES;
 
   private routerSub?: Subscription;
   private headerObserver?: ResizeObserver;
@@ -75,6 +94,7 @@ export class AppShellComponent implements OnInit, AfterViewInit, OnDestroy {
     effect(() => {
       this.shell.headerState();
       this.shell.expandContent();
+      this.layout.isDesktop();
       queueMicrotask(() => this.syncShellMetrics());
     });
   }
@@ -88,12 +108,8 @@ export class AppShellComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   ngAfterViewInit(): void {
-    const headerEl = this.shellHeader()?.nativeElement;
-    if (!headerEl) return;
-
+    this.attachHeaderObserver();
     this.syncShellMetrics();
-    this.headerObserver = new ResizeObserver(() => this.syncShellMetrics());
-    this.headerObserver.observe(headerEl);
   }
 
   ngOnDestroy(): void {
@@ -101,11 +117,35 @@ export class AppShellComponent implements OnInit, AfterViewInit, OnDestroy {
     this.headerObserver?.disconnect();
   }
 
-  private syncShellMetrics(): void {
+  private attachHeaderObserver(): void {
+    this.headerObserver?.disconnect();
     const headerEl = this.shellHeader()?.nativeElement;
-    const shellEl = this.shellRoot()?.nativeElement;
-    if (!headerEl || !shellEl) return;
+    if (!headerEl) return;
+    this.headerObserver = new ResizeObserver(() => this.syncShellMetrics());
+    this.headerObserver.observe(headerEl);
+  }
 
+  private syncShellMetrics(): void {
+    const shellEl = this.shellRoot()?.nativeElement;
+    if (!shellEl) return;
+
+    this.attachHeaderObserver();
+
+    if (this.layout.isDesktop()) {
+      const headerEl = this.shellHeader()?.nativeElement;
+      const headerHeight = headerEl
+        ? `${headerEl.getBoundingClientRect().height}px`
+        : '4rem';
+      shellEl.style.setProperty('--app-header-height', headerHeight);
+      document.documentElement.style.setProperty('--app-header-height', headerHeight);
+      document.documentElement.style.setProperty('--app-dock-height', '0px');
+      document.documentElement.style.setProperty('--app-content-top', '1.25rem');
+      document.documentElement.style.setProperty('--app-content-bottom', '1.5rem');
+      return;
+    }
+
+    const headerEl = this.shellHeader()?.nativeElement;
+    if (!headerEl) return;
     const headerHeight = `${headerEl.getBoundingClientRect().height}px`;
     shellEl.style.setProperty('--app-header-height', headerHeight);
     document.documentElement.style.setProperty('--app-header-height', headerHeight);
@@ -120,8 +160,8 @@ export class AppShellComponent implements OnInit, AfterViewInit, OnDestroy {
     void this.navigation.pop();
   }
 
-  onTabClick(tab: AppTabId, event: Event): void {
-    event.preventDefault();
+  onTabClick(tab: AppTabId, event?: Event): void {
+    event?.preventDefault();
     if (this.activeTab === tab) {
       void this.navigation.selectTabRoot(tab);
     } else {
@@ -129,8 +169,16 @@ export class AppShellComponent implements OnInit, AfterViewInit, OnDestroy {
     }
   }
 
+  goTo(route: string): void {
+    void this.navigation.push(route);
+  }
+
   isTabActive(tab: AppTabId): boolean {
     return this.activeTab === tab;
+  }
+
+  isRouteActive(prefix: string): boolean {
+    return this.router.url.startsWith(prefix);
   }
 
   progressSteps(): number[] {

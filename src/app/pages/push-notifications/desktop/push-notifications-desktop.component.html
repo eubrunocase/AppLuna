@@ -1,0 +1,55 @@
+<div class="desktop-page">
+  <div class="desktop-page__toolbar">
+    <div>
+      <h1 class="m-0 text-xl font-bold text-[#361a14]">Notificações</h1>
+      <p class="m-0 mt-1 text-sm text-[#8a6f66]">Preferências de push no navegador</p>
+    </div>
+  </div>
+
+  <div class="push-settings-layout">
+    <div class="desktop-page__panel push-panel">
+      <h2>Push Notifications</h2>
+      <p>Receba notificações em tempo real sobre ocorrências e eventos do condomínio.</p>
+      <p class="push-meta">
+        <ng-icon name="lucideInfo" />
+        Utilizamos Web Push nativo com VAPID — sem Firebase.
+      </p>
+
+      <div class="push-actions">
+        <button
+          hlmBtn
+          type="button"
+          [variant]="isSubscribed() ? 'destructive' : 'default'"
+          [disabled]="isLoading()"
+          (click)="toggle.emit()"
+        >
+          @if (isLoading()) {
+            <hlm-spinner />
+          } @else {
+            <ng-icon [name]="isSubscribed() ? 'lucideBellOff' : 'lucideBell'" />
+            {{ isSubscribed() ? 'Desativar Notificações' : 'Ativar Notificações' }}
+          }
+        </button>
+      </div>
+
+      @if (errorMessage()) {
+        <div class="error-message" role="alert">
+          <ng-icon name="lucideCircleAlert" />
+          <span>{{ errorMessage() }}</span>
+        </div>
+      }
+    </div>
+
+    <aside class="push-side">
+      <h3>Status</h3>
+      <span hlmBadge [variant]="isSubscribed() ? 'default' : 'secondary'">
+        <ng-icon [name]="isSubscribed() ? 'lucideCircleCheck' : 'lucideCircleAlert'" class="me-1" />
+        {{ isSubscribed() ? 'Inscrito' : 'Não inscrito' }}
+      </span>
+      <p>
+        O status depende da permissão do navegador. Se a ativação falhar, verifique as
+        configurações de notificação do site.
+      </p>
+    </aside>
+  </div>
+</div>

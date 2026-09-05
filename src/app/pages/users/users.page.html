@@ -182,14 +182,33 @@
     icon="lucideTriangleAlert"
     (confirmed)="confirmDelete()"
   />
+} @else {
+  <app-users-mobile
+    [roleFilters]="roleFilters"
+    [roleFilter]="roleFilter"
+    [searchQuery]="searchQuery"
+    [isLoading]="isLoading"
+    [skeletonItems]="skeletonItems"
+    [compactSkeletonItems]="compactSkeletonItems"
+    [filteredUsers]="filteredUsers"
+    [itemSize]="itemSize"
+    [compactItemSize]="compactItemSize"
+    [processingId]="processingId"
+    [currentUserId]="currentUserId"
+    (refresh)="refresh($event)"
+    (roleFilterChange)="setRoleFilter($event)"
+    (searchQueryChange)="setSearchQuery($event)"
+    (edit)="openEdit($event)"
+    (deleteUser)="askDelete($event)"
+    (create)="openCreate()"
+  />
+}
 
-  <button
-    slot="fixed"
-    type="button"
-    class="users-fab"
-    aria-label="Novo usuário"
-    (click)="openCreate()"
-  >
-    <ng-icon name="lucidePlus" />
-  </button>
-</ion-content>
+<app-confirm-dialog
+  #confirmDialog
+  [title]="confirmTitle"
+  [description]="confirmDescription"
+  [confirmLabel]="confirmLabel"
+  icon="lucideTriangleAlert"
+  (confirmed)="confirmDelete()"
+/>

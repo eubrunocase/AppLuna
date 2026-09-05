@@ -1,0 +1,94 @@
+<ion-content class="shell-page-content reservation-flow-content">
+  <div class="reservation-flow-shell">
+<section class="reservation-step" aria-labelledby="date-section-title">
+  <header class="section-header">
+    <span class="section-step" aria-hidden="true">2</span>
+    <div>
+      <h2 id="date-section-title" class="section-title">Selecione a data</h2>
+      <p class="section-subtitle">Escolha quando deseja usar o espaço</p>
+    </div>
+  </header>
+
+  @if (selectedSpace(); as space) {
+    <div hlmCard size="sm" class="selected-space-summary">
+      <div hlmCardContent class="selected-space-summary__inner">
+        <span class="selected-space-summary__thumb">
+          <img [src]="space.imageSrc" [alt]="space.name" />
+        </span>
+        <div class="selected-space-summary__text">
+          <span class="selected-space-summary__label">Espaço selecionado</span>
+          <span class="selected-space-summary__name">{{ space.name }}</span>
+        </div>
+      </div>
+    </div>
+  }
+
+  <div class="date-picker-panel">
+    <div class="date-picker-panel__top">
+      <span class="date-picker-panel__eyebrow">Quando?</span>
+      <p class="date-picker-panel__hint">Role para escolher a data da reserva</p>
+    </div>
+    <app-luna-date-picker
+      [minDate]="minPickerDate()"
+      (dateChange)="dateChange.emit($event)"
+    />
+    <button
+      hlmBtn
+      type="button"
+      variant="outline"
+      class="check-btn"
+      [disabled]="isCheckingAvailability() || isSubmitting()"
+      (click)="checkAvailability.emit()"
+    >
+      @if (isCheckingAvailability()) {
+        <hlm-spinner aria-label="Verificando disponibilidade" />
+        <span>Verificando...</span>
+      } @else {
+        <span>Checar</span>
+      }
+    </button>
+  </div>
+
+  @if (showAvailabilityResult() !== null && !isCheckingAvailability()) {
+    <div
+      hlmCard
+      size="sm"
+      class="availability"
+      [class.availability--available]="showAvailabilityResult()"
+      [class.availability--unavailable]="!showAvailabilityResult()"
+      role="status"
+    >
+      <div hlmCardContent class="availability__inner">
+        <ng-icon [name]="showAvailabilityResult() ? 'lucideCircleCheck' : 'lucideCircleX'" />
+        <span>{{ showAvailabilityResult() ? 'Data disponível!' : 'Data já reservada' }}</span>
+      </div>
+    </div>
+  }
+</section>
+  </div>
+
+  <div slot="fixed" class="reservation-actions">
+  <div class="form-footer form-footer--split">
+    <button hlmBtn type="button" variant="outline" class="back-btn" (click)="back.emit()">
+      <ng-icon name="lucideArrowLeft" />
+      <span>Voltar</span>
+    </button>
+
+    <button
+      hlmBtn
+      type="button"
+      class="submit-btn submit-btn--compact"
+      [disabled]="isSubmitting() || isCheckingAvailability()"
+      (click)="submit.emit()"
+    >
+      @if (isSubmitting()) {
+        <hlm-spinner aria-label="Enviando solicitação" />
+        <span>Enviando...</span>
+      } @else {
+        <ng-icon name="lucideCalendarCheck" />
+        <span>Solicitar</span>
+      }
+    </button>
+  </div>
+</div>
+</ion-content>

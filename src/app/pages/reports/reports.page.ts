@@ -26,19 +26,19 @@ import {
   ReportFormat,
 } from '../../core/models';
 import { AppShellService } from '../../core/shell/app-shell.service';
+import { LayoutService } from '../../core/layout/layout.service';
 import { ReservationService } from '../../services/reservation.service';
 import { getSpaceCatalogEntry } from '../reservations/space-catalog';
 import { LunaDatePickerComponent } from '../../shared/components/luna-date-picker/luna-date-picker.component';
 import { LunaItemListComponent } from '../../shared/components/luna-item-list/luna-item-list.component';
 import { CelebrationService } from '../../shared/services/celebration.service';
 import { UiService } from '../../shared/services/ui.service';
-
-type ReportStep = 1 | 2 | 3;
+import { ReportsDesktopComponent } from './desktop/reports-desktop.component';
+import { ReportsMobileComponent, type ReportStep } from './mobile/reports-mobile.component';
 
 @Component({
   selector: 'app-reports',
   templateUrl: './reports.page.html',
-  styleUrl: './reports.page.scss',
   standalone: true,
   imports: [
     IonContent,
@@ -73,6 +73,7 @@ export class ReportsPage implements OnDestroy, ViewWillEnter {
   private uiService = inject(UiService);
   private celebration = inject(CelebrationService);
   private cdr = inject(ChangeDetectorRef);
+  readonly layout = inject(LayoutService);
 
   readonly step = signal<ReportStep>(1);
   readonly selectedMonth = signal(new Date().getMonth() + 1);

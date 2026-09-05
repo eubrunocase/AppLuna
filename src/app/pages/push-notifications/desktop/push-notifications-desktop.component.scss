@@ -1,0 +1,88 @@
+.push-settings-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(14rem, 0.7fr);
+  gap: 1.25rem;
+  align-items: start;
+  max-width: 56rem;
+}
+
+.push-panel {
+  padding: 1.5rem;
+}
+
+.push-panel h2 {
+  margin: 0 0 0.5rem;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #361a14;
+}
+
+.push-panel p {
+  margin: 0;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  color: #8a5a4e;
+}
+
+.push-meta {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  margin-top: 1rem;
+  font-size: 0.8rem;
+  color: #8a5a4e;
+
+  ng-icon {
+    flex-shrink: 0;
+    margin-top: 0.1rem;
+    color: #c05c46;
+  }
+}
+
+.push-actions {
+  margin-top: 1.25rem;
+}
+
+.push-side {
+  padding: 1.15rem;
+  border-radius: 1rem;
+  border: 1px solid rgba(192, 92, 70, 0.12);
+  background: #ffffff;
+  box-shadow: 0 8px 22px rgba(54, 26, 20, 0.05);
+}
+
+.push-side h3 {
+  margin: 0 0 0.5rem;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #361a14;
+}
+
+.push-side p {
+  margin: 0.75rem 0 0;
+  font-size: 0.8125rem;
+  line-height: 1.45;
+  color: #8a5a4e;
+}
+
+.error-message {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  margin-top: 1rem;
+  padding: 0.85rem;
+  border-radius: 0.75rem;
+  background: rgba(239, 68, 68, 0.1);
+  color: #991b1b;
+  font-size: 0.875rem;
+
+  ng-icon {
+    flex-shrink: 0;
+  }
+}
+
+@media (max-width: 900px) {
+  .push-settings-layout {
+    grid-template-columns: 1fr;
+  }
+}

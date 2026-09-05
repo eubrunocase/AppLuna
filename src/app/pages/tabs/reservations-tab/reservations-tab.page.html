@@ -249,14 +249,38 @@
     [icon]="confirmIcon"
     (confirmed)="confirmDialogAction()"
   />
+} @else {
+  <app-reservations-tab-mobile
+    [isAdmin]="isAdmin"
+    [viewMode]="viewMode"
+    [pendingApprovalCount]="pendingApprovalCount"
+    [typeFilters]="typeFilters"
+    [statusFilters]="statusFilters"
+    [typeFilter]="typeFilter"
+    [statusFilter]="statusFilter"
+    [isLoading]="isLoading"
+    [skeletonItems]="skeletonItems"
+    [filteredReservations]="filteredReservations"
+    [itemSize]="itemSize"
+    [processingId]="processingId"
+    (refresh)="refresh($event)"
+    (focusPending)="focusPending()"
+    (viewModeChange)="setViewMode($event)"
+    (typeFilterChange)="setTypeFilter($event)"
+    (statusFilterChange)="setStatusFilter($event)"
+    (approve)="approveReservation($event)"
+    (reject)="rejectReservation($event)"
+    (cancelSpace)="cancelSpaceReservation($event)"
+    (cancelEquipment)="cancelEquipmentReservation($event)"
+    (create)="openNewReservation()"
+  />
+}
 
-  <button
-    slot="fixed"
-    type="button"
-    class="reservations-fab"
-    aria-label="Nova reserva"
-    (click)="openNewReservation()"
-  >
-    <ng-icon name="lucidePlus" />
-  </button>
-</ion-content>
+<app-confirm-dialog
+  #confirmDialog
+  [title]="confirmTitle"
+  [description]="confirmDescription"
+  [confirmLabel]="confirmLabel"
+  [icon]="confirmIcon"
+  (confirmed)="confirmDialogAction()"
+/>

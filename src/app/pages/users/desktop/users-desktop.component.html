@@ -1,0 +1,99 @@
+<div class="desktop-page">
+  <div class="desktop-page__toolbar">
+    <div>
+      <h1 class="m-0 text-xl font-bold text-[#361a14]">Usuários</h1>
+      <p class="m-0 mt-1 text-sm text-[#8a6f66]">Gestão de moradores e equipe</p>
+    </div>
+    <div class="flex flex-wrap gap-2">
+      <button hlmBtn type="button" variant="outline" size="sm" (click)="refreshList.emit()">
+        <ng-icon name="lucideRefreshCw" />
+        Atualizar
+      </button>
+      <button hlmBtn type="button" size="sm" (click)="create.emit()">
+        <ng-icon name="lucidePlus" />
+        Novo usuário
+      </button>
+    </div>
+  </div>
+
+  <div class="desktop-page__filters">
+    @for (filter of roleFilters(); track filter.value) {
+      <button
+        hlmBtn type="button" size="sm"
+        [variant]="roleFilter() === filter.value ? 'default' : 'outline'"
+        (click)="roleFilterChange.emit(filter.value)"
+      >
+        <ng-icon [name]="filter.icon" />
+        {{ filter.label }}
+      </button>
+    }
+  </div>
+
+  <div class="relative max-w-md">
+    <ng-icon name="lucideSearch" class="absolute left-3 top-1/2 -translate-y-1/2 text-[#8a6f66]" />
+    <input
+      hlmInput
+      type="search"
+      class="ps-9"
+      placeholder="Buscar por nome, e-mail ou apto"
+      [ngModel]="searchQuery()"
+      (ngModelChange)="searchQueryChange.emit($event)"
+    />
+  </div>
+
+  <div class="desktop-page__panel">
+    @if (isLoading()) {
+      <div class="desktop-empty"><hlm-spinner /><p class="desktop-empty__message">Carregando...</p></div>
+    } @else if (filteredUsers().length === 0) {
+      <div class="desktop-empty">
+        <img class="desktop-empty__image" src="assets/illustrations/users-empty.svg" alt="" />
+        <p class="desktop-empty__title">Nenhum usuário encontrado</p>
+        <p class="desktop-empty__message">
+          {{ searchQuery() || roleFilter() !== 'ALL' ? 'Ajuste a busca ou o filtro' : 'Cadastre o primeiro morador, funcionário ou síndico' }}
+        </p>
+      </div>
+    } @else {
+      <div hlmTableContainer>
+        <table hlmTable>
+          <thead hlmTHead>
+            <tr hlmTr>
+              <th hlmTh>Nome</th>
+              <th hlmTh>E-mail</th>
+              <th hlmTh>Apto</th>
+              <th hlmTh>Papel</th>
+              <th hlmTh class="text-end">Ações</th>
+            </tr>
+          </thead>
+          <tbody hlmTBody>
+            @for (user of filteredUsers(); track user.id) {
+              <tr hlmTr>
+                <td hlmTd>{{ user.name }}</td>
+                <td hlmTd>{{ user.email }}</td>
+                <td hlmTd>{{ user.apartment }}</td>
+                <td hlmTd>
+                  <span hlmBadge [variant]="roleVariant(user.role)">{{ getRoleLabel(user.role) }}</span>
+                </td>
+                <td hlmTd>
+                  <div class="flex justify-end gap-1">
+                    <button hlmBtn type="button" size="sm" variant="outline" (click)="edit.emit(user)">
+                      <ng-icon name="lucidePencil" />
+                      Editar
+                    </button>
+                    <button
+                      hlmBtn type="button" size="sm" variant="outline"
+                      [disabled]="processingId() === user.id || isCurrentUser(user)"
+                      (click)="deleteUser.emit(user)"
+                    >
+                      @if (processingId() === user.id) { <hlm-spinner /> } @else { <ng-icon name="lucideTrash2" /> }
+                      Excluir
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  </div>
+</div>

@@ -32,18 +32,23 @@ import { EquipmentReservationResponseDTO, EquipmentReservationStatus, UserRoles 
 import { AppNavigationService } from '../../core/navigation/app-navigation.service';
 import { APP_ROUTES } from '../../core/navigation/app-routes';
 import { AppShellService } from '../../core/shell/app-shell.service';
+import { LayoutService } from '../../core/layout/layout.service';
 import { AuthService } from '../../services/auth.service';
 import { EquipmentReservationService } from '../../services/equipment-reservation.service';
 import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog/confirm-dialog.component';
 import { LunaItemListComponent } from '../../shared/components/luna-item-list/luna-item-list.component';
 import { UiService } from '../../shared/services/ui.service';
+import { EquipmentReservationsDesktopComponent } from './desktop/equipment-reservations-desktop.component';
+import {
+  EquipmentReservationsMobileComponent,
+  type EquipmentStatusFilter,
+} from './mobile/equipment-reservations-mobile.component';
 
-type StatusFilter = 'ALL' | EquipmentReservationStatus;
+type StatusFilter = EquipmentStatusFilter;
 
 @Component({
   selector: 'app-equipment-reservations',
   templateUrl: './equipment-reservations.page.html',
-  styleUrl: './equipment-reservations.page.scss',
   standalone: true,
   imports: [
     IonContent,
@@ -84,6 +89,7 @@ export class EquipmentReservationsPage implements ViewWillEnter {
   private shell = inject(AppShellService);
   private uiService = inject(UiService);
   private cdr = inject(ChangeDetectorRef);
+  readonly layout = inject(LayoutService);
 
   private readonly confirmDialog = viewChild.required<ConfirmDialogComponent>('confirmDialog');
 
