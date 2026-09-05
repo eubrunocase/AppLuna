@@ -27,6 +27,12 @@ import { Component, input } from '@angular/core';
       color: #f9f6ee;
       letter-spacing: -0.02em;
     }
+
+    @media (min-width: 1024px) {
+      .home-expand__greeting {
+        font-size: 1.65rem;
+      }
+    }
     .home-expand__meta {
       display: flex;
       flex-wrap: wrap;

@@ -12,6 +12,9 @@
   --app-header-height: calc(
     var(--shell-safe-top) + var(--shell-header-bar-height) + var(--shell-header-expand-height)
   );
+  --app-header-expanded-height: calc(
+    var(--shell-safe-top) + var(--shell-header-bar-height) + 4.75rem
+  );
   --app-dock-height: var(--shell-dock-height);
   --app-content-gap: 8px;
   --app-header-gap: 32px;
@@ -212,6 +215,17 @@
   box-shadow: 0 -4px 24px rgba(54, 26, 20, 0.1);
 }
 
+.shell-dock__brand,
+.shell-dock__footer {
+  display: none;
+}
+
+.shell-dock__nav {
+  display: flex;
+  flex: 1;
+  align-items: stretch;
+}
+
 .shell-dock__item {
   flex: 1;
   display: flex;
@@ -225,7 +239,7 @@
   font-size: 0.68rem;
   font-weight: 600;
   cursor: pointer;
-  transition: color 0.2s ease;
+  transition: color 0.2s ease, background 0.2s ease;
 }
 
 .shell-dock__item ng-icon {
@@ -243,5 +257,206 @@
   .shell-header__progress-line,
   .shell-dock__item {
     transition: none;
+  }
+}
+
+@media (min-width: 1024px) {
+  .app-shell {
+    --shell-sidebar-width: 15.75rem;
+    --shell-dock-height: 0px;
+    --app-dock-height: 0px;
+    --app-content-gap: 1.5rem;
+    --app-header-gap: 1.25rem;
+    --app-content-bottom: 1.5rem;
+    --app-fab-bottom: 1.75rem;
+    max-width: none;
+    margin: 0;
+  }
+
+  .shell-header {
+    left: var(--shell-sidebar-width);
+    transform: none;
+    width: calc(100% - var(--shell-sidebar-width));
+    max-width: none;
+    border-radius: 0;
+    box-shadow: 0 1px 0 rgba(54, 26, 20, 0.1);
+  }
+
+  .app-shell[data-header-state='expanded'] .shell-header {
+    border-radius: 0;
+  }
+
+  .shell-header__bar {
+    min-height: 3.5rem;
+    padding: 0.75rem 2rem;
+  }
+
+  .shell-header__logo {
+    display: none;
+  }
+
+  .shell-header__title {
+    font-size: 1.125rem;
+  }
+
+  .shell-header__progress,
+  .shell-header__expand--visible {
+    padding-left: 2rem;
+    padding-right: 2rem;
+  }
+
+  .shell-header__logout {
+    display: none;
+  }
+
+  .shell-dock {
+    top: 0;
+    bottom: 0;
+    left: 0;
+    transform: none;
+    flex-direction: column;
+    align-items: stretch;
+    width: var(--shell-sidebar-width);
+    max-width: none;
+    height: 100%;
+    padding: 1.25rem 0.85rem 1rem;
+    background: #2c1814;
+    border-radius: 0;
+    box-shadow: 8px 0 24px rgba(54, 26, 20, 0.18);
+  }
+
+  .shell-dock__brand {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex-shrink: 0;
+    margin: 0 0.15rem 1.35rem;
+    padding: 0.15rem 0.35rem 1.15rem;
+    border-bottom: 1px solid rgba(249, 246, 238, 0.12);
+  }
+
+  .shell-dock__logo {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 0.8rem;
+    background: #ffffff;
+    color: #c05c46;
+    font-size: 1.3rem;
+    flex-shrink: 0;
+  }
+
+  .shell-dock__brand-copy {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    gap: 0.1rem;
+  }
+
+  .shell-dock__app-name {
+    font-family: 'Big Shoulders Display', Inter, sans-serif;
+    font-size: 1.35rem;
+    font-weight: 800;
+    letter-spacing: 0.01em;
+    line-height: 1.1;
+    color: #f9f6ee;
+  }
+
+  .shell-dock__app-meta {
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: rgba(249, 246, 238, 0.62);
+  }
+
+  .shell-dock__nav {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    flex: 1;
+    min-height: 0;
+    overflow: auto;
+  }
+
+  .shell-dock__item {
+    flex: 0 0 auto;
+    flex-direction: row;
+    justify-content: flex-start;
+    gap: 0.75rem;
+    min-height: 2.7rem;
+    padding: 0.55rem 0.85rem;
+    border-radius: 0.8rem;
+    color: rgba(249, 246, 238, 0.72);
+    font-size: 0.9rem;
+    font-weight: 600;
+  }
+
+  .shell-dock__item ng-icon {
+    font-size: 1.2rem;
+  }
+
+  .shell-dock__item:hover {
+    background: rgba(249, 246, 238, 0.08);
+    color: #f9f6ee;
+  }
+
+  .shell-dock__item--active {
+    background: #c05c46;
+    color: #ffffff;
+  }
+
+  .shell-dock__item--active:hover {
+    background: #c05c46;
+    color: #ffffff;
+  }
+
+  .shell-dock__footer {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-shrink: 0;
+    margin-top: auto;
+    padding: 0.85rem 0.35rem 0.15rem;
+    border-top: 1px solid rgba(249, 246, 238, 0.12);
+  }
+
+  .shell-dock__user {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    flex: 1;
+    gap: 0.1rem;
+    padding-left: 0.35rem;
+  }
+
+  .shell-dock__user-name {
+    font-size: 0.875rem;
+    font-weight: 700;
+    color: #f9f6ee;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .shell-dock__user-role {
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: rgba(249, 246, 238, 0.62);
+  }
+
+  .shell-dock__logout {
+    color: rgba(249, 246, 238, 0.82) !important;
+    flex-shrink: 0;
+  }
+
+  .shell-dock__logout:hover {
+    color: #ffffff !important;
+    background: rgba(249, 246, 238, 0.1);
+  }
+
+  .shell-dock__logout ng-icon {
+    color: inherit;
+    font-size: 1.15rem;
   }
 }

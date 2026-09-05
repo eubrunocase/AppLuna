@@ -44,7 +44,9 @@
           />
         }
         @if (shell.showLogout()) {
-          <app-logout-confirm buttonClass="shell-icon-btn text-white hover:text-white" />
+          <app-logout-confirm
+            buttonClass="shell-icon-btn shell-header__logout text-white hover:text-white"
+          />
         }
       </div>
     </div>
@@ -91,48 +93,77 @@
   </main>
 
   <nav class="shell-dock" aria-label="Navegação principal">
-    <button
-      type="button"
-      class="shell-dock__item"
-      [class.shell-dock__item--active]="isTabActive('home')"
-      (click)="onTabClick('home', $event)"
-    >
-      <ng-icon name="lucideHome" />
-      <span>Início</span>
-    </button>
+    <div class="shell-dock__brand">
+      <div class="shell-dock__logo" aria-hidden="true">
+        <ng-icon name="lucideMoonStar" />
+      </div>
+      <div class="shell-dock__brand-copy">
+        <span class="shell-dock__app-name">Lunalink</span>
+        <span class="shell-dock__app-meta">Condomínio Luna</span>
+      </div>
+    </div>
 
-    @if (canSeeReservations) {
+    <div class="shell-dock__nav">
       <button
         type="button"
         class="shell-dock__item"
-        [class.shell-dock__item--active]="isTabActive('reservations')"
-        (click)="onTabClick('reservations', $event)"
+        [class.shell-dock__item--active]="isTabActive('home')"
+        [attr.aria-current]="isTabActive('home') ? 'page' : null"
+        (click)="onTabClick('home', $event)"
       >
-        <ng-icon name="lucideCalendar" />
-        <span>Reservas</span>
+        <ng-icon name="lucideHome" />
+        <span>Início</span>
       </button>
-    }
 
-    <button
-      type="button"
-      class="shell-dock__item"
-      [class.shell-dock__item--active]="isTabActive('deliveries')"
-      (click)="onTabClick('deliveries', $event)"
-    >
-      <ng-icon name="lucidePackage" />
-      <span>Entregas</span>
-    </button>
+      @if (canSeeReservations) {
+        <button
+          type="button"
+          class="shell-dock__item"
+          [class.shell-dock__item--active]="isTabActive('reservations')"
+          [attr.aria-current]="isTabActive('reservations') ? 'page' : null"
+          (click)="onTabClick('reservations', $event)"
+        >
+          <ng-icon name="lucideCalendar" />
+          <span>Reservas</span>
+        </button>
+      }
 
-    @if (canSeeOccurrences) {
       <button
         type="button"
         class="shell-dock__item"
-        [class.shell-dock__item--active]="isTabActive('occurrences')"
-        (click)="onTabClick('occurrences', $event)"
+        [class.shell-dock__item--active]="isTabActive('deliveries')"
+        [attr.aria-current]="isTabActive('deliveries') ? 'page' : null"
+        (click)="onTabClick('deliveries', $event)"
       >
-        <ng-icon name="lucideTriangleAlert" />
-        <span>Ocorrências</span>
+        <ng-icon name="lucidePackage" />
+        <span>Entregas</span>
       </button>
-    }
+
+      @if (canSeeOccurrences) {
+        <button
+          type="button"
+          class="shell-dock__item"
+          [class.shell-dock__item--active]="isTabActive('occurrences')"
+          [attr.aria-current]="isTabActive('occurrences') ? 'page' : null"
+          (click)="onTabClick('occurrences', $event)"
+        >
+          <ng-icon name="lucideTriangleAlert" />
+          <span>Ocorrências</span>
+        </button>
+      }
+    </div>
+
+    <div class="shell-dock__footer">
+      <div class="shell-dock__user">
+        <span class="shell-dock__user-name">{{ userFirstName }}</span>
+        <span class="shell-dock__user-role">{{ userRoleLabel }}</span>
+      </div>
+      @if (shell.showLogout()) {
+        <app-logout-confirm
+          buttonClass="shell-dock__logout"
+          ariaLabel="Sair"
+        />
+      }
+    </div>
   </nav>
 </div>

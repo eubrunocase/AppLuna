@@ -3,8 +3,9 @@
   height: 100%;
 }
 
-.home-content {
+ion-content.home-content {
   --background: #f9f6ee;
+  --padding-top: 0px;
 }
 
 .home-shell {
@@ -167,7 +168,7 @@
   grid-template-columns: repeat(var(--stat-cols, 1), minmax(0, 1fr));
   gap: 0.6rem;
   width: 100%;
-  margin: 0 0 1.25rem;
+  margin: calc(var(--app-header-expanded-height) + 64px) 0 1.25rem;
   align-items: start;
 }
 
@@ -541,23 +542,98 @@
 
 @media (min-width: 1024px) {
   .home-shell {
-    --section-gap: 3.5rem;
-    max-width: 56rem;
-    margin: 0 auto;
+    --section-gap: 2rem;
   }
 
   .home-stats {
-    width: calc(min(100%, 56rem) - 2rem);
+    width: 100%;
+    margin: calc(var(--app-header-expanded-height) + 64px) 0 1.75rem;
+    gap: 1rem;
+  }
+
+  .stat-card,
+  .home-stats--few .stat-card,
+  .home-stats--single .stat-card {
+    aspect-ratio: auto;
+    min-height: 6.75rem;
+  }
+
+  .stat-card__inner,
+  .home-stats--few .stat-card__inner {
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 1rem;
+    height: auto;
+    padding: 1.15rem 1.25rem !important;
+  }
+
+  .stat-card__top,
+  .home-stats--few .stat-card__top {
+    display: contents;
+  }
+
+  .stat-card__icon,
+  .home-stats--few .stat-card__icon {
+    order: 1;
+    width: 2.75rem;
+    height: 2.75rem;
+    border-radius: 0.85rem;
+    font-size: 1.25rem;
+  }
+
+  .stat-card__label,
+  .home-stats--few .stat-card__label {
+    order: 2;
+    flex: 1;
+    min-width: 0;
+    font-size: 0.95rem;
+  }
+
+  .stat-card__value,
+  .home-stats--few .stat-card__value {
+    order: 3;
     margin-left: auto;
-    margin-right: auto;
+    font-size: 2.1rem;
+  }
+
+  .home-body {
+    display: grid;
+    grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr);
+    gap: 2rem;
+    align-items: start;
+  }
+
+  .home-section + .home-section {
+    margin-top: 0;
+  }
+
+  .quick-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.9rem;
   }
 
   .quick-card__label {
-    font-size: 0.72rem;
+    font-size: 0.78rem;
   }
 
   .quick-card__image {
-    width: 78%;
-    height: 78%;
+    width: 72%;
+    height: 72%;
+  }
+
+  .notice-card {
+    min-height: 22rem;
+  }
+
+  .stat-card:active,
+  .quick-card:active {
+    transform: none;
+  }
+
+  .stat-card:hover,
+  .quick-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 28px rgba(54, 26, 20, 0.12);
   }
 }

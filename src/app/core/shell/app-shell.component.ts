@@ -65,6 +65,8 @@ export class AppShellComponent implements OnInit, AfterViewInit, OnDestroy {
   canSeeReservations = false;
   canSeeOccurrences = false;
   activeTab: AppTabId = 'home';
+  userFirstName = '';
+  userRoleLabel = '';
 
   private routerSub?: Subscription;
   private headerObserver?: ResizeObserver;
@@ -107,6 +109,11 @@ export class AppShellComponent implements OnInit, AfterViewInit, OnDestroy {
     const headerHeight = `${headerEl.getBoundingClientRect().height}px`;
     shellEl.style.setProperty('--app-header-height', headerHeight);
     document.documentElement.style.setProperty('--app-header-height', headerHeight);
+
+    if (this.shell.headerState() === 'expanded') {
+      shellEl.style.setProperty('--app-header-expanded-height', headerHeight);
+      document.documentElement.style.setProperty('--app-header-expanded-height', headerHeight);
+    }
   }
 
   onBack(): void {
@@ -154,5 +161,15 @@ export class AppShellComponent implements OnInit, AfterViewInit, OnDestroy {
       this.authService.isAdmin() || this.authService.isResident();
     this.canSeeOccurrences =
       this.authService.isAdmin() || this.authService.isResident();
+
+    const user = this.authService.getCurrentUser();
+    this.userFirstName = user?.name.split(' ')[0] || '';
+    if (this.authService.isAdmin()) {
+      this.userRoleLabel = 'Administrador';
+    } else if (this.authService.isEmployee()) {
+      this.userRoleLabel = 'Funcionário';
+    } else {
+      this.userRoleLabel = 'Morador';
+    }
   }
 }

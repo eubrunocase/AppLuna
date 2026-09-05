@@ -21,3 +21,24 @@
     font-size: 1.15rem;
   }
 }
+
+.shell-dock__logout {
+  color: rgba(249, 246, 238, 0.82) !important;
+  flex-shrink: 0;
+
+  ng-icon {
+    color: inherit !important;
+    font-size: 1.15rem;
+  }
+
+  &:hover {
+    color: #ffffff !important;
+    background: rgba(249, 246, 238, 0.1);
+  }
+}
+
+@media (min-width: 1024px) {
+  .shell-header__logout {
+    display: none !important;
+  }
+}

@@ -130,9 +130,11 @@ ion-content.shell-page-content {
 }
 
 :root {
+  --app-sidebar-width: 0px;
   --app-content-gap: 8px;
   --app-header-gap: 32px;
   --app-header-height: calc(env(safe-area-inset-top, 0px) + 3.25rem);
+  --app-header-expanded-height: calc(env(safe-area-inset-top, 0px) + 3.25rem + 4.75rem);
   --app-dock-height: calc(4rem + env(safe-area-inset-bottom, 0px));
   --app-content-top: calc(var(--app-header-height) + var(--app-header-gap));
   --app-content-bottom: calc(var(--app-dock-height) + var(--app-content-gap));
@@ -770,5 +772,129 @@ ion-button {
 @media (min-width: 480px) {
   .space-grid {
     grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  }
+}
+
+// =============================================================================
+// DESKTOP APP SHELL
+// =============================================================================
+
+@media (min-width: 1024px) {
+  :root {
+    --app-sidebar-width: 15.75rem;
+    --app-dock-height: 0px;
+    --app-content-gap: 1.5rem;
+    --app-header-gap: 1.25rem;
+    --app-content-bottom: 1.5rem;
+    --app-fab-bottom: 1.75rem;
+  }
+
+  ion-app:has(.app-shell) {
+    background: #2c1814;
+  }
+
+  ion-content.shell-page-content {
+    --padding-start: var(--app-sidebar-width);
+    --padding-end: 0px;
+    --padding-bottom: var(--app-content-bottom);
+  }
+
+  ion-content.shell-page-content::part(scroll) {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(192, 92, 70, 0.35) transparent;
+  }
+
+  .home-shell,
+  .reservations-shell,
+  .deliveries-shell,
+  .occurrences-shell,
+  .users-shell,
+  .equipment-shell {
+    max-width: 80rem;
+    margin-left: auto;
+    margin-right: auto;
+    padding-left: 2rem !important;
+    padding-right: 2rem !important;
+    padding-bottom: 2.5rem !important;
+  }
+
+  .reports-shell,
+  .reservation-flow-shell,
+  .user-flow-shell,
+  .occurrence-flow-shell,
+  .delivery-flow-shell,
+  .tv-reservation-shell {
+    max-width: 44rem;
+    margin-left: auto;
+    margin-right: auto;
+    padding-left: 2rem !important;
+    padding-right: 2rem !important;
+  }
+
+  .chip-row {
+    flex-wrap: wrap !important;
+    overflow: visible !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+  }
+
+  ion-content.shell-page-content .reservations-fab,
+  ion-content.shell-page-content .deliveries-fab,
+  ion-content.shell-page-content .occurrences-fab,
+  ion-content.shell-page-content .users-fab,
+  ion-content.shell-page-content .equipment-fab,
+  ion-fab {
+    right: calc(2rem + 0.25rem);
+    bottom: 1.75rem;
+  }
+
+  ion-content.shell-page-content .reservation-actions,
+  ion-content.shell-page-content .reports-actions,
+  ion-content.shell-page-content .occurrence-actions,
+  ion-content.shell-page-content .delivery-actions,
+  ion-content.shell-page-content .tv-reservation-actions,
+  ion-content.shell-page-content .user-actions {
+    left: var(--app-sidebar-width);
+    transform: none;
+    width: calc(100% - var(--app-sidebar-width));
+    max-width: none;
+    bottom: 0;
+    padding: 1rem 2rem 1.25rem;
+    display: flex;
+    justify-content: center;
+
+    > * {
+      width: 100%;
+      max-width: 44rem;
+    }
+  }
+
+  .space-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+    gap: 1rem;
+  }
+}
+
+@media (min-width: 1024px) and (hover: hover) and (pointer: fine) {
+  ion-card:active {
+    transform: none;
+  }
+
+  .stat-card:hover,
+  .quick-card:hover,
+  .reservation-card:hover,
+  .delivery-card:hover,
+  .occurrence-card:hover,
+  .space-card-option:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 28px rgba(54, 26, 20, 0.12);
+  }
+
+  .stat-card:active,
+  .quick-card:active,
+  .space-card-option:active {
+    transform: translateY(0);
   }
 }
