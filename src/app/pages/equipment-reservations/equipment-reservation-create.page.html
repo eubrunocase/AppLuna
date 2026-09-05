@@ -1,33 +1,104 @@
-@if (layout.isDesktop()) {
-  <app-equipment-reservation-create-desktop
-    [step]="step()"
-    [selectedDate]="selectedDate()"
-    [startTime]="startTime()"
-    [endTime]="endTime()"
-    [durationHours]="durationHours()"
-    [isSubmitting]="isSubmitting()"
-    [canProceedStep1]="canProceedStep1()"
-    [canSubmit]="canSubmit()"
-    [minPickerDate]="minPickerDate"
-    [pickerDate]="pickerDate()"
-    (dateChange)="onDateChange($event)"
-    (slotChange)="onSlotChange($event)"
-    (goToStep)="goToStep($event)"
-    (submit)="onSubmit()"
-  />
-} @else {
-  <app-equipment-reservation-create-mobile
-    [step]="step()"
-    [startTime]="startTime()"
-    [durationHours]="durationHours()"
-    [isSubmitting]="isSubmitting()"
-    [canProceedStep1]="canProceedStep1()"
-    [canSubmit]="canSubmit()"
-    [minPickerDate]="minPickerDate"
-    [pickerDate]="pickerDate()"
-    (dateChange)="onDateChange($event)"
-    (slotChange)="onSlotChange($event)"
-    (goToStep)="goToStep($event)"
-    (submit)="onSubmit()"
-  />
-}
+<ion-content class="shell-page-content tv-reservation-content">
+  <div class="tv-reservation-shell">
+    @switch (step()) {
+      @case (1) {
+        <section class="tv-step" aria-labelledby="tv-step-1-title">
+          <header class="section-header">
+            <span class="section-step" aria-hidden="true">1</span>
+            <div>
+              <h2 id="tv-step-1-title" class="section-title">Quando vai usar?</h2>
+              <p class="section-subtitle">Escolha o dia da reserva da TV comunitária</p>
+            </div>
+          </header>
+
+          <div class="picker-panel">
+            <div class="picker-panel__top">
+              <span class="picker-panel__eyebrow">Data</span>
+              <p class="picker-panel__hint">Role para selecionar o dia</p>
+            </div>
+            <app-luna-date-picker
+              [minDate]="minPickerDate"
+              [date]="pickerDate()"
+              (dateChange)="onDateChange($event)"
+            />
+          </div>
+        </section>
+      }
+
+      @case (2) {
+        <section class="tv-step" aria-labelledby="tv-step-2-title">
+          <header class="section-header">
+            <span class="section-step" aria-hidden="true">2</span>
+            <div>
+              <h2 id="tv-step-2-title" class="section-title">Qual o horário?</h2>
+              <p class="section-subtitle">A confirmação é automática, sem aprovação do síndico</p>
+            </div>
+          </header>
+
+          <div class="picker-panel">
+            <div class="picker-panel__top">
+              <span class="picker-panel__eyebrow">Horário</span>
+              <p class="picker-panel__hint">Defina o início e quanto tempo vai usar</p>
+            </div>
+            <app-luna-time-slot-picker
+              [startTime]="startTime()"
+              [durationHours]="durationHours()"
+              (slotChange)="onSlotChange($event)"
+            />
+          </div>
+
+          <aside class="tv-notice" aria-live="polite">
+            <span class="tv-notice__icon" aria-hidden="true">
+              <ng-icon name="lucideKeyRound" />
+            </span>
+            <p>
+              Retire o controle na portaria no horário marcado. A TV não pode ser reservada
+              no mesmo dia de uma reserva do Salão ou da Churrasqueira.
+            </p>
+          </aside>
+
+          <div class="tv-hero" aria-hidden="true">
+            <img class="tv-hero__image" src="assets/illustrations/equipment-tv.svg" alt="" />
+          </div>
+        </section>
+      }
+    }
+  </div>
+
+  <div slot="fixed" class="tv-reservation-actions">
+    @if (step() === 1) {
+      <button
+        hlmBtn
+        type="button"
+        class="submit-btn"
+        [disabled]="!canProceedStep1()"
+        (click)="goToStep(2)"
+      >
+        <span>Continuar</span>
+        <ng-icon name="lucideArrowRight" />
+      </button>
+    } @else {
+      <div class="form-footer form-footer--split">
+        <button hlmBtn type="button" variant="outline" class="back-btn" (click)="goToStep(1)">
+          <ng-icon name="lucideArrowLeft" />
+          <span>Voltar</span>
+        </button>
+        <button
+          hlmBtn
+          type="button"
+          class="submit-btn submit-btn--compact"
+          [disabled]="!canSubmit() || isSubmitting()"
+          (click)="onSubmit()"
+        >
+          @if (isSubmitting()) {
+            <hlm-spinner aria-label="Confirmando reserva" />
+            <span>Confirmando...</span>
+          } @else {
+            <ng-icon name="lucideCalendarCheck" />
+            <span>Confirmar</span>
+          }
+        </button>
+      </div>
+    }
+  </div>
+</ion-content>

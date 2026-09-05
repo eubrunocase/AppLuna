@@ -1,29 +1,49 @@
 import { Component, computed, inject, signal } from '@angular/core';
-import { ViewWillEnter } from '@ionic/angular/standalone';
+import { IonContent, ViewWillEnter } from '@ionic/angular/standalone';
+import { NgIcon, provideIcons } from '@ng-icons/core';
+import {
+  lucideArrowLeft,
+  lucideArrowRight,
+  lucideCalendarCheck,
+  lucideKeyRound,
+} from '@ng-icons/lucide';
+import { HlmButtonImports } from '@spartan-ng/helm/button';
+import { HlmSpinnerImports } from '@spartan-ng/helm/spinner';
 import { catchError, finalize, of } from 'rxjs';
 import { EquipmentReservationService } from '../../services/equipment-reservation.service';
 import { UiService } from '../../shared/services/ui.service';
 import { CelebrationService } from '../../shared/services/celebration.service';
 import { AppShellService } from '../../core/shell/app-shell.service';
-import { LayoutService } from '../../core/layout/layout.service';
 import { AppNavigationService } from '../../core/navigation/app-navigation.service';
 import { APP_ROUTES } from '../../core/navigation/app-routes';
-import { LunaTimeSlotSelection } from '../../shared/components/luna-time-slot-picker/luna-time-slot-picker.component';
-import { EquipmentReservationCreateDesktopComponent } from './desktop/equipment-reservation-create-desktop.component';
-import {
-  EquipmentReservationCreateMobileComponent,
-  type EquipmentReservationCreateStep,
-} from './mobile/equipment-reservation-create-mobile.component';
+import { LunaDatePickerComponent } from '../../shared/components/luna-date-picker/luna-date-picker.component';
+import { LunaTimeSlotPickerComponent, LunaTimeSlotSelection } from '../../shared/components/luna-time-slot-picker/luna-time-slot-picker.component';
 
 const TV_EQUIPMENT_ID = 1;
 
-type TvReservationStep = EquipmentReservationCreateStep;
+type TvReservationStep = 1 | 2;
 
 @Component({
   selector: 'app-equipment-reservation-create',
   templateUrl: './equipment-reservation-create.page.html',
+  styleUrl: './equipment-reservation-create.page.scss',
   standalone: true,
-  imports: [EquipmentReservationCreateDesktopComponent, EquipmentReservationCreateMobileComponent],
+  imports: [
+    IonContent,
+    NgIcon,
+    HlmButtonImports,
+    HlmSpinnerImports,
+    LunaDatePickerComponent,
+    LunaTimeSlotPickerComponent,
+  ],
+  providers: [
+    provideIcons({
+      lucideArrowLeft,
+      lucideArrowRight,
+      lucideCalendarCheck,
+      lucideKeyRound,
+    }),
+  ],
 })
 export class EquipmentReservationCreatePage implements ViewWillEnter {
   private equipmentService = inject(EquipmentReservationService);
@@ -31,7 +51,6 @@ export class EquipmentReservationCreatePage implements ViewWillEnter {
   private celebration = inject(CelebrationService);
   private shell = inject(AppShellService);
   private navigation = inject(AppNavigationService);
-  readonly layout = inject(LayoutService);
 
   readonly step = signal<TvReservationStep>(1);
   readonly selectedDate = signal('');

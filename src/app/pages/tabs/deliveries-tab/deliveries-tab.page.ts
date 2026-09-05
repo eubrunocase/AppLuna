@@ -27,11 +27,12 @@ import { AppShellService } from '../../../core/shell/app-shell.service';
 import { LunaItemListComponent } from '../../../shared/components/luna-item-list/luna-item-list.component';
 import { catchError, finalize, of } from 'rxjs';
 
-type StatusFilter = DeliveriesTabStatusFilter;
+type StatusFilter = 'ALL' | 'PENDING' | 'DELIVERED';
 
 @Component({
   selector: 'app-deliveries-tab',
   templateUrl: './deliveries-tab.page.html',
+  styleUrl: './deliveries-tab.page.scss',
   standalone: true,
   imports: [
     IonContent,
@@ -61,14 +62,12 @@ export class DeliveriesTabPage implements ViewWillEnter {
   private navigation = inject(AppNavigationService);
   private shell = inject(AppShellService);
   private cdr = inject(ChangeDetectorRef);
-  readonly layout = inject(LayoutService);
 
   deliveries: ResponseDeliveryDTO[] = [];
   filteredDeliveries: ResponseDeliveryDTO[] = [];
   isLoading = true;
   statusFilter: StatusFilter = 'ALL';
   canCreate = false;
-  photoMap: Record<string, string> = {};
   private readonly photoById = new Map<string, string>();
 
   readonly skeletonItems = [1, 2, 3];
@@ -141,7 +140,6 @@ export class DeliveriesTabPage implements ViewWillEnter {
 
   private resolvePhotos(deliveries: ResponseDeliveryDTO[]): void {
     this.photoById.clear();
-    this.photoMap = {};
 
     for (const delivery of deliveries) {
       if (!delivery.voucherKey) {
@@ -153,7 +151,6 @@ export class DeliveriesTabPage implements ViewWillEnter {
       ).subscribe((response) => {
         if (response?.downloadUrl) {
           this.photoById.set(delivery.id, response.downloadUrl);
-          this.photoMap = { ...this.photoMap, [delivery.id]: response.downloadUrl };
           this.cdr.markForCheck();
         }
       });

@@ -32,17 +32,17 @@ import { isResidentRole, ResponseUserDTO, UserRoles } from '../../core/models';
 import { AppNavigationService } from '../../core/navigation/app-navigation.service';
 import { APP_ROUTES } from '../../core/navigation/app-routes';
 import { AppShellService } from '../../core/shell/app-shell.service';
-import { LayoutService } from '../../core/layout/layout.service';
 import { UiService } from '../../shared/services/ui.service';
 import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog/confirm-dialog.component';
 import { LunaItemListComponent } from '../../shared/components/luna-item-list/luna-item-list.component';
 import { catchError, EMPTY, finalize, of } from 'rxjs';
 
-type RoleFilter = UsersRoleFilter;
+type RoleFilter = 'ALL' | UserRoles.ADMIN_ROLE | UserRoles.EMPLOYEE | UserRoles.RESIDENT_ROLE;
 
 @Component({
   selector: 'app-users',
   templateUrl: './users.page.html',
+  styleUrl: './users.page.scss',
   standalone: true,
   imports: [
     IonContent,
@@ -82,7 +82,6 @@ export class UsersPage implements ViewWillEnter {
   private shell = inject(AppShellService);
   private uiService = inject(UiService);
   private cdr = inject(ChangeDetectorRef);
-  readonly layout = inject(LayoutService);
 
   private readonly confirmDialog = viewChild.required<ConfirmDialogComponent>('confirmDialog');
 
@@ -92,7 +91,6 @@ export class UsersPage implements ViewWillEnter {
   roleFilter: RoleFilter = 'ALL';
   searchQuery = '';
   processingId: string | null = null;
-  currentUserId: string | null = null;
 
   confirmTitle = 'Excluir usuário';
   confirmDescription = '';
@@ -114,7 +112,6 @@ export class UsersPage implements ViewWillEnter {
   ];
 
   ionViewWillEnter(): void {
-    this.currentUserId = this.authService.getCurrentUser()?.id ?? null;
     this.loadUsers();
     this.shell.configure({
       title: 'Usuários',

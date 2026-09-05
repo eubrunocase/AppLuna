@@ -1,5 +1,10 @@
 import { ChangeDetectorRef, Component, inject, viewChild } from '@angular/core';
-import { ViewWillEnter } from '@ionic/angular/standalone';
+import {
+  IonContent,
+  IonRefresher,
+  IonRefresherContent,
+  ViewWillEnter,
+} from '@ionic/angular/standalone';
 import { ActivatedRoute } from '@angular/router';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import {
@@ -30,18 +35,38 @@ import { UiService } from '../../../shared/services/ui.service';
 import { AppNavigationService } from '../../../core/navigation/app-navigation.service';
 import { APP_ROUTES } from '../../../core/navigation/app-routes';
 import { AppShellService } from '../../../core/shell/app-shell.service';
-import { LayoutService } from '../../../core/layout/layout.service';
 import { ReservationDraftService } from '../../reservations/reservation-draft.service';
 import { getSpaceCatalogEntry } from '../../reservations/space-catalog';
 import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog.component';
 import { LunaItemListComponent } from '../../../shared/components/luna-item-list/luna-item-list.component';
 import { catchError, finalize, forkJoin, of } from 'rxjs';
 
-type UnifiedReservation = UnifiedReservationView;
+type ReservationKind = 'space' | 'equipment';
+
+type TypeFilter = 'ALL' | 'SALAO_FESTAS' | 'CHURRASQUEIRA' | 'CAMPO_FUTEBOL' | 'TELEVISAO';
+type StatusFilter = 'ALL' | 'PENDING' | 'APPROVED' | 'CONFIRMED' | 'IN_USE' | 'RETURNED' | 'CANCELED';
+
+interface UnifiedReservation {
+  kind: ReservationKind;
+  type: string;
+  id: string;
+  date: string;
+  status: string;
+  createdAt?: string;
+  spaceType?: string;
+  user?: { id: string; name: string; email: string };
+  equipmentName?: string;
+  startTime?: string;
+  endTime?: string;
+  pickedUpAt?: string | null;
+  returnedAt?: string | null;
+  canceledAt?: string | null;
+}
 
 @Component({
   selector: 'app-reservations-tab',
   templateUrl: './reservations-tab.page.html',
+  styleUrl: './reservations-tab.page.scss',
   standalone: true,
   imports: [
     IonContent,
@@ -84,7 +109,6 @@ export class ReservationsTabPage implements ViewWillEnter {
   private draft = inject(ReservationDraftService);
   private uiService = inject(UiService);
   private cdr = inject(ChangeDetectorRef);
-  readonly layout = inject(LayoutService);
 
   reservations: ReservationResponseDTO[] = [];
   equipmentReservations: EquipmentReservationResponseDTO[] = [];

@@ -1,10 +1,15 @@
 import { Component, ChangeDetectorRef, inject } from '@angular/core';
-import { ViewWillEnter } from '@ionic/angular/standalone';
+import { FormsModule } from '@angular/forms';
+import { IonContent, ViewWillEnter } from '@ionic/angular/standalone';
 import { Router } from '@angular/router';
+import { NgIcon, provideIcons } from '@ng-icons/core';
+import { lucideArrowRight, lucideCheck } from '@ng-icons/lucide';
+import { HlmButtonImports } from '@spartan-ng/helm/button';
+import { HlmRadioGroupImports } from '@spartan-ng/helm/radio-group';
+import { HlmSpinnerImports } from '@spartan-ng/helm/spinner';
 import { catchError, finalize, of } from 'rxjs';
 import { AppNavigationService } from '../../core/navigation/app-navigation.service';
 import { AppShellService } from '../../core/shell/app-shell.service';
-import { LayoutService } from '../../core/layout/layout.service';
 import { SpaceService } from '../../services/space.service';
 import { UiService } from '../../shared/services/ui.service';
 import { SpaceInfo } from '../../core/models/reservation.model';
@@ -13,14 +18,26 @@ import {
   ReservationSpaceDraft,
 } from './reservation-draft.service';
 import { getSpaceCatalogEntry } from './space-catalog';
-import { ReservationSpaceStepDesktopComponent } from './desktop/reservation-space-step-desktop.component';
-import { ReservationSpaceStepMobileComponent } from './mobile/reservation-space-step-mobile.component';
 
 @Component({
   selector: 'app-reservation-space-step',
   templateUrl: './reservation-space-step.page.html',
+  styleUrl: './reservation-flow.scss',
   standalone: true,
-  imports: [ReservationSpaceStepDesktopComponent, ReservationSpaceStepMobileComponent],
+  imports: [
+    FormsModule,
+    IonContent,
+    NgIcon,
+    HlmButtonImports,
+    HlmRadioGroupImports,
+    HlmSpinnerImports,
+  ],
+  providers: [
+    provideIcons({
+      lucideCheck,
+      lucideArrowRight,
+    }),
+  ],
 })
 export class ReservationSpaceStepPage implements ViewWillEnter {
   private spaceService = inject(SpaceService);
@@ -30,7 +47,6 @@ export class ReservationSpaceStepPage implements ViewWillEnter {
   private uiService = inject(UiService);
   private router = inject(Router);
   private cdr = inject(ChangeDetectorRef);
-  readonly layout = inject(LayoutService);
 
   spaces: ReservationSpaceDraft[] = [];
   spacesLoadError = false;
@@ -55,6 +71,10 @@ export class ReservationSpaceStepPage implements ViewWillEnter {
     this.shell.setExpandContent(null);
 
     this.loadSpaces();
+  }
+
+  spaceInputId(spaceId: number): string {
+    return `reservation-space-${spaceId}`;
   }
 
   onSpaceSelected(spaceId: number | null): void {

@@ -1,55 +1,21 @@
-@if (layout.isDesktop()) {
-  <app-deliveries-desktop
-    [statusFilters]="statusFilters"
-    [statusFilter]="statusFilter"
-    [isLoading]="isLoading"
-    [filteredDeliveries]="filteredDeliveries"
-    [canCreate]="canCreate"
-    [canConfirm]="canConfirm"
-    [userNames]="userNamesMap"
-    (statusFilterChange)="setStatusFilter($event)"
-    (create)="openCreateModal()"
-    (confirmPickup)="openPickupDialog($event)"
-    (refreshList)="loadData()"
-  />
-} @else {
-  <app-deliveries-mobile
-    [statusFilters]="statusFilters"
-    [statusFilter]="statusFilter"
-    [isLoading]="isLoading"
-    [skeletonItems]="skeletonItems"
-    [filteredDeliveries]="filteredDeliveries"
-    [itemSize]="itemSize"
-    [canCreate]="canCreate"
-    [canConfirm]="canConfirm"
-    [userNames]="userNamesMap"
-    (refresh)="refresh($event)"
-    (statusFilterChange)="setStatusFilter($event)"
-    (create)="openCreateModal()"
-    (confirmPickup)="openPickupDialog($event)"
-  />
-}
+<ion-content class="shell-page-content deliveries-content">
+  <ion-refresher slot="fixed" (ionRefresh)="refresh($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
 
-<hlm-alert-dialog #pickupDialog="hlmAlertDialog">
-  <hlm-alert-dialog-content *hlmAlertDialogPortal="let ctx">
-    <hlm-alert-dialog-header>
-      <hlm-alert-dialog-media>
-        <ng-icon name="lucideUserCheck" />
-      </hlm-alert-dialog-media>
-      <h2 hlmAlertDialogTitle>Confirmar Retirada</h2>
-      <p hlmAlertDialogDescription>Informe o nome de quem está retirando a encomenda.</p>
-    </hlm-alert-dialog-header>
-
-    <div class="pickup-dialog__field" style="display:flex;flex-direction:column;gap:0.5rem;padding:0 0.25rem 0.5rem;">
-      <label hlmFieldLabel for="pickup-name">Nome completo</label>
-      <input
-        hlmInput
-        id="pickup-name"
-        type="text"
-        [(ngModel)]="pickupName"
-        placeholder="Nome de quem retira"
-        autocomplete="name"
-      />
+  <div class="deliveries-shell">
+    <div class="chip-row" role="tablist" aria-label="Status da entrega">
+      @for (filter of statusFilters; track filter.value) {
+        <button
+          type="button"
+          class="filter-chip"
+          [class.filter-chip--active]="statusFilter === filter.value"
+          (click)="setStatusFilter(filter.value)"
+        >
+          <ng-icon [name]="filter.icon" />
+          {{ filter.label }}
+        </button>
+      }
     </div>
 
     @if (canCreate) {

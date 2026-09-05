@@ -1,0 +1,298 @@
+:host {
+  display: block;
+  height: 100%;
+}
+
+.deliveries-content {
+  --background: #f9f6ee;
+}
+
+.deliveries-shell {
+  position: relative;
+  min-height: 100%;
+  padding: 0 1rem 5.5rem;
+}
+
+.chip-row {
+  display: flex;
+  gap: 0.45rem;
+  overflow-x: auto;
+  margin: 0 -1rem 0.95rem;
+  padding: 0.1rem 1rem 0.35rem;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+.filter-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  flex-shrink: 0;
+  height: 2.15rem;
+  padding: 0 0.85rem;
+  border: 1px solid rgba(192, 92, 70, 0.16);
+  border-radius: 999px;
+  background: #ffffff;
+  color: #6a3327;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+
+  ng-icon {
+    font-size: 0.9rem;
+  }
+
+  &--active {
+    background: #c05c46;
+    border-color: #c05c46;
+    color: #ffffff;
+  }
+}
+
+.delivery-card {
+  margin: 0;
+  padding: 0 !important;
+  gap: 0 !important;
+  --card-spacing: 0 !important;
+  overflow: hidden;
+  background: #ffffff;
+  border: 1px solid rgba(192, 92, 70, 0.12);
+  box-shadow: 0 8px 22px rgba(54, 26, 20, 0.07);
+
+  &--pending {
+    border-color: rgba(227, 168, 71, 0.55);
+    box-shadow: 0 8px 22px rgba(227, 168, 71, 0.16);
+  }
+
+  &--skeleton {
+    pointer-events: none;
+  }
+}
+
+.delivery-card__inner {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.85rem;
+  padding: 0.85rem;
+}
+
+.delivery-card__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 3rem;
+  height: 3rem;
+  border-radius: 0.85rem;
+  background: #ecfdf5;
+  color: #047857;
+  font-size: 1.35rem;
+  overflow: hidden;
+
+  &--pending {
+    background: #fff4ed;
+    color: #c2410c;
+  }
+
+  &--photo {
+    background: #f3ebe4;
+    padding: 0;
+  }
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+}
+
+.delivery-card__body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.28rem;
+  min-width: 0;
+  flex: 1;
+}
+
+.delivery-card__top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.45rem;
+}
+
+.delivery-card__top h3 {
+  margin: 0;
+  min-width: 0;
+  font-size: 0.95rem;
+  font-weight: 700;
+  line-height: 1.25;
+  color: #361a14;
+}
+
+.delivery-card__meta {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin: 0;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: #8a5a4e;
+  line-height: 1.3;
+
+  ng-icon {
+    flex-shrink: 0;
+    font-size: 0.85rem;
+  }
+
+  &--success {
+    color: #047857;
+    font-weight: 600;
+  }
+}
+
+.delivery-card__actions {
+  padding: 0 0.85rem 0.85rem;
+}
+
+.action-btn {
+  width: 100%;
+  height: 2.35rem !important;
+  border-radius: 0.75rem !important;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  gap: 0.3rem;
+
+  ng-icon {
+    font-size: 0.95rem;
+  }
+}
+
+.action-btn--confirm {
+  background: #3d8b5f !important;
+  color: #ffffff !important;
+}
+
+.delivery-card__skeleton-icon {
+  flex-shrink: 0;
+  width: 3rem;
+  height: 3rem;
+  border-radius: 0.85rem;
+  background: rgba(192, 92, 70, 0.12) !important;
+}
+
+.delivery-card__skeleton-title {
+  width: 68%;
+  height: 0.95rem;
+  border-radius: 999px;
+  background: rgba(192, 92, 70, 0.14) !important;
+}
+
+.delivery-card__skeleton-line {
+  width: 86%;
+  height: 0.7rem;
+  border-radius: 999px;
+  background: rgba(192, 92, 70, 0.1) !important;
+
+  &--short {
+    width: 54%;
+  }
+}
+
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  flex-shrink: 0;
+  height: 1.45rem;
+  padding: 0 0.55rem 0 0.45rem;
+  border-radius: 999px;
+  background: #f4f0ea;
+  font-size: 0.64rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: #57534e;
+}
+
+.status-pill__dot {
+  width: 0.45rem;
+  height: 0.45rem;
+  border-radius: 999px;
+  background: currentColor;
+  flex-shrink: 0;
+}
+
+.status-pill--PENDING {
+  background: #fff4ed;
+  color: #c2410c;
+}
+
+.status-pill--DELIVERED {
+  background: #ecfdf5;
+  color: #047857;
+}
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2.5rem 1.25rem 3.5rem;
+  text-align: center;
+}
+
+.empty-state__image {
+  width: min(240px, 72vw);
+  height: auto;
+  margin-bottom: 0.35rem;
+}
+
+.empty-state__title {
+  margin: 0 0 0.3rem;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #361a14;
+}
+
+.empty-state__message {
+  margin: 0;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: #8a5a4e;
+}
+
+.deliveries-fab {
+  position: fixed;
+  right: 1rem;
+  bottom: var(--app-fab-bottom, 5rem);
+  z-index: 16;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 3.4rem;
+  height: 3.4rem;
+  border: 0;
+  border-radius: 1.05rem;
+  background: #c05c46;
+  color: #ffffff;
+  box-shadow: 0 10px 24px rgba(192, 92, 70, 0.35);
+  cursor: pointer;
+
+  ng-icon {
+    font-size: 1.45rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .filter-chip,
+  .deliveries-fab {
+    transition: none;
+  }
+}

@@ -163,32 +163,16 @@
     [icon]="confirmIcon"
     (confirmed)="confirmAction()"
   />
-} @else {
-  <app-equipment-reservations-mobile
-    [statusFilters]="statusFilters"
-    [statusFilter]="statusFilter"
-    [searchQuery]="searchQuery"
-    [isLoading]="isLoading"
-    [skeletonItems]="skeletonItems"
-    [filteredReservations]="filteredReservations"
-    [itemSize]="itemSize"
-    [processingId]="processingId"
-    [canCreate]="canCreate"
-    [canManage]="canManage"
-    (refresh)="refresh($event)"
-    (statusFilterChange)="setStatusFilter($event)"
-    (searchQueryChange)="setSearchQuery($event)"
-    (handover)="askHandover($event)"
-    (returnItem)="askReturn($event)"
-    (create)="openCreate()"
-  />
-}
 
-<app-confirm-dialog
-  #confirmDialog
-  [title]="confirmTitle"
-  [description]="confirmDescription"
-  [confirmLabel]="confirmLabel"
-  [icon]="confirmIcon"
-  (confirmed)="confirmAction()"
-/>
+  @if (canCreate) {
+    <button
+      slot="fixed"
+      type="button"
+      class="equipment-fab"
+      aria-label="Nova reserva de TV"
+      (click)="openCreate()"
+    >
+      <ng-icon name="lucidePlus" />
+    </button>
+  }
+</ion-content>
