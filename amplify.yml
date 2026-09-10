@@ -10,7 +10,7 @@ frontend:
     build:
       commands:
         - node --version
-        - npm ci --cache .npm --prefer-offline
+        - npm install
         - npm run build
   artifacts:
     baseDirectory: www
