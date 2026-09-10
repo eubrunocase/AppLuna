@@ -48,7 +48,9 @@
             "scripts": [],
             "browser": "src/main.ts",
             "allowedCommonJsDependencies": [
-              "canvas-confetti"
+              "canvas-confetti",
+              "@stomp/stompjs",
+              "sockjs-client"
             ]
           },
           "configurations": {
@@ -61,8 +63,8 @@
                 },
                 {
                   "type": "anyComponentStyle",
-                  "maximumWarning": "6kb",
-                  "maximumError": "8kb"
+                  "maximumWarning": "12kb",
+                  "maximumError": "16kb"
                 }
               ],
               "fileReplacements": [
